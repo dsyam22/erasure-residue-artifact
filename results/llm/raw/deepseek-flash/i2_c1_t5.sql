@@ -1,0 +1,24 @@
+/* Read-only verification that the erased subject's personal data is no longer stored. */
+SET NOCOUNT ON;
+
+DECLARE @cid    int           = 42;
+DECLARE @name   nvarchar(200) = N'Subject_0000042';
+DECLARE @email  nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone  nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @hits TABLE (object_name sysname, rows_found bigint);
+
+/* dbo.customer */
+INSERT INTO @hits (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+/* Return exactly one result set */
+SELECT object_name, rows_found
+FROM @hits
+ORDER BY object_name;

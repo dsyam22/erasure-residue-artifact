@@ -1,0 +1,80 @@
+/* Read-only verification of residual personal data for subject 42 */
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* Current table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* Temporal history table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer_history',
+       COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* Discover and check any other tables/views in the database that contain
+   the subject's data in matching columns (covers downstream copies). */
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.name NOT IN ('customer', 'customer_history')
+      AND EXISTS (
+          SELECT 1 FROM sys.columns c
+          WHERE c.object_id = t.object_id
+            AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+      );
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N''' + REPLACE(QUOTENAME(@schema) + N'.' + QUOTENAME(@table), N'''', N'''''') + N''',
+               COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' +
+        STUFF(
+            (SELECT N' OR ' + QUOTENAME(c.name) + N' = @p_' + c.name
+             FROM sys.columns c
+             WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+               AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+             FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'),
+            1, 4, N'');
+
+    EXEC sp_executesql @sql,
+        N'@p_customer_id int, @p_full_name nvarchar(200), @p_email nvarchar(320), @p_phone nvarchar(50)',
+        @p_customer_id = @cid,
+        @p_full_name = @full_name,
+        @p_email = @email,
+        @p_phone = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

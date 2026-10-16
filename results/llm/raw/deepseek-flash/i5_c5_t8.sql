@@ -1,0 +1,63 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+-- dbo.customer: check all four identifying columns
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+-- Search every user table in the database (excluding dbo.customer already handled)
+-- for any column containing any of the subject's identifiers.
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA
+ AND t.TABLE_NAME = c.TABLE_NAME
+ AND t.TABLE_TYPE = 'BASE TABLE'
+WHERE c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext')
+  AND NOT (c.TABLE_SCHEMA = 'dbo' AND c.TABLE_NAME = 'customer')
+ORDER BY c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT ' + QUOTENAME(@schema + '.' + @table, '''') + N',
+               COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) IN (@n, @e, @p)
+           OR CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) = CAST(@cid AS nvarchar(20));';
+
+    EXEC sp_executesql @sql,
+        N'@n nvarchar(200), @e nvarchar(320), @p nvarchar(50), @cid int',
+        @n = @name, @e = @email, @p = @phone, @cid = @cid;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+-- Aggregate per object (a table may have multiple matching columns)
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;

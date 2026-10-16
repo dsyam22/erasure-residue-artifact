@@ -1,0 +1,7 @@
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|column_name|data_type|is_hidden
+-----------|----------|------------------|-------------------|------------------|-----------------|-----------|---------|---------
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|customer_id|int|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|full_name|nvarchar|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|email|nvarchar|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|phone|nvarchar|0
+(4 rows affected)

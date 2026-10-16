@@ -1,0 +1,7 @@
+SELECT
+    CAST('dbo.customer' AS NVARCHAR(120)) AS object_name,
+    ISNULL((SELECT COUNT(*) FROM dbo.customer WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'), 0) AS rows_found
+UNION ALL
+SELECT
+    CAST('dbo.customer_history' AS NVARCHAR(120)) AS object_name,
+    ISNULL((SELECT COUNT(*) FROM dbo.customer_history WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'), 0) AS rows_found;

@@ -1,0 +1,28 @@
+DECLARE @Subject_Customer_ID INT = 42;
+DECLARE @Target_Phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Check 1: dbo.customer (The current live table)
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(CASE WHEN c.phone IS NOT NULL AND c.phone = @Target_Phone THEN 1 ELSE NULL END) AS rows_found
+FROM
+    dbo.customer c
+WHERE
+    c.customer_id = @Subject_Customer_ID
+
+UNION ALL
+
+-- Check 2: cdc.dbo_customer_CT (The Change Data Capture table)
+SELECT
+    'cdc.dbo_customer_CT',
+    COUNT(CASE WHEN T.[phone] IS NOT NULL AND T.[phone] = @Target_Phone THEN 1 ELSE NULL END)
+FROM
+    cdc.dbo_customer_CT AS T
+WHERE
+    T.[customer_id] = @Subject_Customer_ID
+
+UNION ALL
+
+-- Note: No temporal history check is required as the tables were explicitly set to NON_TEMPORAL_TABLE.
+SELECT
+    'N/A (No other relevant objects checked)'

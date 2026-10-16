@@ -1,0 +1,13 @@
+-- SCRIPT
+-- Checks the only user table identified in llm_i8.
+-- Transaction-log inspection was denied by SQL Server permissions.
+-- A zero count does not prove physical erasure: deleted data may remain in
+-- transaction logs, deallocated pages, backups, or other inaccessible storage.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM [llm_i8].[dbo].[customer]
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';

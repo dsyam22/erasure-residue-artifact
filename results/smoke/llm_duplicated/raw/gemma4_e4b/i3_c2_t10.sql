@@ -1,0 +1,8 @@
+SELECT 'dbo.customer' AS object_name, COUNT(*) AS rows_found FROM dbo.customer WHERE full_name = N'Subject_0000042' AND email = N'subject42@example.invalid' AND phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'dbo.member' AS object_name, COUNT(*) AS rows_found FROM dbo.member WHERE full_name = N'Subject_0000042' AND email = N'subject42@example.invalid' AND phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'dbo.member_history' AS object_name, COUNT(*) AS rows_found FROM dbo.member_history WHERE full_name = N'Subject_0000042' AND email = N'subject42@example.invalid' OR phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'cdc.dbo_customer_CT' AS object_name, COUNT(DISTINCT T.*) AS rows_found FROM cdc.dbo_customer_CT AS T WHERE T.customer_id = 42 -- Checking the change tracking table for record ID presence
+ORDER BY object_name;

@@ -1,0 +1,16 @@
+WITH CheckResults AS (
+    -- 1. Check the main customer table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        (SELECT COUNT(CASE WHEN phone = '+1-555-0000042' THEN 1 END) FROM dbo.customer WHERE customer_id = 42) AS rows_found
+),
+CheckCDCResults AS (
+    -- 2. Check the CDC change table (cdc.dbo_customer_CT)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        (SELECT COUNT(CASE WHEN phone = '+1-555-0000042' THEN 1 END) FROM cdc.dbo_customer_CT WHERE customer_id = 42) AS rows_found
+)
+-- Combine all checks into the required single result set format
+SELECT object_name, rows_found FROM CheckResults
+UNION ALL
+SELECT object_name, rows_found FROM CheckCDCResults;

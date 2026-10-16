@@ -1,0 +1,27 @@
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+cdc|captured_columns|object_id|int
+cdc|captured_columns|column_id|int
+cdc|captured_columns|column_ordinal|int
+cdc|captured_columns|masking_function|nvarchar
+cdc|change_tables|object_id|int
+cdc|change_tables|version|int
+cdc|change_tables|source_object_id|int
+cdc|dbo_customer_CT|__$operation|int
+cdc|dbo_customer_CT|customer_id|int
+cdc|dbo_customer_CT|full_name|nvarchar
+cdc|dbo_customer_CT|email|nvarchar
+cdc|dbo_customer_CT|phone|nvarchar
+cdc|dbo_customer_CT|__$command_id|int
+cdc|ddl_history|source_object_id|int
+cdc|ddl_history|object_id|int
+cdc|ddl_history|ddl_command|nvarchar
+cdc|index_columns|object_id|int
+cdc|index_columns|column_id|int
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|systranschemas|tabid|int
+dbo|systranschemas|typeid|int
+(24 rows affected)

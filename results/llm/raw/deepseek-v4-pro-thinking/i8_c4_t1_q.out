@@ -1,0 +1,25 @@
+database_name
+-------------
+llm_i8
+(1 rows affected)
+schema_name|table_name|type_desc|create_date|modify_date
+-----------|----------|---------|-----------|-----------
+dbo|customer|USER_TABLE|2026-10-10 19:08:27.243|2026-10-10 19:08:27.243
+(1 rows affected)
+schema_name|table_name|column_name|data_type|max_length|precision|scale|is_nullable|is_computed|is_identity|column_id
+-----------|----------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|---------
+dbo|customer|customer_id|int|4|10|0|0|0|0|1
+dbo|customer|full_name|nvarchar|200|0|0|0|0|0|2
+dbo|customer|email|nvarchar|400|0|0|0|0|0|3
+dbo|customer|phone|nvarchar|60|0|0|1|0|0|4
+(4 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+(1 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)

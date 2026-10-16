@@ -1,0 +1,17 @@
+schema_name|table_name|column_name|type_name|max_length
+-----------|----------|-----------|---------|----------
+cdc|captured_columns|column_name|sysname|256
+cdc|captured_columns|column_type|sysname|256
+cdc|captured_columns|masking_function|nvarchar|8000
+cdc|change_tables|capture_instance|sysname|256
+cdc|change_tables|role_name|sysname|256
+cdc|change_tables|index_name|sysname|256
+cdc|change_tables|filegroup_name|sysname|256
+cdc|dbo_customer_CT|full_name|nvarchar|200
+cdc|dbo_customer_CT|email|nvarchar|400
+cdc|dbo_customer_CT|phone|nvarchar|60
+cdc|ddl_history|ddl_command|nvarchar|-1
+cdc|index_columns|column_name|sysname|256
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+(14 rows affected)

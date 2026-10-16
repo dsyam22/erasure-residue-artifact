@@ -1,0 +1,11 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME
+------------|----------|-----------
+dbo|customer|customer_id
+dbo|customer|full_name
+dbo|customer|email
+dbo|customer|phone
+reporting|customer_replica|customer_id
+reporting|customer_replica|full_name
+reporting|customer_replica|email
+reporting|customer_replica|phone
+(8 rows affected)

@@ -1,0 +1,196 @@
+/* Read-only verification: is the erased personal data still stored anywhere? */
+
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#checked') IS NOT NULL DROP TABLE #checked;
+CREATE TABLE #checked (object_name sysname, rows_found bigint);
+
+/* 1) The base table itself */
+INSERT INTO #checked (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* 2) Any change-tracking side tables (sys.change_tracking_tables) */
+IF OBJECT_ID('sys.change_tracking_tables') IS NOT NULL
+BEGIN
+    DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+    DECLARE ct CURSOR LOCAL FAST_FORWARD FOR
+        SELECT s.name, t.name
+        FROM sys.change_tracking_tables ct
+        JOIN sys.tables  t ON t.object_id = ct.object_id
+        JOIN sys.schemas s ON s.schema_id = t.schema_id;
+
+    OPEN ct;
+    FETCH NEXT FROM ct INTO @schema, @table;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'
+            INSERT INTO #checked (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+            WHERE customer_id = @cid
+               OR full_name = @name
+               OR email = @email
+               OR phone = @phone;';
+
+        BEGIN TRY
+            EXEC sp_executesql @sql,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = @schema + N'.' + @table,
+                @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #checked (object_name, rows_found)
+            VALUES (@schema + N'.' + @table, 0);
+        END CATCH;
+
+        FETCH NEXT FROM ct INTO @schema, @table;
+    END
+    CLOSE ct;
+    DEALLOCATE ct;
+END
+
+/* 3) Any CDC change tables (cdc schema) */
+IF OBJECT_ID('cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @cdcSchema sysname, @cdcTable sysname, @cdcSql nvarchar(max);
+
+    DECLARE cdc CURSOR LOCAL FAST_FORWARD FOR
+        SELECT OBJECT_SCHEMA_NAME(source_object_id), capture_instance
+        FROM cdc.change_tables;
+
+    OPEN cdc;
+    FETCH NEXT FROM cdc INTO @cdcSchema, @cdcTable;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @cdcSql = N'
+            INSERT INTO #checked (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM cdc.' + QUOTENAME(@cdcTable) + N'
+            WHERE customer_id = @cid
+               OR full_name = @name
+               OR email = @email
+               OR phone = @phone;';
+
+        BEGIN TRY
+            EXEC sp_executesql @cdcSql,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = N'cdc.' + @cdcTable,
+                @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #checked (object_name, rows_found)
+            VALUES (N'cdc.' + @cdcTable, 0);
+        END CATCH;
+
+        FETCH NEXT FROM cdc INTO @cdcSchema, @cdcTable;
+    END
+    CLOSE cdc;
+    DEALLOCATE cdc;
+END
+
+/* 4) Temporal history tables (only if any exist) */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE temporal_type = 1)
+BEGIN
+    DECLARE @hSchema sysname, @hTable sysname, @hSql nvarchar(max);
+
+    DECLARE hist CURSOR LOCAL FAST_FORWARD FOR
+        SELECT s.name, h.name
+        FROM sys.tables h
+        JOIN sys.schemas s ON s.schema_id = h.schema_id
+        WHERE h.temporal_type = 1;
+
+    OPEN hist;
+    FETCH NEXT FROM hist INTO @hSchema, @hTable;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @hSql = N'
+            INSERT INTO #checked (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@hSchema) + N'.' + QUOTENAME(@hTable) + N'
+            WHERE customer_id = @cid
+               OR full_name = @name
+               OR email = @email
+               OR phone = @phone;';
+
+        BEGIN TRY
+            EXEC sp_executesql @hSql,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = @hSchema + N'.' + @hTable,
+                @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #checked (object_name, rows_found)
+            VALUES (@hSchema + N'.' + @hTable, 0);
+        END CATCH;
+
+        FETCH NEXT FROM hist INTO @hSchema, @hTable;
+    END
+    CLOSE hist;
+    DEALLOCATE hist;
+END
+
+/* 5) Any other table in the database that has columns matching the personal data */
+DECLARE @oSchema sysname, @oTable sysname, @oCols nvarchar(max), @oWhere nvarchar(max), @oSql nvarchar(max);
+
+DECLARE other CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT IN ('customer')
+      AND NOT (t.name LIKE 'cdc%')
+      AND t.object_id NOT IN (SELECT object_id FROM sys.change_tracking_tables)
+      AND t.temporal_type <> 1;
+
+OPEN other;
+FETCH NEXT FROM other INTO @oSchema, @oTable;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @oWhere = NULL;
+
+    IF EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = OBJECT_ID(QUOTENAME(@oSchema)+'.'+QUOTENAME(@oTable)) AND c.name = 'customer_id')
+        SET @oWhere = ISNULL(@oWhere + ' OR ', '') + 'customer_id = @cid';
+    IF EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = OBJECT_ID(QUOTENAME(@oSchema)+'.'+QUOTENAME(@oTable)) AND c.name = 'full_name')
+        SET @oWhere = ISNULL(@oWhere + ' OR ', '') + 'full_name = @name';
+    IF EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = OBJECT_ID(QUOTENAME(@oSchema)+'.'+QUOTENAME(@oTable)) AND c.name = 'email')
+        SET @oWhere = ISNULL(@oWhere + ' OR ', '') + 'email = @email';
+    IF EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = OBJECT_ID(QUOTENAME(@oSchema)+'.'+QUOTENAME(@oTable)) AND c.name = 'phone')
+        SET @oWhere = ISNULL(@oWhere + ' OR ', '') + 'phone = @phone';
+
+    IF @oWhere IS NOT NULL
+    BEGIN
+        SET @oSql = N'
+            INSERT INTO #checked (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@oSchema) + N'.' + QUOTENAME(@oTable) + N'
+            WHERE ' + @oWhere + N';';
+
+        BEGIN TRY
+            EXEC sp_executesql @oSql,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = @oSchema + N'.' + @oTable,
+                @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #checked (object_name, rows_found)
+            VALUES (@oSchema + N'.' + @oTable, 0);
+        END CATCH;
+    END
+
+    FETCH NEXT FROM other INTO @oSchema, @oTable;
+END
+CLOSE other;
+DEALLOCATE other;
+
+SELECT object_name, rows_found
+FROM #checked
+ORDER BY object_name;

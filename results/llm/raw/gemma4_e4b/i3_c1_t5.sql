@@ -1,0 +1,32 @@
+DECLARE @SubjectName nvarchar = 'Subject_0000042';
+DECLARE @SubjectEmail nvarchar = 'subject42@example.invalid';
+DECLARE @SubjectPhone nvarchar = '+1-555-0000042';
+
+-- Declare variables to hold the count for each object
+DECLARE @CustomerRowsFound INT;
+DECLARE @MemberRowsFound INT;
+
+------------------------------------------
+-- 1. Check dbo.customer table
+------------------------------------------
+SELECT @CustomerRowsFound = COUNT(*)
+FROM dbo.customer c
+WHERE c.full_name = @SubjectName
+   OR c.email = @SubjectEmail
+   OR c.phone = @SubjectPhone;
+
+------------------------------------------
+-- 2. Check dbo.member table
+------------------------------------------
+SELECT @MemberRowsFound = COUNT(*)
+FROM dbo.member m
+WHERE m.full_name = @SubjectName
+   OR m.email = @SubjectEmail
+   OR m.phone = @SubjectPhone;
+
+------------------------------------------
+-- 3. Return the required single result set
+------------------------------------------
+SELECT 'dbo.customer' AS object_name, CAST(@CustomerRowsFound AS VARCHAR(10)) AS rows_found
+UNION ALL
+SELECT 'dbo.member', CAST(@MemberRowsFound AS VARCHAR(10));

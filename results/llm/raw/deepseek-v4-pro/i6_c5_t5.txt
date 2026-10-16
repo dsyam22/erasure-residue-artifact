@@ -1,0 +1,61 @@
+```sql
+-- SCRIPT
+DECLARE @customer_id int = 42;
+DECLARE @phone nvarchar(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(500),
+    rows_found int
+);
+
+-- Check dbo.customer for phone data (column dropped, but check if any column contains the phone value)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND (
+      CAST(full_name AS nvarchar(500)) = @phone
+      OR CAST(email AS nvarchar(500)) = @phone
+      OR CAST(customer_id AS nvarchar(500)) = @phone
+  );
+
+-- Check all columns in all tables for the phone number
+DECLARE @sql nvarchar(max) = N'';
+DECLARE @table_name nvarchar(500);
+DECLARE @column_name nvarchar(500);
+
+DECLARE table_cursor CURSOR FOR
+SELECT s.name + '.' + t.name AS table_name, c.name AS column_name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('varchar', 'nvarchar', 'char', 'nchar', 'text', 'ntext')
+  AND t.name != 'customer';
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO #results (object_name, rows_found)
+                 SELECT ''' + @table_name + ''', COUNT(*)
+                 FROM ' + QUOTENAME(@table_name) + '
+                 WHERE ' + QUOTENAME(@column_name) + ' = @phone';
+    
+    EXEC sp_executesql @sql, N'@phone nvarchar(50)', @phone = @phone;
+    
+    FETCH NEXT FROM table_cursor INTO @table_name, @column_name;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Aggregate results by object
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

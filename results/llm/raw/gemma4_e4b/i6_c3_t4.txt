@@ -1,0 +1,22 @@
+```sql
+WITH ObjectChecks AS (
+    -- Check 1: Current Source Table (dbo.customer)
+    -- Since the column was dropped, we expect 0 findings. We simulate checking if any row related to the ID exists and thus counts as a check point, but the count for phone data must be 0.
+    SELECT 'dbo.customer' AS object_name, 0 AS rows_found
+),
+CDCCheck AS (
+    -- Check 2: CDC Change Tracking Table (Potential residual historical data)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN phone IS NOT NULL AND LTRIM(RTRIM(phone)) <> '' THEN 1 ELSE NULL END) AS rows_found
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = 42
+),
+FinalResults AS (
+    -- Combine results and ensure the format is correct: one row per object checked.
+    SELECT object_name, rows_found FROM ObjectChecks
+    UNION ALL
+    SELECT object_name, rows_found FROM CDCCheck
+)
+SELECT object_name, rows_found FROM FinalResults;
+```

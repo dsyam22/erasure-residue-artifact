@@ -1,0 +1,112 @@
+Info|TABLE_SCHEMA|TABLE_NAME|TABLE_TYPE
+----|------------|----------|----------
+Tables|cdc|captured_columns|BASE TABLE
+Tables|cdc|change_tables|BASE TABLE
+Tables|cdc|dbo_customer_CT|BASE TABLE
+Tables|cdc|ddl_history|BASE TABLE
+Tables|cdc|index_columns|BASE TABLE
+Tables|cdc|lsn_time_mapping|BASE TABLE
+Tables|dbo|customer|BASE TABLE
+Tables|dbo|systranschemas|BASE TABLE
+(8 rows affected)
+Info|TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE|CHARACTER_MAXIMUM_LENGTH|IS_NULLABLE|COLUMN_DEFAULT
+----|------------|----------|-----------|---------|------------------------|-----------|--------------
+Columns|cdc|captured_columns|object_id|int|NULL|NO|NULL
+Columns|cdc|captured_columns|column_name|nvarchar|128|NO|NULL
+Columns|cdc|captured_columns|column_id|int|NULL|YES|NULL
+Columns|cdc|captured_columns|column_type|nvarchar|128|NO|NULL
+Columns|cdc|captured_columns|column_ordinal|int|NULL|NO|NULL
+Columns|cdc|captured_columns|is_computed|bit|NULL|YES|NULL
+Columns|cdc|captured_columns|masking_function|nvarchar|4000|YES|NULL
+Columns|cdc|change_tables|object_id|int|NULL|NO|NULL
+Columns|cdc|change_tables|version|int|NULL|YES|NULL
+Columns|cdc|change_tables|source_object_id|int|NULL|YES|NULL
+Columns|cdc|change_tables|capture_instance|nvarchar|128|NO|NULL
+Columns|cdc|change_tables|start_lsn|binary|10|YES|NULL
+Columns|cdc|change_tables|end_lsn|binary|10|YES|NULL
+Columns|cdc|change_tables|supports_net_changes|bit|NULL|YES|NULL
+Columns|cdc|change_tables|has_drop_pending|bit|NULL|YES|NULL
+Columns|cdc|change_tables|role_name|nvarchar|128|YES|NULL
+Columns|cdc|change_tables|index_name|nvarchar|128|YES|NULL
+Columns|cdc|change_tables|filegroup_name|nvarchar|128|YES|NULL
+Columns|cdc|change_tables|create_date|datetime|NULL|YES|NULL
+Columns|cdc|change_tables|partition_switch|bit|NULL|NO|((0))
+Columns|cdc|dbo_customer_CT|__$start_lsn|binary|10|NO|NULL
+Columns|cdc|dbo_customer_CT|__$end_lsn|binary|10|YES|NULL
+Columns|cdc|dbo_customer_CT|__$seqval|binary|10|NO|NULL
+Columns|cdc|dbo_customer_CT|__$operation|int|NULL|NO|NULL
+Columns|cdc|dbo_customer_CT|__$update_mask|varbinary|128|YES|NULL
+Columns|cdc|dbo_customer_CT|customer_id|int|NULL|YES|NULL
+Columns|cdc|dbo_customer_CT|full_name|nvarchar|100|YES|NULL
+Columns|cdc|dbo_customer_CT|email|nvarchar|200|YES|NULL
+Columns|cdc|dbo_customer_CT|phone|nvarchar|30|YES|NULL
+Columns|cdc|dbo_customer_CT|__$command_id|int|NULL|YES|NULL
+Columns|cdc|ddl_history|source_object_id|int|NULL|YES|NULL
+Columns|cdc|ddl_history|object_id|int|NULL|NO|NULL
+Columns|cdc|ddl_history|required_column_update|bit|NULL|YES|NULL
+Columns|cdc|ddl_history|ddl_command|nvarchar|-1|YES|NULL
+Columns|cdc|ddl_history|ddl_lsn|binary|10|NO|NULL
+Columns|cdc|ddl_history|ddl_time|datetime|NULL|YES|NULL
+Columns|cdc|index_columns|object_id|int|NULL|NO|NULL
+Columns|cdc|index_columns|column_name|nvarchar|128|NO|NULL
+Columns|cdc|index_columns|index_ordinal|tinyint|NULL|NO|NULL
+Columns|cdc|index_columns|column_id|int|NULL|NO|NULL
+Columns|cdc|lsn_time_mapping|start_lsn|binary|10|NO|NULL
+Columns|cdc|lsn_time_mapping|tran_begin_time|datetime|NULL|YES|NULL
+Columns|cdc|lsn_time_mapping|tran_end_time|datetime|NULL|YES|NULL
+Columns|cdc|lsn_time_mapping|tran_id|varbinary|10|YES|NULL
+Columns|cdc|lsn_time_mapping|tran_begin_lsn|binary|10|YES|NULL
+Columns|dbo|customer|customer_id|int|NULL|NO|NULL
+Columns|dbo|customer|full_name|nvarchar|100|NO|NULL
+Columns|dbo|customer|email|nvarchar|200|NO|NULL
+Columns|dbo|systranschemas|tabid|int|NULL|NO|NULL
+Columns|dbo|systranschemas|startlsn|binary|10|NO|NULL
+Columns|dbo|systranschemas|endlsn|binary|10|NO|NULL
+Columns|dbo|systranschemas|typeid|int|NULL|NO|((52))
+(52 rows affected)
+Info|TABLE_SCHEMA|TABLE_NAME|VIEW_DEFINITION
+----|------------|----------|---------------
+(0 rows affected)
+Info|SchemaName|ObjectName|ObjectType|definition
+----|----------|----------|----------|----------
+Modules|cdc|fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_all_changes_ ... ](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+Modules|cdc|fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_all_changes_...](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+Modules|cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+Modules|cdc|fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_net_changes_ ... ](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+Modules|cdc|fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create 
+[output truncated]

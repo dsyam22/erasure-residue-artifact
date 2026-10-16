@@ -1,0 +1,43 @@
+database_name|server_version
+-------------|--------------
+llm_i5|Microsoft SQL Server 2022 (RTM-CU27) (KB5104824) - 16.0.4295.3 (X64)
+	Aug 26 2026 11:02:22
+	Copyright (C) 2022 Microsoft Corporation
+	Developer Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+(1 rows affected)
+schema_name|table_name|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|change_tracking_enabled|is_memory_optimized|row_count
+-----------|----------|------------------|--------------|-------------|-----------------|-----------------------|-------------------|---------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|0|99
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|0|0|0|1
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+dbo|customer|valid_from|datetime2|8
+dbo|customer|valid_to|datetime2|8
+dbo|customer_history|customer_id|int|4
+dbo|customer_history|full_name|nvarchar|200
+dbo|customer_history|email|nvarchar|400
+dbo|customer_history|phone|nvarchar|60
+dbo|customer_history|valid_from|datetime2|8
+dbo|customer_history|valid_to|datetime2|8
+(12 rows affected)
+fk_name|child_table|parent_table|delete_referential_action_desc
+-------|-----------|------------|------------------------------
+(0 rows affected)
+type_desc|schema_name|object_name
+---------|-----------|-----------
+(0 rows affected)
+schema_name|table_name|is_enabled
+-----------|----------|----------
+(0 rows affected)
+trigger_name|is_disabled|is_instead_of_trigger
+------------|-----------|---------------------
+(0 rows affected)
+index_name|type_desc|is_primary_key|is_unique
+----------|---------|--------------|---------
+PK__customer__CD65CB85A8B6E4A9|CLUSTERED|1|1
+(1 rows affected)

@@ -1,0 +1,72 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #pii_scan_result
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @p1 nvarchar(200) = N'%Subject\_0000042%';          -- full_name (LIKE-escaped underscore)
+DECLARE @p2 nvarchar(200) = N'%subject42@example.invalid%'; -- email
+DECLARE @p3 nvarchar(200) = N'%+1-555-0000042%';            -- phone
+
+DECLARE @schema_name sysname, @table_name sysname, @object_id int;
+DECLARE @obj nvarchar(400), @cond nvarchar(max), @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @object_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+    SET @obj = REPLACE(REPLACE(@obj, N'[', N''), N']', N'');  -- display as schema.table
+    SET @obj = @schema_name + N'.' + @table_name;
+
+    SET @cond = NULL;
+    SELECT @cond = STUFF((
+        SELECT N' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE @p1 ESCAPE ''\'''
+             + N' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE @p2 ESCAPE ''\'''
+             + N' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE @p3 ESCAPE ''\'''
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @object_id
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'xml')
+        ORDER BY c.column_id
+        FOR XML PATH(N''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, N'');
+
+    IF @cond IS NULL
+    BEGIN
+        INSERT INTO #pii_scan_result (object_name, rows_found) VALUES (@obj, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #pii_scan_result (object_name, rows_found) '
+                 + N'SELECT @obj, COUNT_BIG(*) FROM '
+                 + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)
+                 + N' WHERE (' + @cond + N');';
+
+        EXEC sys.sp_executesql
+            @sql,
+            N'@p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200), @obj nvarchar(400)',
+            @p1 = @p1, @p2 = @p2, @p3 = @p3, @obj = @obj;
+    END
+
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @object_id;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM #pii_scan_result
+ORDER BY object_name;
+
+DROP TABLE #pii_scan_result;

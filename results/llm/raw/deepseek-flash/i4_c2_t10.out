@@ -1,0 +1,2 @@
+Msg 13544, Level 16, State 2, Server 651334c31df8, Line 37
+Temporal FOR SYSTEM_TIME clause can only be used with system-versioned tables. 'llm_i4.dbo.customer' is not a system-versioned table.

@@ -1,0 +1,62 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @subject_phone nvarchar(100) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+-- Check the live customer table for the phone value in any text column
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE CAST(customer_id AS nvarchar(4000)) = @subject_phone
+   OR full_name = @subject_phone
+   OR email = @subject_phone;
+
+-- Check the CDC change table, which still has a phone column
+INSERT INTO @results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE CAST(customer_id AS nvarchar(4000)) = @subject_phone
+   OR full_name = @subject_phone
+   OR email = @subject_phone
+   OR phone = @subject_phone;
+
+-- Dynamically search every character column of every user table
+DECLARE @tbl sysname, @col sysname, @sql nvarchar(max);
+DECLARE @found TABLE (object_name sysname, rows_found int);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + '.' + QUOTENAME(t.name),
+           QUOTENAME(c.name)
+    FROM sys.columns c
+    JOIN sys.tables t ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE c.system_type_id IN (167, 231, 175, 239, 35, 99, 241)
+      AND t.is_ms_shipped = 0;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @tbl, @col;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO @found (object_name, rows_found)
+                 SELECT ''' + REPLACE(@tbl, '''', '''''') + ''', COUNT(*)
+                 FROM ' + @tbl + '
+                 WHERE ' + @col + ' = @p;';
+    EXEC sp_executesql @sql, N'@p nvarchar(100)', @p = @subject_phone;
+    FETCH NEXT FROM cur INTO @tbl, @col;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+-- Merge dynamic findings with the explicit checks
+INSERT INTO @results (object_name, rows_found)
+SELECT object_name, SUM(rows_found)
+FROM @found
+GROUP BY object_name;
+
+-- Return exactly one result set, one row per checked object
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM @results
+GROUP BY object_name
+ORDER BY object_name;

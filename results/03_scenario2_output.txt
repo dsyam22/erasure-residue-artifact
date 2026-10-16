@@ -1,0 +1,32 @@
+Changed database context to 'erasure_lab'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 01:53:33.3780013
+--- Retention configuration (-1 = keep history forever) ---
+name temporal_type_desc history_retention_period history_retention_period_unit_desc
+---- ------------------ ------------------------ ----------------------------------
+member SYSTEM_VERSIONED_TEMPORAL_TABLE -1 INFINITE
+name is_temporal_history_retention_enabled
+---- -------------------------------------
+erasure_lab 1
+--- BEFORE delete ---
+source_rows_for_subject
+-----------------------
+1
+history_rows_for_subject
+------------------------
+0
+--- Erasure: DELETE subject 42 ---
+--- AFTER delete ---
+source_rows_for_subject
+-----------------------
+0
+--- History table contents for subject 42 ---
+member_id full_name email phone valid_from valid_to
+--------- --------- ----- ----- ---------- --------
+42 Subject_000042 subject42@example.invalid +1-555-0042 2026-10-08 01:53:33.3011243 2026-10-08 01:53:33.3780013
+--- Same subject through an ordinary time-travel query on the source table ---
+member_id full_name email phone
+--------- --------- ----- -----
+42 Subject_000042 subject42@example.invalid +1-555-0042

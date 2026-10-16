@@ -1,0 +1,5 @@
+object_name|schema_id|type_desc
+-----------|---------|---------
+customer|1|USER_TABLE
+customer_replica|5|USER_TABLE
+(2 rows affected)

@@ -1,0 +1,24 @@
+name|type_desc
+----|---------
+captured_columns|USER_TABLE
+change_tables|USER_TABLE
+customer|USER_TABLE
+dbo_customer_CT|USER_TABLE
+ddl_history|USER_TABLE
+fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+index_columns|USER_TABLE
+lsn_time_mapping|USER_TABLE
+sp_batchinsert_1285579618|SQL_STORED_PROCEDURE
+sp_batchinsert_lsn_time_mapping|SQL_STORED_PROCEDURE
+sp_ins_dummy_lsn_time_mapping |SQL_STORED_PROCEDURE
+sp_ins_instance_enabling_lsn_time_mapping |SQL_STORED_PROCEDURE
+sp_ins_lsn_time_mapping|SQL_STORED_PROCEDURE
+sp_insdel_1285579618|SQL_STORED_PROCEDURE
+sp_upd_1285579618|SQL_STORED_PROCEDURE
+systranschemas|USER_TABLE
+(21 rows affected)

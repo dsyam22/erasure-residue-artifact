@@ -1,0 +1,35 @@
+WITH CustomerCheck AS (
+    SELECT 
+        COUNT(customer_id) AS rows_found
+    FROM 
+        dbo.customer
+    WHERE 
+        customer_id = 42
+        AND (
+            full_name = 'Subject_0000042' OR 
+            email = 'subject42@example.invalid' OR 
+            phone = '+1-555-0000042'
+        )
+),
+MemberCheck AS (
+    SELECT 
+        COUNT(member_id) AS rows_found
+    FROM 
+        dbo.member
+    WHERE 
+        member_id = 42
+        AND (
+            full_name = 'Subject_0000042' OR 
+            email = 'subject42@example.invalid' OR 
+            phone = '+1-555-0000042'
+        )
+)
+SELECT 
+    'dbo.customer' AS object_name, 
+    (SELECT rows_found FROM CustomerCheck) AS rows_found
+
+UNION ALL
+
+SELECT 
+    'dbo.member', 
+    (SELECT rows_found FROM MemberCheck);

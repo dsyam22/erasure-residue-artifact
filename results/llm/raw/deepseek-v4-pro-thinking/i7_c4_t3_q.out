@@ -1,0 +1,40 @@
+current_db|server_name
+----------|-----------
+llm_i7|651334c31df8
+(1 rows affected)
+schema_name|table_name|object_id|type_desc|row_count
+-----------|----------|---------|---------|---------
+dbo|customer|901578250|USER_TABLE|99
+reporting|customer_replica|933578364|USER_TABLE|100
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0
+reporting|customer_replica|1|customer_id|int|4|10|0|0|0|0
+reporting|customer_replica|2|full_name|nvarchar|200|0|0|0|0|0
+reporting|customer_replica|3|email|nvarchar|400|0|0|0|0|0
+reporting|customer_replica|4|phone|nvarchar|60|0|0|1|0|0
+(8 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+schema_name|table_name|trigger_name|is_disabled|definition
+-----------|----------|------------|-----------|----------
+(0 rows affected)
+foreign_key_name|parent_schema|parent_table|referenced_schema|referenced_table|delete_referential_action_desc|update_referential_action_desc
+----------------|-------------|------------|-----------------|----------------|------------------------------|------------------------------
+(0 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+reporting|customer_replica|customer_id|int|4
+reporting|customer_replica|full_name|nvarchar|200
+reporting|customer_replica|email|nvarchar|400
+reporting|customer_replica|phone|nvarchar|60
+(8 rows affected)

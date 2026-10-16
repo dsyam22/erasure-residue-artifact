@@ -1,0 +1,36 @@
+database_name|is_cdc_enabled
+-------------|--------------
+llm_i7|0
+(1 rows affected)
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|is_remote_data_archive_enabled
+-----------|----------|------------------|-------------------|------------------|-----------------|-------------------|------------------------------
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0
+(2 rows affected)
+schema_name|object_name|object_type|column_id|column_name|data_type|max_length|is_computed|encryption_type_desc
+-----------|-----------|-----------|---------|-----------|---------|----------|-----------|--------------------
+dbo|customer|USER_TABLE|1|customer_id|int|4|0|NULL
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|NULL
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|NULL
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|0|NULL
+reporting|customer_replica|USER_TABLE|1|customer_id|int|4|0|NULL
+reporting|customer_replica|USER_TABLE|2|full_name|nvarchar|200|0|NULL
+reporting|customer_replica|USER_TABLE|3|email|nvarchar|400|0|NULL
+reporting|customer_replica|USER_TABLE|4|phone|nvarchar|60|0|NULL
+(8 rows affected)
+schema_name|trigger_name|parent_schema_name|parent_object_name|is_disabled|definition
+-----------|------------|------------------|------------------|-----------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+object_id|schema_name|table_name|is_track_columns_updated_on
+---------|-----------|----------|---------------------------
+(0 rows affected)
+source_table|customer_id|full_name|email|phone
+------------|-----------|---------|-----|-----
+(0 rows affected)
+source_table|customer_id|full_name|email|phone
+------------|-----------|---------|-----|-----
+reporting.customer_replica|42|Subject_0000042|subject42@example.invalid|+1-555-0000042
+(1 rows affected)

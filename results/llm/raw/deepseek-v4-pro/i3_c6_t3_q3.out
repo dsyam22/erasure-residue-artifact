@@ -1,0 +1,11 @@
+table_name|column_name
+----------|-----------
+captured_columns|masking_function
+dbo_customer_CT|email
+dbo_customer_CT|full_name
+dbo_customer_CT|phone
+ddl_history|ddl_command
+member_history|email
+member_history|full_name
+member_history|phone
+(8 rows affected)

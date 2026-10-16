@@ -1,0 +1,106 @@
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(500),
+    rows_found int
+);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check for any other user tables that might contain the data
+-- This query dynamically searches all user tables for columns that could hold the subject's data
+DECLARE @sql nvarchar(max) = N'';
+DECLARE @table_name nvarchar(500);
+DECLARE @schema_name nvarchar(128);
+DECLARE @column_name nvarchar(128);
+DECLARE @data_type nvarchar(128);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    s.name AS schema_name,
+    t.name AS table_name,
+    c.name AS column_name,
+    ty.name AS data_type
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+INNER JOIN sys.columns c ON t.object_id = c.object_id
+INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('int', 'nvarchar', 'varchar', 'nchar', 'char', 'bigint', 'smallint', 'tinyint')
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')  -- already checked
+ORDER BY s.name, t.name, c.column_id;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name, @data_type;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @full_table_name nvarchar(500) = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+    DECLARE @quoted_column nvarchar(200) = QUOTENAME(@column_name);
+    
+    -- Build dynamic SQL to check if this column contains any of the subject's data
+    SET @sql = N'IF EXISTS (SELECT 1 FROM ' + @full_table_name + N' WHERE ' + @quoted_column;
+    
+    IF @data_type IN ('int', 'bigint', 'smallint', 'tinyint')
+    BEGIN
+        -- For integer columns, only check customer_id
+        IF @column_name = 'customer_id'
+            SET @sql = @sql + N' = @customer_id';
+        ELSE
+            SET @sql = N'';  -- skip non-customer_id integer columns
+    END
+    ELSE
+    BEGIN
+        -- For string columns, check all string values
+        SET @sql = @sql + N' = @full_name OR ' + @quoted_column + N' = @email OR ' + @quoted_column + N' = @phone';
+    END
+    
+    IF @sql <> N''
+    BEGIN
+        SET @sql = @sql + N') 
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @full_table_name + N''', COUNT(*)
+            FROM ' + @full_table_name + N' WHERE ' + @quoted_column;
+        
+        IF @data_type IN ('int', 'bigint', 'smallint', 'tinyint')
+            SET @sql = @sql + N' = @customer_id';
+        ELSE
+            SET @sql = @sql + N' = @full_name OR ' + @quoted_column + N' = @email OR ' + @quoted_column + N' = @phone';
+        
+        SET @sql = @sql + N'
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @full_table_name + N''', 0;
+        END';
+        
+        EXEC sp_executesql @sql, 
+            N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+            @customer_id, @full_name, @email, @phone;
+    END
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name, @data_type;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

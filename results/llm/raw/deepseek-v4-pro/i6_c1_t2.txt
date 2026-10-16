@@ -1,0 +1,89 @@
+```sql
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer for the subject's phone number (column may not exist)
+IF EXISTS (
+    SELECT 1 
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'dbo' AND t.name = 'customer' AND c.name = 'phone'
+)
+BEGIN
+    DECLARE @sql NVARCHAR(MAX) = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT ''dbo.customer'', COUNT(*)
+        FROM dbo.customer
+        WHERE customer_id = @customer_id AND phone = @phone
+    ';
+    EXEC sp_executesql @sql, N'@customer_id INT, @phone NVARCHAR(50)', @customer_id, @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    VALUES ('dbo.customer', 0);
+END
+
+-- Check all other tables and columns for the phone number
+DECLARE @table_name NVARCHAR(255);
+DECLARE @column_name NVARCHAR(255);
+DECLARE @schema_name NVARCHAR(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    s.name AS schema_name,
+    t.name AS table_name,
+    c.name AS column_name
+FROM sys.columns c
+JOIN sys.tables t ON c.object_id = t.object_id
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE c.system_type_id IN (167, 175, 231, 239, 61)  -- varchar, char, nvarchar, nchar, datetime
+  AND NOT (s.name = 'dbo' AND t.name = 'customer' AND c.name = 'phone')
+  AND t.is_ms_shipped = 0;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @dynamic_sql NVARCHAR(MAX);
+    SET @dynamic_sql = N'
+        IF EXISTS (
+            SELECT 1 
+            FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N'
+            WHERE ' + QUOTENAME(@column_name) + N' = @phone
+        )
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ''' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N''', COUNT(*)
+            FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N'
+            WHERE ' + QUOTENAME(@column_name) + N' = @phone
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            VALUES (''' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N''', 0)
+        END
+    ';
+    
+    EXEC sp_executesql @dynamic_sql, N'@phone NVARCHAR(50)', @phone;
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

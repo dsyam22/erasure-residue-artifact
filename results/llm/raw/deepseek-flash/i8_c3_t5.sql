@@ -1,0 +1,166 @@
+/* ===================================================================
+   Read-only verification script.
+   Checks whether the erased subject's original personal data is
+   still present anywhere in the database.
+   Returns exactly one result set: object_name, rows_found.
+   =================================================================== */
+
+SET NOCOUNT ON;
+
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+/* Result accumulator */
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* -------------------------------------------------------------------
+   1) The base table itself
+   ------------------------------------------------------------------- */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email     = @email
+   OR phone     = @phone;
+
+/* -------------------------------------------------------------------
+   2) Change Data Capture change tables (cdc.dbo_customer_CT etc.)
+      cdc_enabled = 0 for this db, but we check dynamically so the
+      script is robust and reports 0 when nothing exists.
+   ------------------------------------------------------------------- */
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @ctSchema sysname, @ctName sysname;
+    DECLARE @sql nvarchar(max);
+
+    DECLARE ct_cursor CURSOR LOCAL FAST_FORWARD FOR
+        SELECT OBJECT_SCHEMA_NAME(source_object_id),
+               OBJECT_NAME(source_object_id)
+        FROM cdc.change_tables
+        WHERE OBJECT_NAME(source_object_id) = N'customer';
+
+    OPEN ct_cursor;
+    FETCH NEXT FROM ct_cursor INTO @ctSchema, @ctName;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        /* The CDC capture instance change table is named <schema>_<table>_CT */
+        DECLARE @ctFull sysname = N'cdc.' + @ctSchema + N'_' + @ctName + N'_CT';
+
+        IF OBJECT_ID(@ctFull) IS NOT NULL
+        BEGIN
+            SET @sql = N'
+                INSERT INTO #results (object_name, rows_found)
+                SELECT @obj, COUNT(*)
+                FROM ' + QUOTENAME(PARSENAME(@ctFull,2)) + N'.' + QUOTENAME(PARSENAME(@ctFull,1)) + N'
+                WHERE [full_name] = @nm
+                   OR [email]     = @em
+                   OR [phone]     = @ph;';
+
+            EXEC sp_executesql @sql,
+                 N'@obj sysname, @nm nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+                 @obj = @ctFull, @nm = @name, @em = @email, @ph = @phone;
+        END
+
+        FETCH NEXT FROM ct_cursor INTO @ctSchema, @ctName;
+    END
+
+    CLOSE ct_cursor;
+    DEALLOCATE ct_cursor;
+END
+
+/* -------------------------------------------------------------------
+   3) Temporal history tables for dbo.customer (temporal_type is
+      NON_TEMPORAL_TABLE, but check dynamically for robustness).
+   ------------------------------------------------------------------- */
+IF EXISTS (SELECT 1 FROM sys.tables
+           WHERE object_id = OBJECT_ID(N'dbo.customer')
+             AND temporal_type = 2)  /* 2 = SYSTEM_VERSIONED_TEMPORAL_TABLE */
+BEGIN
+    DECLARE @histSchema sysname, @histName sysname;
+    SELECT @histSchema = OBJECT_SCHEMA_NAME(history_table_id),
+           @histName   = OBJECT_NAME(history_table_id)
+    FROM sys.tables
+    WHERE object_id = OBJECT_ID(N'dbo.customer');
+
+    IF @histName IS NOT NULL
+    BEGIN
+        DECLARE @hsql nvarchar(max) =
+            N'INSERT INTO #results (object_name, rows_found)
+              SELECT @obj, COUNT(*)
+              FROM ' + QUOTENAME(@histSchema) + N'.' + QUOTENAME(@histName) + N'
+              WHERE [full_name] = @nm
+                 OR [email]     = @em
+                 OR [phone]     = @ph;';
+
+        EXEC sp_executesql @hsql,
+             N'@obj sysname, @nm nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+             @obj = @histSchema + N'.' + @histName, @nm = @name, @em = @email, @ph = @phone;
+    END
+END
+
+/* -------------------------------------------------------------------
+   4) Downstream / other user tables that contain text columns which
+      could hold copies of the personal data.  We scan every user
+      table (excluding the ones already checked) for any nvarchar/
+      varchar/char/nchar column and look for the subject's values.
+   ------------------------------------------------------------------- */
+DECLARE @tblSchema sysname, @tblName sysname, @colName sysname;
+DECLARE @dynSql nvarchar(max);
+
+DECLARE tbl_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND NOT (s.name = N'dbo' AND t.name = N'customer')
+      AND OBJECTPROPERTY(t.object_id, 'IsUserTable') = 1;
+
+OPEN tbl_cursor;
+FETCH NEXT FROM tbl_cursor INTO @tblSchema, @tblName;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+        SELECT c.name
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@tblSchema) + N'.' + QUOTENAME(@tblName))
+          AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char', N'text', N'ntext');
+
+    OPEN col_cursor;
+    FETCH NEXT FROM col_cursor INTO @colName;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @dynSql =
+            N'INSERT INTO #results (object_name, rows_found)
+              SELECT @obj, COUNT(*)
+              FROM ' + QUOTENAME(@tblSchema) + N'.' + QUOTENAME(@tblName) + N'
+              WHERE CAST(' + QUOTENAME(@colName) + N' AS nvarchar(max)) IN (@nm, @em, @ph);';
+
+        EXEC sp_executesql @dynSql,
+             N'@obj sysname, @nm nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+             @obj = @tblSchema + N'.' + @tblName, @nm = @name, @em = @email, @ph = @phone;
+
+        FETCH NEXT FROM col_cursor INTO @colName;
+    END
+    CLOSE col_cursor;
+    DEALLOCATE col_cursor;
+
+    FETCH NEXT FROM tbl_cursor INTO @tblSchema, @tblName;
+END
+CLOSE tbl_cursor;
+DEALLOCATE tbl_cursor;
+
+/* -------------------------------------------------------------------
+   5) Collapse duplicate object rows and return the single result set.
+   ------------------------------------------------------------------- */
+SELECT object_name,
+       SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;

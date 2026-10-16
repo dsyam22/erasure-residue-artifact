@@ -1,0 +1,80 @@
+-- SCRIPT
+DECLARE @Results TABLE (object_name NVARCHAR(255), rows_found INT);
+
+-- Check dbo.customer for any remaining rows with the subject's original personal data
+INSERT INTO @Results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = 'Subject_0000042'
+   OR email = 'subject42@example.invalid'
+   OR phone = '+1-555-0000042';
+
+-- Check all other tables in the database for any remaining rows containing the subject's personal data
+-- This dynamic SQL will search all user tables for the specified values in any column
+DECLARE @sql NVARCHAR(MAX) = '';
+DECLARE @table_name NVARCHAR(255);
+DECLARE @schema_name NVARCHAR(255);
+DECLARE @column_name NVARCHAR(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT s.name AS schema_name, t.name AS table_name
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.name != 'customer' OR s.name != 'dbo';
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @full_table_name NVARCHAR(255) = @schema_name + '.' + @table_name;
+    DECLARE @where_clause NVARCHAR(MAX) = '';
+    
+    -- Build WHERE clause checking all columns for the personal data values
+    DECLARE column_cursor CURSOR FOR
+    SELECT c.name
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID(@full_table_name)
+      AND (c.system_type_id IN (167, 175, 231, 239, 61, 40, 56, 106, 108)  -- character and numeric types
+           OR c.user_type_id IN (167, 175, 231, 239, 61, 40, 56, 106, 108));
+    
+    OPEN column_cursor;
+    FETCH NEXT FROM column_cursor INTO @column_name;
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF @where_clause != ''
+            SET @where_clause = @where_clause + ' OR ';
+        
+        SET @where_clause = @where_clause + 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(@column_name) + ') IN (''42'', ''Subject_0000042'', ''subject42@example.invalid'', ''+1-555-0000042'')';
+        
+        FETCH NEXT FROM column_cursor INTO @column_name;
+    END
+    
+    CLOSE column_cursor;
+    DEALLOCATE column_cursor;
+    
+    IF @where_clause != ''
+    BEGIN
+        SET @sql = 'SELECT ''' + @full_table_name + ''' AS object_name, COUNT(*) AS rows_found FROM ' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@table_name) + ' WHERE ' + @where_clause;
+        
+        INSERT INTO @Results (object_name, rows_found)
+        EXEC sp_executesql @sql;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO @Results (object_name, rows_found)
+        VALUES (@full_table_name, 0);
+    END
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final results
+SELECT object_name, rows_found
+FROM @Results
+ORDER BY object_name;

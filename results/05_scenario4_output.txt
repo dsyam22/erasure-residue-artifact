@@ -1,0 +1,55 @@
+Changed database context to 'erasure_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 01:55:12.7137506
+--- Captured columns at the start ---
+column_name
+-----------
+account_id
+full_name
+phone
+=== PART A: add a personal-data column after CDC was enabled ===
+--- Source table now holds the new column ---
+account_id full_name phone national_id
+---------- --------- ----- -----------
+42 Subject_000042 +1-555-0042 SYN-000042
+500 Subject_000500 +1-555-0500 SYN-000500
+--- Captured columns after the ADD (is national_id listed?) ---
+column_name
+-----------
+account_id
+full_name
+phone
+--- Change table rows for accounts 42 and 500 ---
+    operation: 1 = delete, 2 = insert, 3 = update (before), 4 = update (after)
+operation account_id full_name phone
+--------- ---------- --------- -----
+2 42 Subject_000042 +1-555-0042
+2 500 Subject_000500 +1-555-0500
+=== PART B: drop a personal-data column from the source ===
+--- Source table columns after the DROP ---
+source_column
+-------------
+account_id
+full_name
+national_id
+--- Captured columns after the DROP (is phone still listed?) ---
+column_name
+-----------
+account_id
+full_name
+phone
+--- Change table rows for accounts 42 and 43 (phone values still readable?) ---
+operation account_id full_name phone
+--------- ---------- --------- -----
+2 42 Subject_000042 +1-555-0042
+2 43 Subject_000043 +1-555-0043
+3 43 Subject_000043 NULL
+4 43 Subject_000043_renamed NULL
+--- DDL changes recorded by CDC ---
+ddl_time ddl_command
+-------- -----------
+2026-10-08 01:55:00.000 ALTER TABLE dbo.account ADD national_id NVARCHAR(20) NULL
+2026-10-08 01:55:00.000 ALTER TABLE dbo.account DROP COLUMN phone

@@ -1,0 +1,31 @@
+WITH CheckCounts AS (
+    -- 1. dbo.customer (Active Table) - Checking current state
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS rows_found
+
+    UNION ALL
+
+    -- 2. cdc.dbo_customer_CT (CDC Change Table) - Checking captured history
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+
+    UNION ALL
+
+    -- 3. dbo.member (Active/System Versioned Table) - Checking current state
+    SELECT
+        'dbo.member' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+
+    UNION ALL
+
+    -- 4. dbo.member_history (Temporal History Table) - Checking historical records
+    SELECT
+        'dbo.member_history' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+)
+SELECT
+    object_name,
+    rows_found
+FROM CheckCounts;

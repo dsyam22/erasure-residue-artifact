@@ -1,0 +1,67 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #r (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @needles TABLE (v nvarchar(200) NOT NULL);
+INSERT INTO @needles (v)
+VALUES (N'Subject_0000042'),
+       (N'subject42@example.invalid'),
+       (N'+1-555-0000042');
+
+DECLARE @schema sysname, @table sysname, @oid int,
+        @name nvarchar(300), @cond nvarchar(max), @sql nvarchar(max);
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @name = @schema + N'.' + @table;
+    SET @cond = NULL;
+
+    -- Build a condition: any character-type column contains any of the needles
+    SELECT @cond = STUFF((
+        SELECT N' OR CHARINDEX(N''' + n.v + N''', CAST(' + QUOTENAME(c.name)
+             + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0'
+        FROM sys.columns AS c
+        CROSS JOIN @needles AS n
+        WHERE c.object_id = @oid
+          AND c.system_type_id IN (167, 175, 231, 239, 35, 99) -- varchar, char, nvarchar, nchar, text, ntext
+        FOR XML PATH(N''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, N'');
+
+    IF @cond IS NULL
+    BEGIN
+        INSERT INTO #r (object_name, rows_found) VALUES (@name, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #r (object_name, rows_found) '
+                 + N'SELECT @n, COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE (' + @cond + N');';
+        EXEC sp_executesql @sql, N'@n nvarchar(300)', @n = @name;
+    END
+
+    FETCH NEXT FROM tcur INTO @schema, @table, @oid;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;
+
+DROP TABLE #r;
+```

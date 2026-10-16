@@ -1,0 +1,16 @@
+```sql
+DECLARE @CustomerCount INT;
+
+-- Check dbo.customer for any remaining records matching the subject's data
+SELECT @CustomerCount = COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND full_name = 'Subject_0000042'
+  AND email = 'subject42@example.invalid'
+  AND phone = '+1-555-0000042';
+
+-- Return the results in the required format: object name and count of found rows
+SELECT 
+    'dbo.customer' AS object_name, 
+    @CustomerCount AS rows_found;
+```

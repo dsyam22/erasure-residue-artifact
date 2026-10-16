@@ -1,0 +1,19 @@
+WITH SearchCounts AS (
+    -- Check the primary current table: dbo.customer
+    SELECT 
+        'dbo.customer' AS [object_name],
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- Check the temporal history table: dbo.customer_history
+    SELECT 
+        'dbo.customer_history' AS [object_name],
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer_history
+
+    -- If any other downstream copies were known, they would be added here (e.g., UNION ALL SELECT 'dbo.some_copy', COUNT(...) FROM dbo.some_copy WHERE ...)
+)
+SELECT object_name, rows_found 
+FROM SearchCounts;

@@ -1,0 +1,25 @@
+```sql
+DECLARE @ObjectTable NVARCHAR(128) = 'dbo.customer';
+DECLARE @FullName NVARCHAR(256) = 'Subject_0000042';
+DECLARE @Email NVARCHAR(256) = 'subject42@example.invalid';
+DECLARE @Phone NVARCHAR(256) = '+1-555-0000042';
+
+-- Calculate the count of matching records in the specified table
+WITH CountCTE AS (
+    SELECT 
+        COUNT(*) AS RowsFound
+    FROM 
+        dbo.customer
+    WHERE 
+        full_name = @FullName OR 
+        email = @Email OR 
+        phone = @Phone
+)
+
+-- Return the result set in the required format
+SELECT 
+    @ObjectTable AS object_name, 
+    C.RowsFound AS rows_found
+FROM 
+    CountCTE C;
+```

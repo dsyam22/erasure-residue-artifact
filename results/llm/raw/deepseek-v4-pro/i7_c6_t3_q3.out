@@ -1,0 +1,4 @@
+object_name|customer_id|full_name|email|phone
+-----------|-----------|---------|-----|-----
+reporting.customer_replica|42|Subject_0000042|subject42@example.invalid|+1-555-0000042
+(1 rows affected)

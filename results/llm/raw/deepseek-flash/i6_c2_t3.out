@@ -1,0 +1,6 @@
+dbo.customer|1
+cdc.dbo_customer_CT|1
+cdc.lsn_time_mapping|0
+cdc.change_tables|0
+cdc.captured_columns|0
+cdc.captured_columns|0

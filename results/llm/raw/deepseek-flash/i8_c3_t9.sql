@@ -1,0 +1,194 @@
+/* ============================================================
+   Erasure verification script (read-only)
+   Subject: customer_id 42, 'Subject_0000042',
+            'subject42@example.invalid', '+1-555-0000042'
+   Returns exactly one result set:
+       object_name  nvarchar
+       rows_found   int
+   ============================================================ */
+
+SET NOCOUNT ON;
+
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50)  = N'+1-555-0000042';
+
+------------------------------------------------------------
+-- Result accumulator
+------------------------------------------------------------
+CREATE TABLE #results
+(
+    object_name sysname     NOT NULL,
+    rows_found  bigint      NOT NULL
+);
+
+------------------------------------------------------------
+-- 1) Live table: dbo.customer
+------------------------------------------------------------
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+------------------------------------------------------------
+-- 2) CDC change tables (only if CDC is/was enabled)
+------------------------------------------------------------
+IF EXISTS (SELECT 1
+           FROM sys.change_tracking_tables
+           WHERE object_id = OBJECT_ID('dbo.customer'))
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'sys.change_tracking_tables (dbo.customer)',
+           COUNT(*)
+    FROM sys.change_tracking_tables
+    WHERE object_id = OBJECT_ID('dbo.customer');
+END
+
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = DB_NAME() AND is_cdc_enabled = 1)
+   AND EXISTS (SELECT 1 FROM cdc.change_tables WHERE source_object_id = OBJECT_ID('dbo.customer'))
+BEGIN
+    DECLARE @capture_instance sysname;
+    DECLARE @ct_schema       sysname;
+    DECLARE @ct_name         sysname;
+
+    DECLARE cdc_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT capture_instance,
+               OBJECT_SCHEMA_NAME(source_object_id) + '_CT',
+               OBJECT_NAME(object_id)
+        FROM cdc.change_tables
+        WHERE source_object_id = OBJECT_ID('dbo.customer');
+
+    OPEN cdc_cur;
+    FETCH NEXT FROM cdc_cur INTO @capture_instance, @ct_schema, @ct_name;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @sql nvarchar(max) =
+            N'INSERT INTO #results (object_name, rows_found)
+              SELECT @obj, COUNT(*)
+              FROM ' + QUOTENAME(@ct_schema) + N'.' + QUOTENAME(@ct_name) + N'
+              WHERE customer_id = @cid
+                 OR full_name   = @name
+                 OR email       = @email
+                 OR phone       = @phone;';
+
+        EXEC sp_executesql @sql,
+             N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+             @obj = N'cdc.' + @ct_schema + N'.' + @ct_name,
+             @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+
+        FETCH NEXT FROM cdc_cur INTO @capture_instance, @ct_schema, @ct_name;
+    END
+    CLOSE cdc_cur;
+    DEALLOCATE cdc_cur;
+END
+
+------------------------------------------------------------
+-- 3) Temporal history tables (if dbo.customer became temporal)
+------------------------------------------------------------
+IF EXISTS (SELECT 1
+           FROM sys.tables
+           WHERE object_id = OBJECT_ID('dbo.customer')
+             AND temporal_type IN (1, 2))  -- SYSTEM_VERSIONED or HISTORY
+BEGIN
+    DECLARE @hist_schema sysname;
+    DECLARE @hist_name   sysname;
+
+    SELECT @hist_schema = OBJECT_SCHEMA_NAME(history_table_id),
+           @hist_name   = OBJECT_NAME(history_table_id)
+    FROM sys.tables
+    WHERE object_id = OBJECT_ID('dbo.customer');
+
+    IF @hist_name IS NOT NULL
+    BEGIN
+        DECLARE @sql2 nvarchar(max) =
+            N'INSERT INTO #results (object_name, rows_found)
+              SELECT @obj, COUNT(*)
+              FROM ' + QUOTENAME(@hist_schema) + N'.' + QUOTENAME(@hist_name) + N'
+              WHERE customer_id = @cid
+                 OR full_name   = @name
+                 OR email       = @email
+                 OR phone       = @phone;';
+
+        EXEC sp_executesql @sql2,
+             N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+             @obj = @hist_schema + N'.' + @hist_name,
+             @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+    END
+END
+
+------------------------------------------------------------
+-- 4) Any other user table that has matching columns
+--    (catches downstream copies / shadow tables)
+------------------------------------------------------------
+DECLARE @tbl_schema sysname;
+DECLARE @tbl_name   sysname;
+
+DECLARE other_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT LIKE '%[_]CT'
+      AND NOT (s.name = 'dbo' AND t.name = 'customer')
+    ORDER BY s.name, t.name;
+
+OPEN other_cur;
+FETCH NEXT FROM other_cur INTO @tbl_schema, @tbl_name;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    IF EXISTS (SELECT 1 FROM sys.columns
+               WHERE object_id = OBJECT_ID(QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name))
+                 AND name IN ('full_name','email','phone'))
+    BEGIN
+        DECLARE @pred nvarchar(max) = N'';
+        IF EXISTS (SELECT 1 FROM sys.columns
+                   WHERE object_id = OBJECT_ID(QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name))
+                     AND name = 'full_name')
+            SET @pred = @pred + N' OR full_name = @name';
+        IF EXISTS (SELECT 1 FROM sys.columns
+                   WHERE object_id = OBJECT_ID(QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name))
+                     AND name = 'email')
+            SET @pred = @pred + N' OR email = @email';
+        IF EXISTS (SELECT 1 FROM sys.columns
+                   WHERE object_id = OBJECT_ID(QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name))
+                     AND name = 'phone')
+            SET @pred = @pred + N' OR phone = @phone';
+        IF EXISTS (SELECT 1 FROM sys.columns
+                   WHERE object_id = OBJECT_ID(QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name))
+                     AND name = 'customer_id')
+            SET @pred = @pred + N' OR customer_id = @cid';
+
+        SET @pred = STUFF(@pred, 1, 4, N'');  -- strip leading ' OR '
+
+        IF LEN(@pred) > 0
+        BEGIN
+            DECLARE @sql3 nvarchar(max) =
+                N'INSERT INTO #results (object_name, rows_found)
+                  SELECT @obj, COUNT(*)
+                  FROM ' + QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name) + N'
+                  WHERE ' + @pred + N';';
+
+            EXEC sp_executesql @sql3,
+                 N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+                 @obj = @tbl_schema + N'.' + @tbl_name,
+                 @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+        END
+    END
+
+    FETCH NEXT FROM other_cur INTO @tbl_schema, @tbl_name;
+END
+CLOSE other_cur;
+DEALLOCATE other_cur;
+
+------------------------------------------------------------
+-- 5) Single result set
+------------------------------------------------------------
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

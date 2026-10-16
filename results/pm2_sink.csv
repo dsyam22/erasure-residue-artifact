@@ -1,0 +1,11 @@
+trial,sink_rows_initial,partA_erased_left_in_sink,partB_erased_left_in_source,partB_erased_left_in_sink,marker_arrived,subscription_enabled,apply_error_count,sync_error_count
+1,100,0,0,10,1,1,0,0
+2,100,0,0,10,1,1,0,0
+3,100,0,0,10,1,1,0,0
+4,100,0,0,10,1,1,0,0
+5,100,0,0,10,1,1,0,0
+6,100,0,0,10,1,1,0,0
+7,100,0,0,10,1,1,0,0
+8,100,0,0,10,1,1,0,0
+9,100,0,0,10,1,1,0,0
+10,100,0,0,10,1,1,0,0

@@ -1,0 +1,48 @@
+DECLARE @SubjectName NVARCHAR(256) = 'Subject_0000042';
+DECLARE @SubjectEmail NVARCHAR(256) = 'subject42@example.invalid';
+DECLARE @SubjectPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Use a temporary table to store the results structured as (object_name, rows_found)
+IF OBJECT_ID('tempdb..#Results') IS NOT NULL DROP TABLE #Results;
+CREATE TABLE #Results (
+    object_name NVARCHAR(256),
+    rows_found INT
+);
+
+-- 1. Check dbo.customer (Current State)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(1)
+FROM dbo.customer
+WHERE full_name = @SubjectName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- 2. Check cdc.dbo_customer_CT (Change Data Capture Table)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(1)
+FROM cdc.dbo_customer_CT
+WHERE full_name = @SubjectName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- 3. Check dbo.member (Current State)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.member', COUNT(1)
+FROM dbo.member
+WHERE full_name = @SubjectName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- 4. Check dbo.member_history (Temporal History Table)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.member_history', COUNT(1)
+FROM dbo.member_history
+WHERE full_name = @SubjectName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- Select the final results set
+SELECT object_name, rows_found FROM #Results ORDER BY object_name;
+
+-- Clean up (optional but good practice)
+DROP TABLE #Results;

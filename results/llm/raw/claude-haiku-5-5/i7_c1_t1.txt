@@ -1,0 +1,63 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @s sysname, @t sysname, @pred nvarchar(max), @sql nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @s, @t;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    -- Build predicate over all character-type columns (varchar, nvarchar, char, nchar)
+    SELECT @pred = STRING_AGG(
+               CAST(N'(' + QUOTENAME(col.name)
+                  + N' IN (N''Subject_0000042'', N''subject42@example.invalid'', N''+1-555-0000042''))'
+                    AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS col
+    WHERE col.object_id = OBJECT_ID(QUOTENAME(@s) + N'.' + QUOTENAME(@t))
+      AND col.system_type_id IN (167, 231, 175, 239);
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@s + N'.' + @t, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #results (object_name, rows_found) '
+                 + N'SELECT @o, COUNT_BIG(*) FROM '
+                 + QUOTENAME(@s) + N'.' + QUOTENAME(@t)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sp_executesql @sql,
+             N'@o sysname',
+             @o = @s + N'.' + @t;
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @s, @t;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

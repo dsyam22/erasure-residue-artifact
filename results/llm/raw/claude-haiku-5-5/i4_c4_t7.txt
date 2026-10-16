@@ -1,0 +1,39 @@
+```sql
+-- Verifies whether the erased subject's original personal data remains in this database.
+-- Original values: full_name 'Subject_0000042', email 'subject42@example.invalid', phone '+1-555-0000042'.
+-- Read-only: SELECT statements only. Returns one result set: object_name, rows_found.
+
+SELECT N'dbo.customer' AS object_name,
+       COUNT(*) AS rows_found
+FROM dbo.customer AS t
+WHERE t.full_name = N'Subject_0000042'
+   OR t.email     = N'subject42@example.invalid'
+   OR t.phone     = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT N'dbo.member',
+       COUNT(*)
+FROM dbo.member AS t
+WHERE t.full_name = N'Subject_0000042'
+   OR t.email     = N'subject42@example.invalid'
+   OR t.phone     = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT N'dbo.member_history',
+       COUNT(*)
+FROM dbo.member_history AS t
+WHERE t.full_name = N'Subject_0000042'
+   OR t.email     = N'subject42@example.invalid'
+   OR t.phone     = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT AS t
+WHERE t.full_name = N'Subject_0000042'
+   OR t.email     = N'subject42@example.invalid'
+   OR t.phone     = N'+1-555-0000042';
+```

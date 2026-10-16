@@ -1,0 +1,10 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo'
+  AND (
+    (TABLE_NAME = 'customer' AND COLUMN_NAME IN ('full_name', 'email', 'phone'))
+    OR
+    (TABLE_NAME = 'member' AND COLUMN_NAME IN ('full_name', 'email', 'phone'))
+  )
+ORDER BY TABLE_NAME, COLUMN_NAME;

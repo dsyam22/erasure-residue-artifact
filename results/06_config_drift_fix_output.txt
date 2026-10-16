@@ -1,0 +1,38 @@
+Changed database context to 'erasure_lab'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 02:03:41.3734093
+=== PART A: add a second capture instance ===
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+--- Capture instances and their columns ---
+capture_instance column_name
+---------------- -----------
+dbo_account account_id
+dbo_account full_name
+dbo_account phone
+dbo_account_v2 account_id
+dbo_account_v2 full_name
+dbo_account_v2 national_id
+--- New change table (v2) rows for account 42 ---
+    operation: 1 = delete, 2 = insert, 3 = update (before), 4 = update (after)
+operation account_id full_name national_id
+--------- ---------- --------- -----------
+3 42 Subject_000042 SYN-000042
+4 42 Subject_000042 SYN-000042-B
+=== PART B: original change table - old phone values still readable? ===
+operation account_id full_name phone
+--------- ---------- --------- -----
+2 42 Subject_000042 +1-555-0042
+2 43 Subject_000043 +1-555-0043
+3 43 Subject_000043 NULL
+4 43 Subject_000043_renamed NULL
+=== PART C: disable the original capture instance ===
+--- Does the original change table still exist? (NULL = removed) ---
+original_change_table_object_id
+-------------------------------
+NULL
+--- Remaining capture instances for dbo.account ---
+capture_instance
+----------------
+dbo_account_v2

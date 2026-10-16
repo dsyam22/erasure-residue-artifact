@@ -1,0 +1,46 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(512),
+    rows_found INT
+);
+
+DECLARE @count INT;
+
+-- Check the main table
+SELECT @count = COUNT(*) 
+FROM dbo.customer 
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+INSERT INTO #Results (object_name, rows_found) 
+VALUES ('dbo.customer', @count);
+
+-- Check the history table if system-versioning is enabled
+DECLARE @HistorySchema NVARCHAR(256);
+DECLARE @HistoryName NVARCHAR(256);
+
+SELECT @HistorySchema = SCHEMA_NAME(h.schema_id), 
+       @HistoryName = h.name
+FROM sys.tables t
+JOIN sys.tables h ON t.history_table_id = h.object_id
+WHERE t.object_id = OBJECT_ID('dbo.customer');
+
+IF @HistorySchema IS NOT NULL AND @HistoryName IS NOT NULL
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@HistorySchema) + N'.' + QUOTENAME(@HistoryName) + 
+               N' WHERE customer_id = 42 OR full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042'';';
+    
+    EXEC sp_executesql @sql, N'@cnt INT OUTPUT', @count OUTPUT;
+    
+    INSERT INTO #Results (object_name, rows_found) 
+    VALUES (@HistorySchema + '.' + @HistoryName, @count);
+END
+
+SELECT object_name, rows_found 
+FROM #Results;
+
+DROP TABLE #Results;

@@ -1,0 +1,51 @@
+database_name|server_name|product_version|edition
+-------------|-----------|---------------|-------
+llm_i7|651334c31df8|16.0.4295.3|Developer Edition (64-bit)
+(1 rows affected)
+schema_name|object_name|type_desc|create_date|modify_date
+-----------|-----------|---------|-----------|-----------
+dbo|customer|USER_TABLE|2026-10-10 19:08:27.180|2026-10-10 19:08:27.180
+reporting|customer_replica|USER_TABLE|2026-10-10 19:08:27.223|2026-10-10 19:08:27.223
+(2 rows affected)
+schema_name|table_name|temporal_type_desc|partition_number|rows
+-----------|----------|------------------|----------------|----
+dbo|customer|NON_TEMPORAL_TABLE|1|99
+reporting|customer_replica|NON_TEMPORAL_TABLE|1|100
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|computed_definition
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|-------------------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0|NULL
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|NULL
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0|NULL
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0|NULL
+reporting|customer_replica|1|customer_id|int|4|10|0|0|0|0|NULL
+reporting|customer_replica|2|full_name|nvarchar|200|0|0|0|0|0|NULL
+reporting|customer_replica|3|email|nvarchar|400|0|0|0|0|0|NULL
+reporting|customer_replica|4|phone|nvarchar|60|0|0|1|0|0|NULL
+(8 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+fk_schema|fk_table|fk_name|referenced_schema|referenced_table|delete_referential_action_desc|update_referential_action_desc
+---------|--------|-------|-----------------|----------------|------------------------------|------------------------------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+reporting|customer_replica|customer_id|int|4
+reporting|customer_replica|full_name|nvarchar|200
+reporting|customer_replica|email|nvarchar|400
+reporting|customer_replica|phone|nvarchar|60
+(8 rows affected)

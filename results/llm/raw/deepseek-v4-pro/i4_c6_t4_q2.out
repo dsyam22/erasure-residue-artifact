@@ -1,0 +1,14 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME
+------------|----------|-----------
+dbo|customer|customer_id
+dbo|member|member_id
+dbo|member|valid_from
+dbo|member|valid_to
+dbo|member_history|member_id
+dbo|member_history|valid_from
+dbo|member_history|valid_to
+dbo|systranschemas|tabid
+dbo|systranschemas|startlsn
+dbo|systranschemas|endlsn
+dbo|systranschemas|typeid
+(11 rows affected)

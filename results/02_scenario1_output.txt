@@ -1,0 +1,23 @@
+Changed database context to 'erasure_lab'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 01:46:52.9699647
+--- BEFORE delete ---
+source_rows_for_subject
+-----------------------
+1
+change_table_rows_for_subject
+-----------------------------
+1
+--- Erasure: DELETE subject 42 ---
+--- AFTER delete ---
+source_rows_for_subject
+-----------------------
+0
+--- Change table contents for subject 42 ---
+    operation: 1 = delete, 2 = insert, 3 = update (before), 4 = update (after)
+operation change_time customer_id full_name email phone
+--------- ----------- ----------- --------- ----- -----
+2 2026-10-08 01:46:47.643 42 Subject_000042 subject42@example.invalid +1-555-0042
+1 2026-10-08 01:47:12.980 42 Subject_000042 subject42@example.invalid +1-555-0042

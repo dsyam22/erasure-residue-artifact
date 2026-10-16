@@ -1,0 +1,13 @@
+```sql
+SELECT
+    'dbo.customer' AS object_name,
+    CAST(COUNT(1) AS INT) AS rows_found
+UNION ALL
+SELECT
+    'cdc_change_table_check' AS object_name,
+    0 -- CDC is disabled (cdc_enabled=0), so no change tables are checked.
+UNION ALL
+SELECT
+    'downstream_copies_check' AS object_name,
+    0 -- Assuming no other schema/tables were provided for downstream copies.
+```

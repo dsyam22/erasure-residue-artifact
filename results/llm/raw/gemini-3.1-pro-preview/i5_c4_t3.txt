@@ -1,0 +1,15 @@
+```sql
+SELECT 
+    'dbo.customer' AS object_name, 
+    COUNT(*) AS rows_found 
+FROM dbo.customer 
+WHERE customer_id = 42
+
+UNION ALL
+
+SELECT 
+    'dbo.customer_history' AS object_name, 
+    COUNT(*) AS rows_found 
+FROM dbo.customer_history 
+WHERE customer_id = 42;
+```

@@ -1,0 +1,61 @@
+/* Verify erasure of phone number for customer_id 42 (only phone is in scope). */
+DECLARE @cust_id int = 42;
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+/* 1. Base table: phone column should no longer exist. */
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.customer') AND name = 'phone')
+    INSERT INTO #results
+    SELECT 'dbo.customer', COUNT(*) FROM dbo.customer WHERE phone = @phone;
+ELSE
+    INSERT INTO #results VALUES ('dbo.customer', 0);
+
+/* 2. CDC change table for dbo.customer (dbo_customer_CT). */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+    INSERT INTO #results
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @cust_id AND phone = @phone;
+ELSE
+    INSERT INTO #results VALUES ('cdc.dbo_customer_CT', 0);
+
+INSERT INTO #results
+SELECT 'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cust_id AND phone = @phone;
+
+/* 3. Temporal history table, if any. */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE object_id = OBJECT_ID('dbo.customer') AND temporal_type = 1)
+    INSERT INTO #results
+    SELECT 'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @cust_id AND phone = @phone;
+ELSE
+    INSERT INTO #results VALUES ('dbo.customer_history', 0);
+
+/* 4. Any other table in the database containing a column named phone. */
+DECLARE @tbl sysname, @sch sysname, @sql nvarchar(max);
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.columns c
+    JOIN sys.tables t ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE c.name = 'phone'
+      AND t.name NOT IN ('customer', 'dbo_customer_CT', 'customer_history')
+      AND t.object_id NOT IN (SELECT object_id FROM sys.tables WHERE temporal_type = 1);
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @sch, @tbl;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO #results SELECT ''' + @sch + '.' + @tbl + ''', COUNT(*) FROM [' + @sch + '].[' + @tbl + '] WHERE phone = @p;';
+    EXEC sp_executesql @sql, N'@p nvarchar(100)', @p = @phone;
+    FETCH NEXT FROM cur INTO @sch, @tbl;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found FROM #results;
+DROP TABLE #results;

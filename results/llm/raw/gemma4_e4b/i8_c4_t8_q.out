@@ -1,0 +1,12 @@
+TableName|ColumnName|DataType|MaxLength|IsNullable
+---------|----------|--------|---------|----------
+customer|customer_id|int|4|No
+customer|email|nvarchar|400|No
+customer|full_name|nvarchar|200|No
+customer|phone|nvarchar|60|Yes
+(4 rows affected)
+SchemaName|ViewName|DefinitionSnippet
+----------|--------|-----------------
+(0 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 33
+Invalid object name 'sys_foreign_key_columns'.

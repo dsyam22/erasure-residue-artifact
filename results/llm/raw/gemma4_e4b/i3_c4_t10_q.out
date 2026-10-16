@@ -1,0 +1,25 @@
+TableName|ColumnName|DataType|MaxLength|IsNullable
+---------|----------|--------|---------|----------
+customer|customer_id|int|4|0
+customer|full_name|nvarchar|200|0
+customer|email|nvarchar|400|0
+customer|phone|nvarchar|60|1
+member|member_id|int|4|0
+member|full_name|nvarchar|200|0
+member|email|nvarchar|400|0
+member|phone|nvarchar|60|1
+member|valid_from|datetime2|8|0
+member|valid_to|datetime2|8|0
+member_history|member_id|int|4|0
+member_history|full_name|nvarchar|200|0
+member_history|email|nvarchar|400|0
+member_history|phone|nvarchar|60|1
+member_history|valid_from|datetime2|8|0
+member_history|valid_to|datetime2|8|0
+systranschemas|tabid|int|4|0
+systranschemas|startlsn|binary|10|0
+systranschemas|endlsn|binary|10|0
+systranschemas|typeid|int|4|0
+(20 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 18
+Invalid object name 'sys_schema.columns'.

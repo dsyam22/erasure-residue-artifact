@@ -1,0 +1,47 @@
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable|is_identity
+-----------|----------|---------|-----------|---------|----------|-----------|-----------
+dbo|customer|1|customer_id|int|4|0|0
+dbo|customer|2|full_name|nvarchar|200|0|0
+dbo|customer|3|email|nvarchar|400|0|0
+dbo|customer|4|phone|nvarchar|60|1|0
+dbo|member|1|member_id|int|4|0|0
+dbo|member|2|full_name|nvarchar|200|0|0
+dbo|member|3|email|nvarchar|400|0|0
+dbo|member|4|phone|nvarchar|60|1|0
+dbo|member|5|valid_from|datetime2|8|0|0
+dbo|member|6|valid_to|datetime2|8|0|0
+(10 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|captured_columns|USER_TABLE
+cdc|change_tables|USER_TABLE
+cdc|dbo_customer_CT|USER_TABLE
+cdc|ddl_history|USER_TABLE
+cdc|fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|index_columns|USER_TABLE
+cdc|lsn_time_mapping|USER_TABLE
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_batchinsert_lsn_time_mapping|SQL_STORED_PROCEDURE
+cdc|sp_ins_dummy_lsn_time_mapping |SQL_STORED_PROCEDURE
+cdc|sp_ins_instance_enabling_lsn_time_mapping |SQL_STORED_PROCEDURE
+cdc|sp_ins_lsn_time_mapping|SQL_STORED_PROCEDURE
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE
+dbo|customer|USER_TABLE
+dbo|member|USER_TABLE
+dbo|member_history|USER_TABLE
+dbo|systranschemas|USER_TABLE
+(23 rows affected)
+schema_name|table_name|index_name|type_desc|column_name
+-----------|----------|----------|---------|-----------
+dbo|customer|PK__customer__CD65CB85B7DCDB16|CLUSTERED|customer_id
+dbo|member|PK__member__B29B8534F263E778|CLUSTERED|member_id
+(2 rows affected)
+referencing_schema|referencing_object|referenced_entity_name|referenced_id
+------------------|------------------|----------------------|-------------
+(0 rows affected)

@@ -1,0 +1,70 @@
+/* Read-only verification script */
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @nm nvarchar(200) = N'Subject_0000042';
+DECLARE @em nvarchar(320) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(50) = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#res') IS NOT NULL DROP TABLE #res;
+CREATE TABLE #res (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* dbo.customer (current) */
+INSERT INTO #res (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @nm
+   OR email = @em
+   OR phone = @ph;
+
+/* dbo.customer_history (temporal history) */
+INSERT INTO #res (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @nm
+   OR email = @em
+   OR phone = @ph;
+
+/* Any other tables in the database that actually contain columns with matching names/values */
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql + N'
+INSERT INTO #res (object_name, rows_found)
+SELECT N''' + REPLACE(QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), N'''', N'''''') + N''', COUNT(*)
+FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' AS src
+WHERE ' +
+STUFF((
+    SELECT N' OR ' + N'(' +
+        CASE WHEN c.name = N'customer_id' THEN N'src.' + QUOTENAME(c.name) + N' = @cid'
+             ELSE N'src.' + QUOTENAME(c.name) + N' LIKE N''%'' + ' +
+                  CASE WHEN c.name = N'full_name' THEN N'@nm'
+                       WHEN c.name = N'email'     THEN N'@em'
+                       WHEN c.name = N'phone'     THEN N'@ph'
+                  END + N' + N''%'''
+        END + N')'
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+    FOR XML PATH(''), TYPE
+).value('.', 'nvarchar(max)'), 1, 4, N'') + N';
+'
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
+  AND NOT (s.name = N'dbo' AND t.name IN (N'customer', N'customer_history'))
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns AS c
+      WHERE c.object_id = t.object_id
+        AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+  );
+
+IF @sql <> N''
+    EXEC sp_executesql @sql, N'@cid int, @nm nvarchar(200), @em nvarchar(320), @ph nvarchar(50)',
+                        @cid = @cid, @nm = @nm, @em = @em, @ph = @ph;
+
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;

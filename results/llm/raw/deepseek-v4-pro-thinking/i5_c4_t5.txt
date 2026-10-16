@@ -1,0 +1,76 @@
+```sql
+SET NOCOUNT ON;
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL
+    DROP TABLE #results;
+
+CREATE TABLE #results
+(
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found int NOT NULL
+);
+
+DECLARE @object_id int;
+DECLARE @schema_name sysname;
+DECLARE @table_name sysname;
+DECLARE @qualified_name nvarchar(258);
+DECLARE @object_display nvarchar(260);
+DECLARE @object_display_escaped nvarchar(270);
+DECLARE @predicates nvarchar(max);
+DECLARE @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    INNER JOIN sys.schemas AS s ON t.schema_id = s.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @object_id, @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @qualified_name = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+    SET @object_display = @schema_name + N'.' + @table_name;
+    SET @object_display_escaped = REPLACE(@object_display, N'''', N'''''');
+
+    SELECT @predicates = STRING_AGG(
+        CASE
+            WHEN ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','money','smallmoney','float','real')
+                THEN QUOTENAME(c.name) + N' = 42'
+            WHEN ty.name IN ('char','varchar','nchar','nvarchar','sysname')
+                THEN QUOTENAME(c.name) + N' IN (N''Subject_0000042'', N''subject42@example.invalid'', N''+1-555-0000042'', N''42'')'
+            ELSE NULL
+        END,
+        ' OR '
+    )
+    FROM sys.columns AS c
+    INNER JOIN sys.types AS ty ON c.user_type_id = ty.user_type_id
+    WHERE c.object_id = @object_id
+      AND c.is_computed = 0;
+
+    IF @predicates IS NULL
+        SET @predicates = N'1=0';
+
+    SET @sql = N'SET NOCOUNT ON; INSERT #results(object_name, rows_found) SELECT N''' 
+               + @object_display_escaped 
+               + N''', COUNT(*) FROM ' 
+               + @qualified_name 
+               + N' WHERE ' 
+               + @predicates 
+               + N';';
+
+    EXEC sys.sp_executesql @sql;
+
+    FETCH NEXT FROM table_cursor INTO @object_id, @schema_name, @table_name;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

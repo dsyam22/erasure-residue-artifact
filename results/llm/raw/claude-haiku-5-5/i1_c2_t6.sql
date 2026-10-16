@@ -1,0 +1,35 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+-- Live table: rows still holding the subject's original data
+INSERT INTO @results (object_name, rows_found)
+SELECT
+    N'dbo.customer',
+    CAST(COUNT_BIG(*) AS bigint)
+FROM dbo.customer AS c
+WHERE c.customer_id = 42
+   OR c.full_name   = N'Subject_0000042'
+   OR c.email       = N'subject42@example.invalid'
+   OR c.phone       = N'+1-555-0000042';
+
+-- CDC change table: captured before/after images may retain the original data
+INSERT INTO @results (object_name, rows_found)
+SELECT
+    N'cdc.dbo_customer_CT',
+    CAST(COUNT_BIG(*) AS bigint)
+FROM cdc.dbo_customer_CT AS ct
+WHERE ct.customer_id = 42
+   OR ct.full_name   = N'Subject_0000042'
+   OR ct.email       = N'subject42@example.invalid'
+   OR ct.phone       = N'+1-555-0000042';
+
+SELECT
+    r.object_name,
+    r.rows_found
+FROM @results AS r
+ORDER BY r.object_name;

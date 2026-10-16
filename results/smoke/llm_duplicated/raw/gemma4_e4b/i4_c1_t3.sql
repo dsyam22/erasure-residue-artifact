@@ -1,0 +1,21 @@
+DECLARE @customer_count INT = 0;
+DECLARE @member_count INT = 0;
+
+-- Check dbo.customer for persistence of original personal data
+SELECT @customer_count = COUNT(customer_id)
+FROM dbo.customer
+WHERE full_name = 'Subject_0000042'
+  AND email = 'subject42@example.invalid'
+  AND phone = '+1-555-0000042';
+
+-- Check dbo.member for persistence of original personal data
+SELECT @member_count = COUNT(member_id)
+FROM dbo.member
+WHERE full_name = 'Subject_0000042'
+  AND email = 'subject42@example.invalid'
+  AND phone = '+1-555-0000042';
+
+-- Return the results in the required format (single result set)
+SELECT 'dbo.customer' AS object_name, @customer_count AS rows_found
+UNION ALL
+SELECT 'dbo.member', @member_count;

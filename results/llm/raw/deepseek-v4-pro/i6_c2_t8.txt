@@ -1,0 +1,108 @@
+```sql
+DECLARE @customer_id int = 42;
+DECLARE @phone nvarchar(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255),
+    rows_found int
+);
+
+-- Check dbo.customer (current table)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('dbo.customer')
+        AND c.name = 'phone'
+  )
+  AND phone = @phone;
+
+-- If phone column doesn't exist in dbo.customer, the above returns 0.
+-- But ensure we still return a row for dbo.customer even if no phone column exists.
+IF NOT EXISTS (SELECT 1 FROM #results WHERE object_name = 'dbo.customer')
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', 0;
+
+-- Check CDC capture instance cdc.dbo_customer_CT
+IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.name = 'dbo_customer_CT' AND SCHEMA_NAME(t.schema_id) = 'cdc')
+BEGIN
+    DECLARE @cdc_has_phone int;
+    SELECT @cdc_has_phone = COUNT(*)
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('cdc.dbo_customer_CT')
+      AND c.name = 'phone';
+
+    IF @cdc_has_phone > 0
+    BEGIN
+        DECLARE @sql nvarchar(max);
+        SET @sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ''cdc.dbo_customer_CT'', COUNT(*)
+            FROM cdc.dbo_customer_CT
+            WHERE customer_id = @customer_id
+              AND phone = @phone;';
+        EXEC sp_executesql @sql, N'@customer_id int, @phone nvarchar(50)', @customer_id, @phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT 'cdc.dbo_customer_CT', 0;
+    END
+END
+
+-- Check all other tables in the database for columns named 'phone' or similar that might contain the phone number.
+-- We look for any table that has a column with 'phone' in the name and check if it contains the subject's data.
+DECLARE @table_name nvarchar(255);
+DECLARE @schema_name nvarchar(128);
+DECLARE @column_name nvarchar(128);
+
+DECLARE table_cursor CURSOR FOR
+SELECT s.name AS schema_name, t.name AS table_name, c.name AS column_name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+WHERE c.name LIKE '%phone%'
+  AND t.is_ms_shipped = 0;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @full_name nvarchar(255) = @schema_name + '.' + @table_name;
+    DECLARE @dynamic_sql nvarchar(max);
+    SET @dynamic_sql = N'
+        IF EXISTS (SELECT 1 FROM ' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@table_name) + 
+        N' WHERE customer_id = @customer_id AND ' + QUOTENAME(@column_name) + N' = @phone)
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @full_name, COUNT(*)
+            FROM ' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@table_name) + 
+            N' WHERE customer_id = @customer_id AND ' + QUOTENAME(@column_name) + N' = @phone;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @full_name, 0;
+        END';
+    EXEC sp_executesql @dynamic_sql, N'@customer_id int, @phone nvarchar(50), @full_name nvarchar(255)', @customer_id, @phone, @full_name;
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Ensure we have at least the known objects
+IF NOT EXISTS (SELECT 1 FROM #results WHERE object_name = 'cdc.dbo_customer_CT')
+    INSERT INTO #results (object_name, rows_found) VALUES ('cdc.dbo_customer_CT', 0);
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

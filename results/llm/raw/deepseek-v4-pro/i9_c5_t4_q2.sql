@@ -1,0 +1,6 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE DATA_TYPE IN ('nvarchar','varchar','char','nchar','text','ntext')
+  AND COLUMN_NAME IN ('full_name','email','phone','customer_id')
+ORDER BY TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME;

@@ -1,0 +1,65 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(400) = N'+1-555-0000042';
+DECLARE @needleDigits nvarchar(400) = N'15550000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* dbo.customer: phone column was dropped, so it cannot contain the phone number.
+   We still verify the remaining columns do not embed the phone number. */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE CAST(customer_id AS nvarchar(400)) LIKE N'%' + @needle + N'%'
+   OR CAST(customer_id AS nvarchar(400)) LIKE N'%' + @needleDigits + N'%'
+   OR full_name LIKE N'%' + @needle + N'%'
+   OR full_name LIKE N'%' + @needleDigits + N'%'
+   OR email LIKE N'%' + @needle + N'%'
+   OR email LIKE N'%' + @needleDigits + N'%';
+
+/* Search every string-like column in every user table for the phone number. */
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name, c.name
+FROM sys.columns c
+JOIN sys.tables t ON t.object_id = c.object_id
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
+  AND c.system_type_id IN (167, 231, 175, 239, 35)  -- varchar, nvarchar, char, nchar, text/ntext family
+ORDER BY s.name, t.name, c.name;
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+INSERT INTO #results (object_name, rows_found)
+SELECT @obj, COUNT(*)
+FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+WHERE ' + QUOTENAME(@column) + N' LIKE N''%'' + @needle + N''%''
+   OR ' + QUOTENAME(@column) + N' LIKE N''%'' + @needleDigits + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @needle nvarchar(400), @needleDigits nvarchar(400)',
+        @obj = @schema + N'.' + @table,
+        @needle = @needle,
+        @needleDigits = @needleDigits;
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+/* Consolidate per-table counts (a table may have several matching columns). */
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

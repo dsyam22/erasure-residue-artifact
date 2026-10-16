@@ -1,0 +1,26 @@
+schema_name|table_name|object_id|temporal_type_desc|history_table_id|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|is_ms_shipped|approx_rows
+-----------|----------|---------|------------------|----------------|--------------|-------------|-----------------|-------------------|-------------|-----------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|dbo|customer_history|0|0|0|99
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|NULL|0|0|0|1
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable|possibly_personal
+-----------|----------|---------|-----------|---------|----------|-----------|-----------------
+dbo|customer|1|customer_id|int|4|0|1
+dbo|customer|2|full_name|nvarchar|200|0|1
+dbo|customer|3|email|nvarchar|400|0|1
+dbo|customer|4|phone|nvarchar|60|1|1
+dbo|customer|5|valid_from|datetime2|8|0|1
+dbo|customer|6|valid_to|datetime2|8|0|1
+dbo|customer_history|1|customer_id|int|4|0|1
+dbo|customer_history|2|full_name|nvarchar|200|0|1
+dbo|customer_history|3|email|nvarchar|400|0|1
+dbo|customer_history|4|phone|nvarchar|60|1|1
+dbo|customer_history|5|valid_from|datetime2|8|0|1
+dbo|customer_history|6|valid_to|datetime2|8|0|1
+child_schema|child_table|fk_name|parent_schema|parent_table|delete_referential_action_desc
+------------|-----------|-------|-------------|------------|------------------------------
+schema_name|object_name|type_desc
+-----------|-----------|---------
+schema_name|table_name|is_enabled
+-----------|----------|----------
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 74
+Invalid object name 'cdc.change_tables'.

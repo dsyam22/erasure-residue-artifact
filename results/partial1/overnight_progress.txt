@@ -1,0 +1,19 @@
+14:08:25 starting: trials=10 retentions=1 5 15
+14:10:45 cleanup retention=1 activity=1 trial=1 done
+14:11:21 sink consumer=CLAMP trial=1 done
+14:11:27 sink consumer=STRICT trial=1 done
+14:12:58 cleanup retention=1 activity=1 trial=2 done
+14:13:44 sink consumer=CLAMP trial=2 done
+14:13:46 sink consumer=STRICT trial=2 done
+14:14:08 cleanup_r15_a1: attempt 1 gave no complete result, retrying
+14:15:08 cleanup retention=5 activity=1 trial=1 done
+14:15:12 cleanup retention=1 activity=1 trial=3 done
+14:15:39 sink consumer=STRICT trial=3 done
+14:16:09 sink consumer=CLAMP trial=3 done
+14:17:29 cleanup retention=1 activity=1 trial=4 done
+14:17:58 sink consumer=STRICT trial=4 done
+14:18:28 sink consumer=CLAMP trial=4 done
+14:19:16 cleanup retention=1 activity=0 trial=1 done
+14:19:36 cleanup retention=5 activity=0 trial=1 done
+14:19:42 cleanup retention=1 activity=1 trial=5 done
+14:19:46 sink consumer=STRICT trial=5 done

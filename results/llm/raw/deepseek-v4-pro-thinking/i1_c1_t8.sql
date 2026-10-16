@@ -1,0 +1,79 @@
+SET NOCOUNT ON;
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL
+    DROP TABLE #results;
+
+CREATE TABLE #results
+(
+    object_name nvarchar(776) NOT NULL,
+    rows_found bigint NOT NULL
+);
+
+DECLARE @schema sysname;
+DECLARE @table sysname;
+DECLARE @object_name nvarchar(776);
+DECLARE @quoted_object nvarchar(776);
+DECLARE @where nvarchar(max);
+DECLARE @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @object_name = @schema + N'.' + @table;
+    SET @quoted_object = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+
+    SELECT @where = STRING_AGG(condition, N' OR ')
+    FROM
+    (
+        SELECT N'(CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = N''Subject_0000042'' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = N''subject42@example.invalid'' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = N''+1-555-0000042'')' AS condition
+        FROM sys.columns AS c
+        WHERE c.object_id = OBJECT_ID(@quoted_object)
+          AND c.system_type_id IN (35, 99, 167, 175, 231, 239)
+          AND LOWER(c.name) <> N'customer_id'
+
+        UNION ALL
+
+        SELECT N'(' + QUOTENAME(c.name) + N' = 42)'
+        FROM sys.columns AS c
+        WHERE c.object_id = OBJECT_ID(@quoted_object)
+          AND LOWER(c.name) = N'customer_id'
+          AND c.system_type_id IN (48, 52, 56, 127)
+
+        UNION ALL
+
+        SELECT N'(CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = N''42'')'
+        FROM sys.columns AS c
+        WHERE c.object_id = OBJECT_ID(@quoted_object)
+          AND LOWER(c.name) = N'customer_id'
+          AND c.system_type_id IN (35, 99, 167, 175, 231, 239)
+    ) AS conditions;
+
+    IF @where IS NULL
+        SET @where = N'1 = 0';
+
+    SET @sql = N'SELECT @p_object, COUNT_BIG(*)
+                  FROM ' + @quoted_object + N'
+                  WHERE ' + @where + N';';
+
+    INSERT #results (object_name, rows_found)
+    EXEC sys.sp_executesql @sql, N'@p_object nvarchar(776)', @p_object = @object_name;
+
+    FETCH NEXT FROM table_cursor INTO @schema, @table;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

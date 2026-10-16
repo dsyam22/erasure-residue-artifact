@@ -1,0 +1,31 @@
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 39
+Incorrect syntax near the keyword 'OR'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 55
+Unclosed quotation mark after the character string ';
+
+            -- WARNING: Since we do not know the schema, this dynamic query is structurally limited. 
+            -- For a real environment, one would iterate through all character columns (VARCHAR/NVARCHAR).
+            -- Due to SQL limitations in dynamically querying *all* columns for text matching, 
+            -- we must assume that the critical data points are likely stored in the first few columns or the structure is simple.
+
+            INSERT INTO #AuditResults (object_name, rows_found)
+            EXEC sp_executesql @SQL;
+
+        END
+
+        FETCH NEXT FROM table_cursor INTO @SchemaName, @TableName;
+    WHILE @@FETCH_STATUS = 0
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Final result set containing the count for every object checked
+SELECT 
+    object_name, 
+    ISNULL(rows_found, 0) AS rows_found 
+FROM 
+    #AuditResults;
+
+DROP TABLE #AuditResults;
+'.

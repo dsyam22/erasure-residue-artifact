@@ -1,0 +1,10 @@
+SELECT 
+    'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (
+      full_name = N'Subject_0000042'
+      OR email = 'subject42@example.invalid'
+      OR full_name = N'Subject_0000042' AND email = 'subject42@example.invalid'
+  );

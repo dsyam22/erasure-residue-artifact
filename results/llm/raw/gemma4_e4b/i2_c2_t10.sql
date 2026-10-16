@@ -1,0 +1,26 @@
+WITH CheckResults AS (
+    -- Check the current version of the main table (dbo.customer)
+    SELECT 
+        'dbo.customer' AS object_name, 
+        CAST((
+            SELECT COUNT(1) 
+            FROM dbo.customer c 
+            WHERE c.customer_id = 42 
+              AND c.full_name = N'Subject_0000042' 
+              AND c.email = N'subject42@example.invalid'
+        ) AS INT) AS rows_found
+
+    UNION ALL
+
+    -- Check the temporal history table (dbo.customer_history) where deleted records reside
+    SELECT 
+        'dbo.customer_history', 
+        CAST((
+            SELECT COUNT(1) 
+            FROM dbo.customer_history ch 
+            WHERE ch.customer_id = 42 
+              AND ch.full_name = N'Subject_0000042' 
+              AND ch.email = N'subject42@example.invalid'
+        ) AS INT)
+)
+SELECT object_name, rows_found FROM CheckResults;

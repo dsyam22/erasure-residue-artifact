@@ -1,0 +1,47 @@
+/* Read-only verification script: checks whether the erased subject's original
+   personal data still exists anywhere in the database (including CDC change
+   tables and other downstream copies). Returns exactly one result set:
+   object_name | rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @fn  nvarchar(200) = N'Subject_0000042';
+DECLARE @em  nvarchar(320) = N'subject42@example.invalid';
+DECLARE @ph  nvarchar(50)  = N'+1-555-0000042';
+
+/* Collect all base tables that have at least the 4 relevant columns,
+   so we can search every possible copy of the data. */
+DECLARE @tables TABLE (schema_name sysname, table_name sysname);
+
+INSERT INTO @tables (schema_name, table_name)
+SELECT s.name, t.name
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE EXISTS (SELECT 1 FROM sys.columns c
+              WHERE c.object_id = t.object_id AND c.name = N'customer_id')
+  AND EXISTS (SELECT 1 FROM sys.columns c
+              WHERE c.object_id = t.object_id AND c.name = N'full_name')
+  AND EXISTS (SELECT 1 FROM sys.columns c
+              WHERE c.object_id = t.object_id AND c.name = N'email')
+  AND EXISTS (SELECT 1 FROM sys.columns c
+              WHERE c.object_id = t.object_id AND c.name = N'phone');
+
+/* Build a UNION ALL query that counts matches in each table. */
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql +
+    CASE WHEN @sql = N'' THEN N'' ELSE N' UNION ALL ' END +
+    N'SELECT N''' + REPLACE(schema_name + N'.' + table_name, N'''', N'''''') +
+    N''' AS object_name, COUNT_BIG(*) AS rows_found ' +
+    N'FROM ' + QUOTENAME(schema_name) + N'.' + QUOTENAME(table_name) + N' ' +
+    N'WHERE customer_id = @cid ' +
+    N'AND full_name = @fn AND email = @em AND phone = @ph'
+FROM @tables;
+
+IF @sql = N''
+    SET @sql = N'SELECT CAST(NULL AS nvarchar(4000)) AS object_name, CAST(0 AS bigint) AS rows_found WHERE 1 = 0';
+
+EXEC sp_executesql @sql,
+     N'@cid int, @fn nvarchar(200), @em nvarchar(320), @ph nvarchar(50)',
+     @cid = @cid, @fn = @fn, @em = @em, @ph = @ph;

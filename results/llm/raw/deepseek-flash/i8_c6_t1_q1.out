@@ -1,0 +1,4 @@
+TABLE_CATALOG|TABLE_SCHEMA|TABLE_NAME
+-------------|------------|----------
+llm_i8|dbo|customer
+(1 rows affected)

@@ -1,0 +1,69 @@
+/* Read-only verification: search for erased personal data still present. */
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email      nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone      nvarchar(50)  = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* dbo.customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* dbo.member */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member', COUNT_BIG(*)
+FROM dbo.member
+WHERE member_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* Any other base table in the database that has one of the target column names
+   in any schema, checked dynamically for the subject's values. */
+DECLARE @schema sysname, @table sysname, @col sysname;
+DECLARE @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS c
+    INNER JOIN INFORMATION_SCHEMA.TABLES t
+        ON t.TABLE_SCHEMA = c.TABLE_SCHEMA
+       AND t.TABLE_NAME = c.TABLE_NAME
+       AND t.TABLE_TYPE = 'BASE TABLE'
+    WHERE c.COLUMN_NAME IN (N'customer_id', N'member_id', N'full_name', N'email', N'phone')
+      AND NOT (c.TABLE_SCHEMA = N'dbo' AND c.TABLE_NAME IN (N'customer', N'member'));
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT QUOTENAME(@s) + N''.'' + QUOTENAME(@t), COUNT_BIG(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + QUOTENAME(@col) + N' IN (@cid, @fn, @em, @ph);';
+
+    EXEC sp_executesql @sql,
+        N'@s sysname, @t sysname, @cid int, @fn nvarchar(200), @em nvarchar(320), @ph nvarchar(50)',
+        @s = @schema, @t = @table,
+        @cid = @customer_id, @fn = @full_name, @em = @email, @ph = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @col;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

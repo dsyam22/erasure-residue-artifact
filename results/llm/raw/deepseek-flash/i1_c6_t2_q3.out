@@ -1,0 +1,5 @@
+object_name|rows_found
+-----------|----------
+dbo.customer|0
+cdc.dbo_customer_CT|2
+(2 rows affected)

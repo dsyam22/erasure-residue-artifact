@@ -1,0 +1,59 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #scan
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @obj   nvarchar(400),
+        @oid   int,
+        @where nvarchar(max),
+        @sql   nvarchar(max),
+        @cnt   bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name),
+           t.object_id
+    FROM sys.tables AS t
+    WHERE t.is_ms_shipped = 0
+    ORDER BY 1;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @obj, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = NULL;
+
+    -- One predicate per string-typed column (nvarchar, varchar, nchar, char, ntext, text),
+    -- each testing the three original personal-data values case-insensitively.
+    SELECT @where = STRING_AGG(CAST(
+        N'(' +
+        N'CHARINDEX(N''Subject_0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0 OR ' +
+        N'CHARINDEX(N''subject42@example.invalid'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0 OR ' +
+        N'CHARINDEX(N''+1-555-0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0' +
+        N')' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (231, 167, 239, 175, 99, 35);
+
+    SET @sql = N'SELECT @n = COUNT(*) FROM ' + @obj +
+               N' WHERE ' + ISNULL(@where, N'1 = 0') + N';';
+
+    SET @cnt = 0;
+    EXEC sp_executesql @sql, N'@n bigint OUTPUT', @n = @cnt OUTPUT;
+
+    INSERT INTO #scan (object_name, rows_found) VALUES (@obj, @cnt);
+
+    FETCH NEXT FROM tcur INTO @obj, @oid;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+
+DROP TABLE #scan;

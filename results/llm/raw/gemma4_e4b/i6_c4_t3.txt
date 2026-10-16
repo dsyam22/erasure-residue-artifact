@@ -1,0 +1,17 @@
+```sql
+WITH CheckResults AS (
+    -- Check dbo.customer table for residual phone data in any existing string columns
+    SELECT 
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN full_name LIKE '%+1-555-0000042%' THEN 1 END) + 
+        COUNT(CASE WHEN email LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+),
+ReportData (object_name, count) AS (
+    SELECT object_name, rows_found FROM CheckResults
+)
+-- Select the final required format. Since no other user tables were identified, we only report on dbo.customer.
+SELECT 
+    object_name, 
+    ISNULL(count, 0) AS rows_found
+FROM ReportData;
+```

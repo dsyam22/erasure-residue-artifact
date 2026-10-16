@@ -1,0 +1,32 @@
+database_name|compatibility_level|is_cdc_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on|can_view_definition|can_select_database
+-------------|-------------------|--------------|-----------------------------|-----------------------------|-------------------|-------------------
+llm_i3|160|1|OFF|0|1|1
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|is_filetable|ledger_type_desc|is_dropped_ledger_table|ledger_view_id|change_tracking_columns_enabled|column_id|column_name|type_schema_name|data_type|max_length|precision|scale|is_nullable|is_hidden|generated_always_type_desc|encryption_type_desc|computed_expression
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|------------|----------------|-----------------------|--------------|-------------------------------|---------|-----------|----------------|---------|----------|---------|-----|-----------|---------|--------------------------|--------------------|-------------------
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|1|object_id|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|2|column_name|sys|sysname|256|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|3|column_id|sys|int|4|10|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|4|column_type|sys|sysname|256|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|5|column_ordinal|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|6|is_computed|sys|bit|1|1|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|1125579048|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|7|masking_function|sys|nvarchar|8000|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|1|object_id|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|2|version|sys|int|4|10|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|3|source_object_id|sys|int|4|10|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|4|capture_instance|sys|sysname|256|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|5|start_lsn|sys|binary|10|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|6|end_lsn|sys|binary|10|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|7|supports_net_changes|sys|bit|1|1|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|8|has_drop_pending|sys|bit|1|1|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|9|role_name|sys|sysname|256|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|10|index_name|sys|sysname|256|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|11|filegroup_name|sys|sysname|256|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|12|create_date|sys|datetime|8|23|3|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|13|partition_switch|sys|bit|1|1|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|1333579789|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|1|__$start_lsn|sys|binary|10|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|1333579789|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|2|__$end_lsn|sys|binary|10|0|0|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|1333579789|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|3|__$seqval|sys|binary|10|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|1333579789|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|4|__$operation|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|1333579789|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|5|__$update_mask|sys|varbinary|128|0|0|1|0|N
+[output truncated]

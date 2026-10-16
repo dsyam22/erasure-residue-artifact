@@ -1,0 +1,50 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(512),
+    rows_found INT
+);
+
+-- Check the main table
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check for a system-versioned history table
+DECLARE @HistoryTableId INT;
+DECLARE @HistorySchema NVARCHAR(128);
+DECLARE @HistoryName NVARCHAR(128);
+
+SELECT @HistoryTableId = history_table_id
+FROM sys.tables
+WHERE object_id = OBJECT_ID('dbo.customer') 
+  AND temporal_type = 2; -- SYSTEM_VERSIONED_TEMPORAL_TABLE
+
+IF @HistoryTableId IS NOT NULL
+BEGIN
+    SELECT @HistorySchema = SCHEMA_NAME(schema_id), 
+           @HistoryName = name
+    FROM sys.tables
+    WHERE object_id = @HistoryTableId;
+
+    DECLARE @Sql NVARCHAR(MAX) = N'
+    INSERT INTO #Results (object_name, rows_found)
+    SELECT ''' + @HistorySchema + '.' + @HistoryName + ''', COUNT(*)
+    FROM ' + QUOTENAME(@HistorySchema) + '.' + QUOTENAME(@HistoryName) + '
+    WHERE customer_id = 42 
+       OR full_name = ''Subject_0000042'' 
+       OR email = ''subject42@example.invalid'' 
+       OR phone = ''+1-555-0000042'';';
+
+    EXEC sp_executesql @Sql;
+END
+
+-- Return the final result set
+SELECT object_name, rows_found 
+FROM #Results;
+
+DROP TABLE #Results;

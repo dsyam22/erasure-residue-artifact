@@ -1,0 +1,6 @@
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+(3 rows affected)

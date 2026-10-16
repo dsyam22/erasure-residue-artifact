@@ -1,0 +1,36 @@
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(1) AS rows_found
+UNION ALL
+SELECT
+    'reporting.customer_replica' AS object_name,
+    COUNT(1)
+WHERE 1=0; -- This section is a placeholder to ensure the structure for the second table without executing the count if the WHERE clause makes it redundant.
+
+-- To correctly achieve zero counts and guarantee two separate checks in one result set using UNION ALL, we must run two distinct queries.
+
+SELECT
+    'dbo.customer' AS object_name,
+    ISNULL(T1.count_rows, 0) AS rows_found
+FROM (
+    SELECT COUNT(*) AS count_rows
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND full_name = 'Subject_0000042'
+      AND email = 'subject42@example.invalid'
+      AND phone = '+1-555-0000042'
+) AS T1
+
+UNION ALL
+
+SELECT
+    'reporting.customer_replica' AS object_name,
+    ISNULL(T2.count_rows, 0) AS rows_found
+FROM (
+    SELECT COUNT(*) AS count_rows
+    FROM reporting.customer_replica
+    WHERE customer_id = 42
+      AND full_name = 'Subject_0000042'
+      AND email = 'subject42@example.invalid'
+      AND phone = '+1-555-0000042'
+) AS T2;

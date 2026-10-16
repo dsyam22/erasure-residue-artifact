@@ -1,0 +1,15 @@
+TableName|ColumnName|DataType|MaxLength|Nullability
+---------|----------|--------|---------|-----------
+customer|customer_id|int|4|NOT NULL
+customer|full_name|nvarchar|200|NOT NULL
+customer|email|nvarchar|400|NOT NULL
+customer|phone|nvarchar|60|NULL Allowed
+customer|valid_from|datetime2|8|NOT NULL
+customer|valid_to|datetime2|8|NOT NULL
+customer_history|customer_id|int|4|NOT NULL
+customer_history|full_name|nvarchar|200|NOT NULL
+customer_history|email|nvarchar|400|NOT NULL
+customer_history|phone|nvarchar|60|NULL Allowed
+customer_history|valid_from|datetime2|8|NOT NULL
+customer_history|valid_to|datetime2|8|NOT NULL
+(12 rows affected)

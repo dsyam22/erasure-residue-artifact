@@ -1,0 +1,644 @@
+% What Survives a DELETE? - DASFAA 2027 Industrial Track (LNCS, single-blind, 12 pages)
+% v0.7 - six models; industry-track review fixes. Only the artifact link (\artifacturl) remains to be filled.
+% BEFORE SUBMISSION: put the artifact link in \artifacturl below (search for ARTIFACT-LINK).
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{array}
+\usepackage{bbding}
+\newcommand{\pending}[1]{\textcolor{red}{[PENDING: #1]}}
+% ARTIFACT-LINK: replace the next line with  \newcommand{\artifacturl}{\url{https://github.com/USER/REPO}}
+\newcommand{\artifacturl}{\pending{artifact URL}}
+
+\begin{document}
+
+\title{What Survives a DELETE? Measuring Erasure Residue in Change Data Capture and Temporal Tables}
+\titlerunning{What Survives a DELETE?}
+
+\author{Syam Sajit Dondapati\inst{1}(\Envelope)\orcidID{0009-0004-0576-7152} \and
+Varunbabu Suddapalli\inst{2}\orcidID{\pending{ORCID}}}
+\authorrunning{S. S. Dondapati and V. Suddapalli}
+\institute{Independent Researcher, NJ, USA\\
+\email{dsyam22@gmail.com} \and
+Independent Researcher, USA\\
+\email{varun.etlfolk@gmail.com}}
+
+\maketitle
+
+\begin{abstract}
+The GDPR gives people a right to erasure, while audit rules push organisations
+to record every change. Change data capture (CDC), system-versioned tables,
+binary logs and logical replication serve the second need. On SQL Server 2022, PostgreSQL 17 and MariaDB 11.4 we erase
+synthetic data subjects and measure what these features keep and what removing
+it costs. Every feature kept the erased values in every trial. Retention
+periods acted as lower bounds, cleanup runs that removed nothing were logged as
+succeeded, temporal queries hid expired history rows that a direct read still
+returned, and clearing a change stream ahead of a lagging consumer left every
+erased subject in the downstream copy in 30 of 30 trials. We then asked six
+language models to write the verification script. With the change-tracking
+configuration withheld from the prompt, they certified an erasure that had not happened in 19--79\% of scripts per model;
+given it, in at most 6\%. When querying the
+catalog was optional, scripts that queried rarely failed (5 of 155) and scripts
+that did not usually did (79 of 125). Scripts, raw results and a checklist are
+released.
+
+\keywords{Data erasure \and GDPR \and Change data capture \and Temporal tables
+\and Logical replication \and Large language models}
+\end{abstract}
+
+% ---------------------------------------------------------------------------
+\section{Introduction}
+
+A database administrator who receives an erasure request under Article~17 of
+the GDPR~\cite{gdpr} usually answers it with a \texttt{DELETE}, or with an
+\texttt{UPDATE} that overwrites the personal fields so that foreign keys stay
+intact. The row disappears, a query confirms it, and the request is closed.
+
+The same database often serves auditors and downstream systems that need to
+know what a record contained before it changed, through features that copy
+rows as they change. Each is doing its job when it keeps a copy of a row that
+has just been deleted.
+
+We measure the gap between the two obligations. After a person's data has been
+erased from the tables an application reads, where can a query still read it,
+for how long, and what removes it? Nothing we report is a vendor bug, and much
+of the behaviour is documented~\cite{mscdc,mstemporal,pgconfig}. What has been
+missing is a measurement of its consequences for erasure. We make four
+contributions.
+
+\begin{enumerate}
+\item \textbf{A baseline count of the residue} in change tables, history
+tables, replication slots and binary logs on three engines
+(Section~\ref{sec:rq1}), which fixes what there is to remove.
+\item \textbf{What removes erasure residue, and at what cost}
+(Section~\ref{sec:rq2}): retention acts as a lower bound, empty cleanup runs
+report success, temporal retention hides rows hours before removing them, and
+clearing a stream ahead of its consumer strands deletes, without an error in 20
+of 30 trials.
+\item \textbf{An evaluation of 2,249 LLM-written verification scripts} from
+six models (Section~\ref{sec:rq3}), executed against databases whose residue is
+known. Given the configuration, no model certified an unfinished erasure in
+more than 6\% of scripts; without it, whether a model looked decided most
+outcomes.
+\item \textbf{A checklist and replication package} (Section~\ref{sec:checklist}).
+\end{enumerate}
+
+All data is synthetic, and the paper makes no claim about any production system
+and no legal claim: keeping history for audit can be lawful. Our point is that
+an operator asked to erase a person should know where copies remain.
+
+% ---------------------------------------------------------------------------
+\section{Background and Related Work}
+
+\textbf{Change data capture.} SQL Server's CDC reads the transaction log and
+writes one row per change into a change table that mirrors the source table's
+columns: the full image for an insert or delete, before and after images for an
+update~\cite{mscdc}. A cleanup job removes entries older than a retention
+period, three days by default. A column added to the source later is not
+captured, and a dropped column stays in the change table.
+
+\textbf{System-versioned tables.} SQL Server moves the previous version of an
+updated or deleted row into a history table, kept forever unless a retention
+period is set; with one, a background task removes aged rows and temporal
+queries filter them out~\cite{mstemporal}. MariaDB keeps history rows in the
+table itself.
+
+\begin{sloppypar}
+\textbf{Logs and replication.} A PostgreSQL replication slot makes the server
+retain write-ahead log until a consumer confirms it, by default without
+limit~\cite{pgconfig}; whether a delete record carries the whole old row
+depends on \texttt{REPLICA IDENTITY}~\cite{pgaltertable}. MariaDB's row-based
+binary log records row images for replication.
+\end{sloppypar}
+
+\textbf{Related work.} GDPRbench~\cite{shastri2020} measures the cost of
+retrofitting GDPR features such as timed deletion into Redis and PostgreSQL,
+and GDPRizer~\cite{agarwal2022} finds all rows belonging to one person across a
+legacy schema; both work on live tables, not on copies kept by change tracking.
+DELF~\cite{delf2020} found thousands of omissions in
+application-level deletion logic; we look one layer down, at copies the engine
+makes without application code. Chakraborty et
+al.~\cite{chakraborty2025} formalise erasure when erased values can be inferred
+from dependencies; our copies are explicit. Lethe~\cite{sarkar2020} bounds the
+time from a logical delete to physical removal in LSM-trees; we find that
+relational retention settings bound it only from below. K9db~\cite{k9db} and
+query-language support for timely deletion~\cite{sarkar2022} change the system
+to make deletion correct; we measure unmodified engines. Other features keep
+history by design: SQL Server ledger tables block deletes or keep every prior
+version~\cite{msledger}, and Oracle Flashback Time Travel archives row changes
+for a retention period~\cite{oraclefta}; Delta Lake offers time travel over
+earlier table versions and deletes their files only after a retention
+threshold~\cite{delta}. Crypto-shredding, which encrypts each
+subject's data under its own key and erases it by deleting the key, is a common
+answer for append-only logs~\cite{verraes2019}.
+
+Pipelines such as Debezium emit each delete with the row's prior state and a
+tombstone for Kafka compaction~\cite{debezium}, so residue recurs in the topic;
+we cover only the step before it. Backup
+purging~\cite{lenard2024} and database carving~\cite{wagner2015} concern copies
+a \texttt{SELECT} cannot reach; ours it can. LLM work on
+schema mapping~\cite{fu2024} and compliance Text-to-SQL~\cite{atf2025} does not
+run model-written SQL to find residual personal data.
+
+% ---------------------------------------------------------------------------
+\section{Study Design}
+\label{sec:design}
+
+\begin{description}
+\item[RQ1 (residue).] After an erasure, where are a data subject's original
+values still readable, and in how many copies?
+\item[RQ2 (remediation).] What removes each residue, how long does it take, and
+what does it cost elsewhere?
+\item[RQ3 (verification).] Can an LLM write a script that finds every surface
+holding residue?
+\end{description}
+
+\textbf{Environment and data.} We use SQL Server 2022 Developer Edition (build
+16.0.4295.3, CU27), PostgreSQL 17.11 and MariaDB 11.4.13 in Docker containers on
+one Apple Silicon laptop; the first two run as x86-64 images under emulation.
+Each trial starts from a new database. Tables hold synthetic customers with a
+name, an e-mail address and a telephone number, at $10^3$, $10^5$ and $10^6$
+rows ($10^3$ and $10^5$ on MariaDB). In each trial 100 subjects are erased by a
+\texttt{DELETE} or by an \texttt{UPDATE} that overwrites the personal fields.
+
+\textbf{Residue.} A subject has residue on a surface when a \texttt{SELECT}, or
+the engine's own log reader for a slot or binary log, returns one of the
+subject's original values after the erasure has committed and the capture
+process has recorded it. We poll until it has, instead of sleeping for a fixed
+time. We do not inspect storage pages. RQ1 outcomes are deterministic; we repeated
+each configuration ten times (three on MariaDB) to rule out timing effects and
+report them as identical, not as proportions. Timings are ranges over trials.
+
+\textbf{Scenarios.} RQ1 covers SQL Server CDC and temporal residue (3 scales
+$\times$ 2 methods, 60 trials), PostgreSQL slots under both replica-identity
+settings (120), MariaDB history and binary log (12), and schema changes under
+CDC (10). RQ2 covers CDC cleanup timing at three retention settings on an idle
+database and on one with an unrelated change every 30 seconds (60), temporal
+retention over a day (one run, then five staggered runs), downstream copies on
+SQL Server (20) and PostgreSQL (10), per-subject removal and read access (3,
+plus the MariaDB trials), and four restore sequences (40).
+
+\textbf{LLM task.} We built nine SQL Server databases (cases i1--i9), each with
+one erased subject: seven hold residue on a known set of surfaces (change table, history
+table, both, a dropped column's old values, or a downstream copy) and two are
+clean. A model receives the subject's original values, a description of the
+erasure and (1, \emph{withheld}) the table definitions only; (2) these and a listing of the
+change-tracking configuration; (3) both and a hint (``consider change-tracking
+features (CDC change tables, temporal history tables) and downstream copies of
+the data''); or (4, \emph{discovery}) what condition~1 gives plus one read-only
+query of its own, whose output it sees before writing the script; or (5,
+\emph{optional discovery}) the same with up to three queries that the model may
+run or skip; or (6, \emph{agentic}) one to three queries with errors shown and
+one repair of a failing script. No discovery instruction names a
+change-tracking feature. The model returns a
+read-only T-SQL script that reports, per object checked, how many rows still
+hold the data. Scripts run under a read-only login. Ground truth is the set of
+surfaces each case was built to hold; an exhaustive search run at the moment
+each script runs confirms it, and no model judges another. Case i5 (one-day temporal retention) holds residue only
+between expiry and removal, so its scripts were run inside that window. We report
+\emph{false clean} (data reported erased where residue exists), execution
+without error and false alarms on the clean cases; the share of surfaces found
+per script is in the artifact. Output not in the requested form counts as finding nothing, not as false
+clean; a script that errs but returns a result is scored on that result. Two
+baselines bracket the models: a \emph{naive} check of the source table plus a
+temporal query, and the exhaustive search, a schema-agnostic scan of every table
+that has a column of the searched name (source, change, history and copy
+tables); we release it as a reference verifier, valid where column names are
+kept in copies. Models: Gemma 4 E4B (local), DeepSeek Flash and V4 Pro
+(reasoning off), and Gemini 3.1 Pro, GPT-6.1 Sol and Claude Haiku 5.5 at their
+lowest reasoning settings, queried in October 2026, at temperature 0.7 to
+expose variance (GPT and Haiku: provider default, which their APIs fix). Ten
+trials per model, case and condition; five for GPT and Gemini (budget, Gemini's
+daily quota); condition 3 for the first three models only, 5--6 for hosted
+models; condition 6 with five trials (GPT, Gemini: three; DeepSeek: no i5); V4
+Pro with reasoning on for conditions 1 and 4, five trials.
+
+% ---------------------------------------------------------------------------
+\section{RQ1: Where Erased Data Persists}\label{sec:rq1}
+
+\textbf{SQL Server.} Table~\ref{tab:residue} gives the result, the same in all
+60 trials. The source tables held none of the 100 subjects' values; the change
+table held two copies of each and the history table one, which a temporal query
+with \texttt{FOR SYSTEM\_TIME ALL} returned. The erasure adds a copy: before the
+\texttt{DELETE} the change table held one image of the row, and the delete
+record is a second. Overwriting does not help either, since the update's
+before-image and the closed history version carry the original values.
+
+\begin{table}[t]
+\caption{Readable copies of an erased subject's values on SQL Server, identical
+in all 60 trials. The change-table copies are the insert image and the record
+of the erasure (delete record or the update's before image).}\label{tab:residue}
+\centering
+\small
+\begin{tabular}{lccl}
+\toprule
+Surface & \texttt{DELETE} & Overwrite & What the copy is \\
+\midrule
+Source table & 0 & 0 & -- \\
+CDC change table & 2 & 2 & insert image, erasure record \\
+Temporal history table & 1 & 1 & closed version \\
+\midrule
+Subjects with residue & 100/100 & 100/100 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{PostgreSQL.} What the erasure puts into the change stream depends on
+replica identity. With \texttt{FULL}, often set for tables without a suitable
+key, each of the 100 delete or update records carried the complete old row;
+with the default identity, only the key. This is the exposure of a working
+pipeline: the record waits in the slot until the consumer confirms it, and is
+then delivered downstream. Our slot, created before the load and never read
+(the extreme case of an abandoned consumer), also retained the original inserts,
+so all 100 subjects were readable through it in all 120 trials; once a consumer
+had read it, nothing was. At $10^6$ rows the unread slot held
+back about 187\,MB of log, with no limit configured by default~\cite{pgconfig}.
+
+\textbf{MariaDB.} With system versioning and the row-based binary log enabled,
+all 100 erased subjects remained in the table's history in all 12 trials, and
+the binary log held three copies of each subject's original values, for both
+methods and both scales: the insert, then a delete logged as an update whose before and
+after images both carry the original values (the row is closed, not removed),
+or an overwrite's before image plus the history row it writes.
+
+\textbf{Schema changes.} In all ten trials a column added under CDC was not
+captured, and a dropped column stayed in the change table with its values
+readable~\cite{mscdc}: a change log can record too little for an audit and too
+much for an erasure.
+
+% ---------------------------------------------------------------------------
+\section{RQ2: Removing the Residue}\label{sec:rq2}
+
+\subsection{CDC Cleanup: The Retention Period Is a Lower Bound}
+
+We deleted one subject and started the cleanup job every 30 seconds
+(Table~\ref{tab:cleanup}). On a database receiving unrelated changes, the
+subject's rows went within about a minute of the retention period. On an idle
+database, removal moved in five-minute steps, and the delete record outlived the
+insert image by a further five minutes in all 30 idle trials. The documentation
+explains the steps: cleanup sets its low-water mark from the newest entry in the
+LSN-to-time mapping, not from the clock~\cite{mscdc}, and on an idle database
+that entry can be minutes old.
+
+\begin{table}[t]
+\caption{Minutes from erasure until the subject's rows left the CDC change
+table (range over 10 trials; polled every 30\,s).}\label{tab:cleanup}
+\centering
+\small
+\begin{tabular}{llcc}
+\toprule
+Retention & Database & Insert image gone & Delete record gone \\
+\midrule
+1 min & active & 1.6--2.1 & 1.6--2.1 \\
+1 min & idle & 5.6--5.7 & 10.6--11.1 \\
+5 min & active & 5.6--6.2 & 5.6--6.2 \\
+5 min & idle & 5.6--5.7 & 10.6--11.1 \\
+15 min & active & 15.6--16.2 & 15.6--16.2 \\
+15 min & idle & 15.6--16.2 & 20.6--21.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two details matter more than the overshoot. The last copy to go is the delete record, the one the erasure created. And
+a run that removes nothing looks like one that does: counting runs started after
+the period had passed that left the insert image in place, excluding the run
+that removed it, there were eight in every trial at the one-minute setting on an
+idle database, and the job history records each as succeeded.
+
+\subsection{Temporal Retention: Hidden Before It Is Gone}
+
+We set a one-day retention period, deleted 100 subjects and read the history
+table directly and through a temporal query. A first run, read every 15
+minutes, hid all 100 from the temporal query at the first reading after expiry
+and removed them 32 to 48 minutes after expiry. In five more databases, erased
+seven minutes apart and read every minute, the temporal query returned all 100
+subjects at the last reading before expiry and none at the first after it. A direct read of the history table still
+returned all 100 for 3.9 to 4.4 hours after expiry, until the subjects of all
+five databases disappeared between the same two readings, consistent with one
+background pass rather than removal at each run's expiry; the documentation
+gives no bound~\cite{mstemporal}. Meanwhile a check through a temporal query reports
+the data erased while a \texttt{SELECT} on the history table returns it.
+
+\subsection{Downstream Copies: Clearing One Surface Breaks Another}
+
+A downstream table was fed by a consumer that applies deletes; when expected
+changes are gone, one design moves its read window forward, the other lets the
+engine raise an error. While the consumer kept up, deletes reached the copy in every trial.
+We then deleted ten subjects with the consumer paused, shortened retention so
+that cleanup removed their change records (1.6 to 2.2 minutes), and ran the
+consumer. In all 20 SQL Server trials (ten per design) the ten subjects
+remained in the copy.
+The first design reported nothing; the second got error 313, which signals the
+break but leaves the copy equally stale. On PostgreSQL, with the subscription paused,
+we deleted ten subjects, dropped and recreated the slot (a step operators take
+when an idle slot holds back log) and resumed. In 10 of 10 trials the subjects
+remained in the copy, later inserts arrived normally, and the subscription
+reported no errors. The step that clears the change stream destroys the only
+signal telling a downstream copy to delete.
+
+\subsection{Removing One Person, and Who Can Read the Residue}
+
+We tested per-subject removal on SQL Server in three trials, each on a
+1,000-row table from which ten subjects had been deleted (1,010 change rows),
+and on MariaDB in its 12 trials; all agreed. As database owner, a \texttt{DELETE} on the SQL
+Server change table removed the subject's two entries and left other entries
+and the change functions intact, but a second capture instance on the same
+table kept its own two copies. The change table then held exactly 1,008 of
+its 1,010 rows; we did not test the change functions over windows that span the
+deleted rows.
+This works but is outside documented use: the
+documentation recommends reading change tables only through the CDC
+functions~\cite{mscdcct} and offers no per-row removal. A \texttt{DELETE} on the history table was
+refused while versioning was on (error 13560); with versioning off it
+succeeded, versioning went back on with a consistency check, and other
+subjects' history was untouched.
+
+\begin{sloppypar}
+MariaDB rejected both per-row forms we tried, \texttt{DELETE ... FOR
+SYSTEM\_TIME ALL WHERE} and \texttt{DELETE HISTORY ... WHERE}, as syntax errors,
+also with \texttt{system\_versioning\_\allowbreak alter\_\allowbreak history = KEEP}. Its
+\texttt{DELETE HISTORY ... BEFORE SYSTEM\_TIME} removed the erased subjects'
+history together with every other row's. We rotated the binary log before each
+purge, so the erased values were never in the active file; even so, in 7 of 12
+trials the first \texttt{PURGE BINARY LOGS} left the file in place, reporting
+only a note (1375) that it ``may be needed for crash recovery''; a second call
+removed it. The SQL Server remedy for a dropped column, a new capture instance
+with the old one disabled, discarded every entry of the old change table
+(1,008: 1,000 inserts and ten deletes, less the two removed above).
+\end{sloppypar}
+
+
+Access differs by surface. On SQL Server a member of \texttt{db\_datareader}
+read the change table and the history table. A user granted \texttt{SELECT} on
+the source tables only was refused on both, but read the erased subjects'
+entries through the CDC query function, because the capture instance had no
+gating role. On PostgreSQL a role with \texttt{pg\_read\_all\_data} was refused
+the slot; reading it needs the \texttt{REPLICATION} attribute.
+
+\subsection{After a Restore}
+
+That restoring an older backup returns erased rows is known~\cite{lenard2024};
+we looked at change capture after four restore sequences (ten trials each, all
+agreeing). \texttt{KEEP\_CDC} kept the change table with the erased subject's
+row but restored neither the capture nor the cleanup job, so that residue has no
+time bound until someone adds them. A default restore disabled CDC. Temporal
+retention cleanup was off after a direct full restore and on when a log restore
+came last.
+
+% ---------------------------------------------------------------------------
+\section{RQ3: LLM-Written Verification}\label{sec:rq3}
+
+\begin{table}[t]
+\caption{LLM-written verification scripts (2,249). Top: \emph{false clean}
+(residue-case scripts reporting the data erased; 7 of the 9 cases are residue
+cases). Bottom: scripts that did not run. Only Gemma reported residue for a
+clean case (once each in conditions 2 and 3).}\label{tab:llm}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Model & 1 Withheld & 2 Given & 3 Hint & 4 Disc. & 5 Optional & 6 Agentic \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{False clean}} \\
+Gemma 4 E4B & 50/70 & 0/70 & 1/70 & 21/70 & -- & -- \\
+DeepSeek Flash & 50/70 & 1/70 & 0/70 & 5/70 & 46/70 & 4/30 \\
+DeepSeek V4 Pro & 55/70 & 0/70 & 0/70 & 16/70 & 31/70 & 3/30 \\
+V4 Pro, reasoning & 23/35 & -- & -- & 3/35 & -- & -- \\
+Claude Haiku 5.5 & 13/70 & 4/70 & -- & 3/70 & 2/70 & 0/35 \\
+GPT-6.1 Sol & 8/35 & 0/35 & -- & 2/35 & 0/35 & 1/21 \\
+Gemini 3.1 Pro & 18/35 & 0/35 & -- & 3/35 & 5/35 & 5/21 \\
+Naive check & 4/7 & & & & & \\
+Exhaustive search & 0/7 & & & & & \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Did not run}} \\
+Gemma 4 E4B & 15/90 & 14/90 & 18/90 & 38/90 & -- & -- \\
+DeepSeek Flash & 6/90 & 10/90 & 32/90 & 5/90 & 13/90 & 2/40 \\
+DeepSeek V4 Pro & 5/90 & 8/90 & 19/90 & 4/90 & 10/90 & 3/40 \\
+V4 Pro, reasoning & 1/45 & -- & -- & 3/45 & -- & -- \\
+Claude Haiku 5.5 & 7/90 & 5/90 & -- & 4/90 & 3/90 & 0/45 \\
+GPT-6.1 Sol & 0/45 & 0/45 & -- & 0/45 & 1/45 & 0/27 \\
+Gemini 3.1 Pro & 2/45 & 0/45 & -- & 0/45 & 0/45 & 0/27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{With the configuration withheld, the models split} (Table~\ref{tab:llm}).
+The schema listing omits the change and history tables, so condition~1 measures
+what the prompt withholds as much as the model; its rates are not general
+failure rates. Gemma and the two DeepSeek models
+reported the data erased in 155 of 210 residue-case scripts (71--79\% per
+model), as did the naive check in 4 of 7 cases. Haiku, GPT and Gemini did so in
+19\%, 23\% and 51\%: many of their scripts (69 of 70, 27 of 35 and 15 of 35)
+queried the catalog, CDC or history tables instead of only the listed tables. Failures
+cluster by case, so we treat model differences as descriptive: with the case
+as the unit (exact sign-flip test over the seven residue cases, smallest
+possible $p = 0.016$), Haiku and GPT differ from each older model at
+$p = 0.06$--$0.09$.
+
+\textbf{With the configuration, the wrong answer almost disappeared}: 5 of 350
+scripts across the six models (4 from Haiku). The hint did less and, against
+condition~2, lowered execution, for Flash from 80 to 58 of 90 scripts.
+
+\textbf{Made to look first, most models found most of the residue}: Flash,
+V4 Pro and Gemma reported the data erased in 5, 16 and 21 of 70 scripts, the
+newer models in 2--3. For the older models the cause was not looking: in 40 of
+their 42 false-clean scripts the case had a change table that the model's own
+query neither mentioned nor returned.
+
+\textbf{When looking was optional, looking decided the outcome.} With up to
+three optional queries, Flash and V4 Pro queried in 4 and 23 of their 70
+residue-case scripts and reported the data erased in 46 and 31; Haiku, GPT and
+Gemini queried in 65 of 70, 35 of 35 and 28 of 35, and did so in 2, 0 and 5
+(case-level $p = 0.03$ for Haiku and GPT against each DeepSeek model). Across
+the five models, 5 of the 155 scripts that queried reported the data erased,
+against 79 of the 125 that did not.
+
+\textbf{CDC-only cases were the newer models' blind spot.} Of their 64
+false-clean scripts over all conditions, 56 were for i1 and i6, whose only
+residue is in a CDC change table. \textbf{Reasoning did not clearly help}: V4
+Pro with reasoning on certified an unfinished erasure in 23 of 35 scripts with
+the configuration withheld and 3 of 35 in discovery, against 16 of 70 without reasoning
+(Fisher's exact test, $p = 0.11$; underpowered). \textbf{An agent loop did not
+remove the failures}: with one to three required queries, errors shown and one
+repair, Flash and V4 Pro failed in 4 and 3 of 30 scripts (1 and 7 on the same
+cases and trials with one query), Haiku in 0 of 35, GPT in 1 of 21 and Gemini
+in 5 of 21.
+\textbf{Execution} separated the generations: 2--42\% of the older models'
+scripts in a cell failed to run, 0--8\% of the newer models'.
+
+The first author labelled 72 randomly drawn scripts of the first three models
+(five per case from conditions 1--3, three from 4--5) without seeing the
+automated verdict; the labels agreed with it for 43 of 45 and 27 of 27 (Cohen's
+$\kappa = 0.93$ and $1.0$). The hosted-model runs cost about US\$11 in total
+(DeepSeek \$3.60, Google \$3.68, OpenAI \$2.66, Anthropic \$0.66, from the
+providers' billing).
+
+% ---------------------------------------------------------------------------
+\section{Practitioner Checklist and Discussion}\label{sec:checklist}
+
+Table~\ref{tab:checklist} turns the measurements into a procedure: each surface
+needs its own check and remedy.
+
+\begin{table}[t]
+\caption{Where to look after an erasure, how to clear it, and what clearing it
+costs. Entries follow our measurements, except the remedies for downstream
+copies and restored databases, which follow the documentation.}\label{tab:checklist}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}>{\raggedright}p{1.75cm}>{\raggedright}p{3.1cm}>{\raggedright}p{3.1cm}>{\raggedright\arraybackslash}p{3.1cm}@{}}
+\toprule
+Surface & Check & Clear & Side effect \\
+\midrule
+CDC change table & Query each capture instance's change table by key, not job status & Delete the subject's rows in every instance (undocumented; checked by row counts only), or shorten retention and run cleanup & Retention clears everyone's history; a lagging consumer never sees the delete \\ \addlinespace[2pt]
+Temporal history & Query the history table directly, not through a temporal query & Versioning off, delete the subject's rows, versioning on & No history recorded while off; retention hides rows before removing them \\ \addlinespace[2pt]
+Dropped column & List each instance's captured columns & New capture instance, disable the old & Old instance's history for every row is dropped \\ \addlinespace[2pt]
+Replication slot & List slots and the log they hold; check replica identity & Let the consumer read, or drop the slot & A dropped slot discards deletes not yet applied \\ \addlinespace[2pt]
+MariaDB history, binary log & \texttt{FOR SYSTEM\_TIME ALL}; decode the binary log & \texttt{DELETE HISTORY}; purge logs, then list them & Removes every row's history; a purge may leave the file \\ \addlinespace[2pt]
+Downstream copy & Compare keys with the source & Reconcile against the source & Must be scheduled \\ \addlinespace[2pt]
+Restored database & Check capture and cleanup jobs and temporal retention & Re-add jobs; re-enable retention & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two further lessons concern order and verification. Clear downstream copies, or
+confirm that their consumers have caught up, before clearing the stream that
+feeds them. Give a model the change-tracking configuration, not just the
+schema, or make it query the catalog before writing; check change tables
+explicitly, where even the newer models failed; and treat a script that reports
+nothing as unverified until it covers
+every surface in Table~\ref{tab:checklist}; the exhaustive search is a sound
+reference where copies keep column names (renamed, pseudonymised or packed
+columns escape it). Restrict the CDC query functions with a gating role, since
+\texttt{SELECT} on the source table is otherwise enough to read erased rows
+through them. Prevention is cheaper than removal: leave personal columns out of a capture
+instance's column list, pseudonymise them before they reach a captured table,
+or encrypt them per subject so that deleting a key erases every copy at
+once~\cite{verraes2019}. We did not measure these. For engine designers, the
+measurements argue for a supported way
+to remove one person's entries from every change and history structure at once,
+and for a consumer-visible marker when changes are removed before being read.
+
+% ---------------------------------------------------------------------------
+\section{Threats to Validity}
+
+\textbf{Environment.} SQL Server and PostgreSQL ran under emulation on one
+laptop, so absolute times are not production figures; we rely on the ordering
+and step structure in Table~\ref{tab:cleanup}. The temporal removal delay
+depends on when a background task runs and is the result most likely to differ
+on native hardware or a managed service. \textbf{Generality.} We tested one version of
+each engine with synthetic data, not managed services such as Azure SQL
+Database, where capture and cleanup are scheduled differently, and not an
+external pipeline such as Debezium with Kafka. \textbf{LLM study.} Nine cases cannot represent real schemas. The cases
+are new databases, though CDC verification queries are common in public
+material. Scripts came from one prompt wording per condition. Hosted models change behind a fixed name, so our
+results describe the versions served in October 2026; GPT and Haiku ran at their
+providers' default temperature, and GPT and Gemini with five trials, not ten.
+The hand labels cover the first three models only.
+
+% ---------------------------------------------------------------------------
+\section{Conclusion}
+
+Change data capture, system-versioned tables, binary logs and logical
+replication keep copies of erased rows by design, and they did so in every
+trial on all three engines, for both ways of erasing. Each surface needs a different removal; only SQL Server permitted
+per-subject removal, outside documented use or with versioning off; and removing
+copies in the wrong order leaves a downstream copy stale, usually without an
+error. All six models wrote a correct check when told which change-tracking
+features are in use. Without that, what mattered was whether a model looked;
+the newer models mostly did, but still missed CDC change tables. A verification
+workflow should supply the configuration or require the look, and check change
+tables explicitly.
+
+\subsubsection*{Data and Artifact Availability.} Scripts, raw results, prompts
+and every model-written script are available at \artifacturl.
+
+\subsubsection*{Use of Generative AI.} Large language models are the object of
+study in Section~\ref{sec:rq3}. In addition, the authors used an AI assistant
+(Claude, Anthropic) to help write the experiment scripts and to draft and edit
+the text; Claude Haiku 5.5, an evaluated model, comes from the same provider
+and was scored like the others. The authors ran all experiments, checked every
+number against the raw results, and are responsible for the content.
+
+\subsubsection*{Disclosure of Interests.} The authors have no competing interests
+to declare that are relevant to the content of this article.
+
+\begin{thebibliography}{99}
+\bibitem{gdpr} Regulation (EU) 2016/679 of the European Parliament and of the
+Council (General Data Protection Regulation), Article 17. Official Journal of
+the European Union L 119 (2016)
+\bibitem{shastri2020} Shastri, S., Banakar, V., Wasserman, M., Kumar, A.,
+Chidambaram, V.: Understanding and benchmarking the impact of GDPR on database
+systems. Proc. VLDB Endow. \textbf{13}(7), 1064--1077 (2020)
+\bibitem{chakraborty2025} Chakraborty, V., Kaminsky, Y., Mehrotra, S., Naumann,
+F., Nawab, F., Pappachan, P., Sadoghi, M., Venkatasubramanian, N.: Meaningful
+data erasure in the presence of dependencies. Proc. VLDB Endow.
+\textbf{18}(10), 3435--3448 (2025)
+\bibitem{sarkar2020} Sarkar, S., Papon, T.I., Staratzis, D., Athanassoulis, M.:
+Lethe: A tunable delete-aware LSM engine. In: Proc. ACM SIGMOD International
+Conference on Management of Data, pp. 893--908 (2020)
+\bibitem{agarwal2022} Agarwal, A., George, M., Jeyaraj, A.R., Schwarzkopf, M.:
+Retrofitting GDPR compliance onto legacy databases. Proc. VLDB Endow.
+\textbf{15}(4), 958--970 (2022)
+\bibitem{lenard2024} Lenard, B., Rasin, A., Scope, N., Al Johani, T.: The
+intersection of compliance, databases, and IT operations. In: Proc. 36th
+International Conference on Scientific and Statistical Database Management
+(SSDBM) (2024)
+\bibitem{wagner2015} Wagner, J., Rasin, A., Grier, J.: Database forensic
+analysis through internal structure carving. Digital Investigation
+\textbf{14}, S106--S115 (2015)
+\bibitem{fu2024} Fu, S.D., Chen, X.: Compound schema registry.
+arXiv:2406.11227 (2024)
+\bibitem{atf2025} Atf, Z., Lewis, P.R.: ScenarioBench: Trace-grounded
+compliance evaluation for Text-to-SQL and RAG. arXiv:2509.24212 (2025)
+\bibitem{mscdc} Microsoft: About change data capture (SQL Server).
+\url{https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-data-capture-sql-server},
+accessed October 2026
+\bibitem{mstemporal} Microsoft: Manage retention of historical data in
+system-versioned temporal tables.
+\url{https://learn.microsoft.com/en-us/sql/relational-databases/tables/temporal/manage-retention},
+accessed October 2026
+\bibitem{mscdcct} Microsoft: cdc.<capture\_instance>\_CT (Transact-SQL).
+\url{https://learn.microsoft.com/en-us/sql/relational-databases/system-tables/cdc-capture-instance-ct-transact-sql},
+accessed October 2026
+\bibitem{msledger} Microsoft: Ledger overview (SQL Server 2022).
+\url{https://learn.microsoft.com/en-us/sql/relational-databases/security/ledger/ledger-overview},
+accessed October 2026
+\bibitem{oraclefta} Oracle: Track table changes with Flashback Time Travel.
+\url{https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/flashback-time-travel-autonomous.html},
+accessed October 2026
+\bibitem{verraes2019} Verraes, M.: Eventsourcing patterns: Crypto-shredding.
+\url{https://verraes.net/2019/05/eventsourcing-patterns-throw-away-the-key/}
+(2019), accessed October 2026
+\bibitem{pgconfig} PostgreSQL Global Development Group: PostgreSQL 17
+documentation, Replication (max\_slot\_wal\_keep\_size).
+\url{https://www.postgresql.org/docs/17/runtime-config-replication.html},
+accessed October 2026
+\bibitem{pgaltertable} PostgreSQL Global Development Group: PostgreSQL 17
+documentation, ALTER TABLE (REPLICA IDENTITY).
+\url{https://www.postgresql.org/docs/17/sql-altertable.html}, accessed October
+2026
+\bibitem{delf2020} Cohn-Gordon, K., Damaskinos, G., Neto, D., Cordova, J.,
+Reitz, B., Strahs, B., Obenshain, D., Pearce, P., Papagiannis, I.: DELF:
+Safeguarding deletion correctness in online social networks. In: 29th USENIX
+Security Symposium (2020)
+\bibitem{k9db} Albab, K.D., Sharma, I., Adam, J., Kilimnik, B., Jeyaraj, A.,
+Paul, R., Agvanian, A., Spiegelberg, L., Schwarzkopf, M.: K9db:
+Privacy-compliant storage for web applications by construction. In: 17th USENIX
+Symposium on Operating Systems Design and Implementation (OSDI), pp. 99--116
+(2023)
+\bibitem{sarkar2022} Sarkar, S., Athanassoulis, M.: Query language support for
+timely data deletion. In: Proc. 25th International Conference on Extending
+Database Technology (EDBT) (2022)
+\bibitem{delta} Armbrust, M., Das, T., Paranjpye, S., et al.: Delta Lake:
+High-performance ACID table storage over cloud object stores. Proc. VLDB Endow.
+\textbf{13}(12), 3411--3424 (2020)
+\bibitem{debezium} Debezium Community: Debezium connector for PostgreSQL, Data
+change events.
+\url{https://debezium.io/documentation/reference/stable/connectors/postgresql.html},
+accessed October 2026
+\end{thebibliography}
+\end{document}

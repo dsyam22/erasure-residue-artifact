@@ -1,0 +1,5 @@
+TABLE_SCHEMA|TABLE_NAME
+------------|----------
+dbo|customer
+reporting|customer_replica
+(2 rows affected)

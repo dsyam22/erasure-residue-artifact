@@ -1,0 +1,6 @@
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 3
+The multi-part identifier "dbo.customer.full_name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 3
+The multi-part identifier "dbo.customer.email" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 3
+The multi-part identifier "dbo.customer.phone" could not be bound.

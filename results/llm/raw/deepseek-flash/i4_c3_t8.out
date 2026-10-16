@@ -1,0 +1,4 @@
+dbo.customer|1
+dbo.member|1
+dbo.member_history|1
+cdc.dbo_customer_CT|3

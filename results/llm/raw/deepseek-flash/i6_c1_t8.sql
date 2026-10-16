@@ -1,0 +1,50 @@
+/* Read-only verification: is Subject_0000042's phone number still stored anywhere? */
+
+DECLARE @phone nvarchar(400) = N'+1-555-0000042';
+DECLARE @phone_digits nvarchar(400) = N'15550000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+/* ---- Check every column in every user table for the phone value ---- */
+DECLARE @tbl sysname, @col sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+           QUOTENAME(c.name)
+    FROM sys.columns c
+    JOIN sys.tables t  ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND c.system_type_id IN (167, 231, 175, 239) /* varchar, nvarchar, char, nchar */
+    ORDER BY s.name, t.name, c.column_id;
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @tbl, @col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N''' + REPLACE(@tbl + N'.' + @col, N'''', N'''''') + N''',
+               COUNT(*)
+        FROM ' + @tbl + N'
+        WHERE ' + @col + N' LIKE N''%'' + @p + N''%''
+           OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(' + @col + N',
+                N''-'', N''''), N'' '', N''''), N''('', N''''), N'')'', N''''), N''+'', N'''')
+              LIKE N''%'' + @pd + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@p nvarchar(400), @pd nvarchar(400)',
+        @p = @phone, @pd = @phone_digits;
+
+    FETCH NEXT FROM col_cursor INTO @tbl, @col;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

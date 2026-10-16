@@ -1,0 +1,4 @@
+current_table|history_table|history_schema
+-------------|-------------|--------------
+customer|customer_history|dbo
+(1 rows affected)

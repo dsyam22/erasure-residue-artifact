@@ -1,0 +1,55 @@
+DECLARE @subject_id INT = 42;
+DECLARE @full_name NVARCHAR(100) = 'Subject_0000042';
+DECLARE @email NVARCHAR(150) = 'subject42@example.invalid';
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Check 1: dbo.customer (Original table check)
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM
+    dbo.customer
+WHERE
+    customer_id = @subject_id
+    AND full_name = @full_name
+    AND email = @email
+    AND phone = @phone
+
+UNION ALL
+
+-- Check 2: cdc.dbo_customer_CT (Change Tracking table)
+SELECT
+    'cdc.dbo_customer_CT' AS object_name,
+    COUNT(*) AS rows_found
+FROM
+    cdc.dbo_customer_CT
+WHERE
+    customer_id = @subject_id
+
+UNION ALL
+
+-- Check 3: dbo.member (Current SYSTEM_VERSIONED table check)
+SELECT
+    'dbo.member' AS object_name,
+    COUNT(*) AS rows_found
+FROM
+    dbo.member
+WHERE
+    member_id = @subject_id
+    AND full_name = @full_name
+    AND email = @email
+    AND phone = @phone
+
+UNION ALL
+
+-- Check 4: dbo.member_history (Temporal History table - high likelihood of residual data)
+SELECT
+    'dbo.member_history' AS object_name,
+    COUNT(*) AS rows_found
+FROM
+    dbo.member_history
+WHERE
+    CAST(member_id AS INT) = @subject_id -- Assuming member_id is stored as an integer in the history table for comparison
+    AND full_name = @full_name
+    AND email = @email
+    AND phone = @phone;

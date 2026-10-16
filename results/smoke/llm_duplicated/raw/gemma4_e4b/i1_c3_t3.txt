@@ -1,0 +1,6 @@
+```sql
+SELECT 'dbo.customer' AS object_name, COUNT(1) AS rows_found FROM dbo.customer WHERE customer_id = 42 AND full_name = N'Subject_0000042' AND email = N'subject42@example.invalid' AND phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'cdc.dbo_customer_CT' AS object_name, COUNT(1) AS rows_found FROM cdc.dbo_customer_CT WHERE customer_id = 42 -- Checking the change table for evidence of the existence/deletion record
+ORDER BY object_name;
+```

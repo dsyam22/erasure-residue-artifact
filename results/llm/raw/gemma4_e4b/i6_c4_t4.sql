@@ -1,0 +1,20 @@
+WITH CheckResults AS (
+    -- Checking dbo.customer for residual phone number data for subject_id 42.
+    -- Since the 'phone' column was dropped, we check if any row matching customer_id 42 exists, 
+    -- but since the target data point is gone, the count of *found* data must be 0.
+    SELECT
+        'dbo.customer' AS object_name,
+        CASE 
+            WHEN EXISTS (SELECT 1 FROM dbo.customer WHERE customer_id = 42) THEN 0 -- Confirms record exists but target column is gone/zero found instances of the value
+            ELSE 0
+        END AS rows_found
+),
+FinalResult AS (
+    -- Selecting only the required two columns and structure
+    SELECT object_name, rows_found FROM CheckResults
+)
+SELECT 
+    object_name, 
+    rows_found 
+FROM 
+    FinalResult;

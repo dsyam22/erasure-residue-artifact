@@ -1,0 +1,49 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @sql NVARCHAR(MAX);
+
+SELECT @sql = STRING_AGG(
+    N'SELECT N' + QUOTENAME(s.name + N'.' + t.name, N'''') + N' AS object_name, COUNT(*) AS rows_found FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' WHERE ' + ISNULL((
+        SELECT STRING_AGG(
+            CASE 
+                WHEN c.name = N'customer_id'
+                    THEN N'TRY_CONVERT(int, ' + QUOTENAME(c.name) + N') = @p_customer_id'
+                WHEN c.name = N'full_name'
+                    AND ty.name IN (N'char', N'nchar', N'varchar', N'nvarchar', N'text', N'ntext', N'sysname')
+                    THEN N'CONVERT(nvarchar(4000), ' + QUOTENAME(c.name) + N') = @p_full_name'
+                WHEN c.name = N'email'
+                    AND ty.name IN (N'char', N'nchar', N'varchar', N'nvarchar', N'text', N'ntext', N'sysname')
+                    THEN N'CONVERT(nvarchar(4000), ' + QUOTENAME(c.name) + N') = @p_email'
+                WHEN c.name = N'phone'
+                    AND ty.name IN (N'char', N'nchar', N'varchar', N'nvarchar', N'text', N'ntext', N'sysname')
+                    THEN N'CONVERT(nvarchar(4000), ' + QUOTENAME(c.name) + N') = @p_phone'
+                ELSE NULL
+            END,
+            N' OR '
+        )
+        FROM sys.columns c
+        INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+        WHERE c.object_id = t.object_id
+    ), N'1=0'),
+    N' UNION ALL '
+) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0;
+
+IF @sql IS NOT NULL
+BEGIN
+    EXEC sp_executesql @sql,
+        N'@p_customer_id int, @p_full_name nvarchar(255), @p_email nvarchar(255), @p_phone nvarchar(50)',
+        @p_customer_id = 42,
+        @p_full_name = N'Subject_0000042',
+        @p_email = N'subject42@example.invalid',
+        @p_phone = N'+1-555-0000042';
+END
+ELSE
+BEGIN
+    SELECT CAST(N'' AS nvarchar(257)) AS object_name, CAST(0 AS bigint) AS rows_found
+    WHERE 1 = 0;
+END
+```

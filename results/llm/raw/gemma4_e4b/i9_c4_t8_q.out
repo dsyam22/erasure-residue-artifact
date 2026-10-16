@@ -1,0 +1,6 @@
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 34
+The multi-part identifier "s.name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 35
+The multi-part identifier "t.name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 36
+The multi-part identifier "t.is_ms_shipped" could not be bound.

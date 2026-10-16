@@ -1,0 +1,6 @@
+name|recovery_model_desc|is_cdc_enabled|is_read_committed_snapshot_on
+----|-------------------|--------------|-----------------------------
+llm_i8|FULL|0|0
+(1 rows affected)
+Msg 229, Level 14, State 5, Server 651334c31df8, Line 7
+The SELECT permission was denied on the object 'fn_dblog', database 'mssqlsystemresource', schema 'sys'.

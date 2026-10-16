@@ -1,0 +1,15 @@
+
+(1 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 1
+Invalid object name 'cdc.ddl_history'.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 1
+Invalid object name 'cdc.captured_columns'.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 1
+Invalid object name 'cdc.dbo_customer_CT'.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 1
+Invalid object name 'cdc.dbo_customer_CT'.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 1
+Invalid object name 'cdc.dbo_customer_CT'.
+dbo.customer|0
+
+(1 rows affected)

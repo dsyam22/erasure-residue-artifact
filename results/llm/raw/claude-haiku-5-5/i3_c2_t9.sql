@@ -1,0 +1,62 @@
+SET NOCOUNT ON;
+
+/*
+  Erasure verification for subject customer_id 42 / member_id 42.
+  Read-only. Checks every object that can hold the subject's original personal data:
+    - dbo.customer                 (current rows)
+    - dbo.member                   (current rows, system-versioned)
+    - dbo.member_history           (temporal history of dbo.member)
+    - cdc.dbo_customer_CT          (CDC change table for dbo.customer)
+  A row matches if its key equals the erased id, or any personal attribute
+  equals the original value (full_name, email, phone).
+*/
+
+SELECT
+    'dbo.customer' AS object_name,
+    CAST((
+        SELECT COUNT(*)
+        FROM dbo.customer AS t
+        WHERE t.customer_id = 42
+           OR t.full_name = N'Subject_0000042'
+           OR t.email     = N'subject42@example.invalid'
+           OR t.phone     = N'+1-555-0000042'
+    ) AS int) AS rows_found
+
+UNION ALL
+
+SELECT
+    'dbo.member' AS object_name,
+    CAST((
+        SELECT COUNT(*)
+        FROM dbo.member AS t
+        WHERE t.member_id = 42
+           OR t.full_name = N'Subject_0000042'
+           OR t.email     = N'subject42@example.invalid'
+           OR t.phone     = N'+1-555-0000042'
+    ) AS int) AS rows_found
+
+UNION ALL
+
+SELECT
+    'dbo.member_history' AS object_name,
+    CAST((
+        SELECT COUNT(*)
+        FROM dbo.member_history AS t
+        WHERE t.member_id = 42
+           OR t.full_name = N'Subject_0000042'
+           OR t.email     = N'subject42@example.invalid'
+           OR t.phone     = N'+1-555-0000042'
+    ) AS int) AS rows_found
+
+UNION ALL
+
+SELECT
+    'cdc.dbo_customer_CT' AS object_name,
+    CAST((
+        SELECT COUNT(*)
+        FROM cdc.dbo_customer_CT AS t
+        WHERE t.customer_id = 42
+           OR t.full_name = N'Subject_0000042'
+           OR t.email     = N'subject42@example.invalid'
+           OR t.phone     = N'+1-555-0000042'
+    ) AS int) AS rows_found;

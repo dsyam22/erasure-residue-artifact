@@ -1,0 +1,65 @@
+SET NOCOUNT ON;
+
+-- Original personal data of the data subject (customer_id 42)
+CREATE TABLE #vals (val nvarchar(200) NOT NULL);
+INSERT INTO #vals (val) VALUES
+    (N'Subject_0000042'),
+    (N'subject42@example.invalid'),
+    (N'+1-555-0000042');
+
+CREATE TABLE #results (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid   int,
+        @obj   nvarchar(300),
+        @qobj  nvarchar(400),
+        @where nvarchar(max),
+        @sql   nvarchar(max),
+        @cnt   bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           SCHEMA_NAME(t.schema_id) + N'.' + t.name,
+           QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    WHERE t.is_ms_shipped = 0
+    ORDER BY 2;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @oid, @obj, @qobj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = NULL;
+    SET @cnt = 0;
+
+    -- Build a predicate: any character-type column contains any original value (case/accent-insensitive)
+    SELECT @where = STRING_AGG(CAST(x.cond AS nvarchar(max)), N' OR ')
+    FROM (
+        SELECT N'CHARINDEX(N''' + REPLACE(v.val, N'''', N'''''') + N''', CAST('
+               + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AI) > 0' AS cond
+        FROM sys.columns AS c
+        CROSS JOIN #vals AS v
+        WHERE c.object_id = @oid
+          AND c.system_type_id IN (167, 231, 175, 239, 99, 35, 241) -- varchar, nvarchar, char, nchar, ntext, text, xml
+    ) AS x;
+
+    IF @where IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + @qobj + N' WHERE ' + @where + N';';
+        EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found) VALUES (@obj, @cnt);
+
+    FETCH NEXT FROM tbl INTO @oid, @obj, @qobj;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

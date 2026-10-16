@@ -1,0 +1,46 @@
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer_history', COUNT_BIG(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+IF OBJECT_ID('cdc.dbo_customer_CT', 'U') IS NOT NULL
+BEGIN
+    DECLARE @sql nvarchar(max) = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT ''cdc.dbo_customer_CT'', COUNT_BIG(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = @cid
+           OR full_name = @full_name
+           OR email = @email
+           OR phone = @phone;';
+    EXEC sp_executesql @sql, N'@cid int, @full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+        @cid = @cid, @full_name = @full_name, @email = @email, @phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found) VALUES ('cdc.dbo_customer_CT', 0);
+END
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

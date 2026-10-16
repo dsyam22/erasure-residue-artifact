@@ -1,0 +1,86 @@
+```sql
+/* Read-only verification script.
+   Searches the whole database for the subject's original personal data
+   and reports one row per checked object. */
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name   nvarchar(200) = N'Subject_0000042';
+DECLARE @email       nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone       nvarchar(50)  = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results;
+
+CREATE TABLE #results
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @where nvarchar(max) = N'';
+
+    SELECT @where = @where +
+        CASE WHEN @where = N'' THEN N'' ELSE N' OR ' END +
+        N'(' +
+        STUFF(
+            (
+                SELECT N' OR ' + QUOTENAME(c.name) + N' = @p_' + CAST(c.column_id AS nvarchar(10))
+                FROM sys.columns AS c
+                WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+                  AND c.system_type_id IN (167, 231, 175, 239, 231) /* varchar, nvarchar, char, nchar */
+                FOR XML PATH(''), TYPE
+            ).value('.', 'nvarchar(max)')
+        , 1, 4, N'') +
+        N')'
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+      AND c.system_type_id IN (167, 231, 175, 239);
+
+    IF @where IS NULL OR @where = N''
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table), 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'
+            DECLARE @p_1 nvarchar(4000) = @full_name;
+            DECLARE @p_2 nvarchar(4000) = @email;
+            DECLARE @p_3 nvarchar(4000) = @phone;
+            DECLARE @p_4 int = @customer_id;
+
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N', COUNT_BIG(*)
+            FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+            WHERE ' + @where + N';';
+
+        EXEC sp_executesql @sql,
+            N'@full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50), @customer_id int',
+            @full_name = @full_name,
+            @email = @email,
+            @phone = @phone,
+            @customer_id = @customer_id;
+    END
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

@@ -1,0 +1,24 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+reporting|customer_replica|customer_id|int|4|0
+reporting|customer_replica|full_name|nvarchar|200|0
+reporting|customer_replica|email|nvarchar|400|0
+reporting|customer_replica|phone|nvarchar|60|1
+(8 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|EventNotificationErrorsQueue|SERVICE_QUEUE
+dbo|PK__customer__CD65CB85B4A586A4|PRIMARY_KEY_CONSTRAINT
+dbo|QueryNotificationErrorsQueue|SERVICE_QUEUE
+dbo|ServiceBrokerQueue|SERVICE_QUEUE
+reporting|customer_replica|USER_TABLE
+reporting|PK__customer__CD65CB85FE77D161|PRIMARY_KEY_CONSTRAINT
+(7 rows affected)
+schema_name|object_name|object_type|definition
+-----------|-----------|-----------|----------
+(0 rows affected)

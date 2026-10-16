@@ -1,0 +1,32 @@
+WITH CheckResults AS (
+    -- Check dbo.customer
+    SELECT 
+        'dbo.customer' AS object_name, 
+        COUNT(T1.customer_id) AS rows_found
+    FROM 
+        dbo.customer AS T1
+    WHERE 
+        T1.customer_id = 42 
+        AND T1.full_name = 'Subject_0000042' 
+        AND T1.email = 'subject42@example.invalid' 
+        AND T1.phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- Check reporting.customer_replica
+    SELECT 
+        'reporting.customer_replica' AS object_name, 
+        COUNT(T2.customer_id) AS rows_found
+    FROM 
+        reporting.customer_replica AS T2
+    WHERE 
+        T2.customer_id = 42 
+        AND T2.full_name = 'Subject_0000042' 
+        AND T2.email = 'subject42@example.invalid' 
+        AND T2.phone = '+1-555-0000042'
+)
+SELECT 
+    object_name, 
+    rows_found 
+FROM 
+    CheckResults;

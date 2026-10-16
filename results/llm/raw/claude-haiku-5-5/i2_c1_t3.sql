@@ -1,0 +1,62 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @name nvarchar(400),
+        @obj  nvarchar(400),
+        @oid  int,
+        @pred nvarchar(max),
+        @sql  nvarchar(max),
+        @cnt  bigint;
+
+DECLARE c CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name + N'.' + t.name,
+           QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+           t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN c;
+FETCH NEXT FROM c INTO @name, @obj, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(
+               CAST(N'(CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(col.name) + N') > 0 OR '
+                  + N'CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(col.name) + N') > 0 OR '
+                  + N'CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(col.name) + N') > 0)' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS col
+    JOIN sys.types AS ty ON ty.user_type_id = col.user_type_id
+    WHERE col.object_id = @oid
+      AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char');
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found) VALUES (@name, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT(*) FROM ' + @obj + N' WHERE ' + @pred;
+        SET @cnt = 0;
+        EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+        INSERT INTO #results (object_name, rows_found) VALUES (@name, @cnt);
+    END
+
+    FETCH NEXT FROM c INTO @name, @obj, @oid;
+END
+
+CLOSE c;
+DEALLOCATE c;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

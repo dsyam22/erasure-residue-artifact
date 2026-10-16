@@ -1,0 +1,79 @@
+SET NOCOUNT ON;
+
+-- Table variable to store the final results (object name and count)
+DECLARE @Results TABLE (
+    object_name NVARCHAR(128),
+    rows_found INT
+);
+
+-- Variables for dynamic SQL generation
+DECLARE @TableName sysname;
+DECLARE @SQL NVARCHAR(MAX);
+
+-- Cursor to iterate over all user-created tables in the database
+DECLARE TableCursor CURSOR FOR
+SELECT name 
+FROM sys.tables 
+WHERE is_ms_shipped = 0
+AND name NOT LIKE 'sys%' -- Exclude system schema objects explicitly for safety
+ORDER BY name;
+
+OPEN TableCursor;
+FETCH NEXT FROM TableCursor INTO @TableName;
+
+-- Loop through every user table found
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'
+        SELECT 
+            @TName AS ObjectName,
+            COUNT(CASE WHEN T.' + QUOTENAME(@TableName) + ' IS NOT NULL THEN 1 END)
+        FROM 
+            ' + QUOTENAME(@TableName) + ' AS T
+        WHERE 
+            -- Check for full name match (varchar/nvarchar columns are most likely candidates)
+            T.full_name = ''Subject_0000042'' OR 
+            -- Check for email match
+            T.email = ''subject42@example.invalid'' OR 
+            -- Check for phone match
+            T.phone = ''+1-555-0000042'' OR
+            -- Check for customer ID match (assuming integer columns)
+            CAST(T.customer_id AS NVARCHAR(5)) = ''42'' OR
+            -- Generic check: if any column contains the specific PII string, count it.
+            -- This is a highly generalized check to catch data leaked into unexpected columns.
+            LOWER(CONVERT(NVARCHAR(MAX), T.*)) LIKE ''%subject_0000042%'' OR 
+            LOWER(CONVERT(NVARCHAR(MAX), T.*)) LIKE ''%subject42@example.invalid%''
+        '
+    END;
+
+    -- Execute the dynamic SQL and insert results into the temp table variable
+    INSERT INTO @Results (object_name, rows_found)
+    EXEC sp_executesql 
+        @SQL, 
+        N'@TName sysname', 
+        @TName = @TableName;
+
+    FETCH NEXT FROM TableCursor INTO @TableName;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final result set containing the required two columns for all checked tables.
+SELECT 
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM (
+    -- We must ensure every single table is listed, even if no PII was found.
+    -- Since the dynamic query only inserts results where a match occurred, 
+    -- we use UNION ALL to combine all tables and then LEFT JOIN against the actual findings.
+    SELECT name AS object_name, NULL AS rows_found FROM sys.tables WHERE is_ms_shipped = 0
+) AS AllTables
+LEFT JOIN @Results ON AllTables.name = [object_name]
+SELECT 
+    AllTables.name AS object_name,
+    ISNULL(T.[rows_found], 0) AS rows_found
+FROM (
+    SELECT name AS object_name FROM sys.tables WHERE is_ms_shipped = 0
+) AS AllTables
+LEFT JOIN @Results T ON AllTables.name = T.object_name;

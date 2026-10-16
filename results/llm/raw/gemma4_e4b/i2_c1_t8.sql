@@ -1,0 +1,17 @@
+SELECT 
+    'dbo.customer' AS object_name, 
+    COUNT(1) AS rows_found
+FROM 
+    dbo.customer
+WHERE 
+    -- Check for matching customer ID
+    CAST(NULL AS BIT) = CAST((SELECT customer_id FROM dbo.customer WHERE customer_id = 42 LIMIT 1) AS BIT)
+    OR 
+    -- Check for matching full name
+    full_name = 'Subject_0000042'
+    OR 
+    -- Check for matching email
+    email = 'subject42@example.invalid'
+    OR 
+    -- Check for matching phone number
+    phone = '+1-555-0000042';

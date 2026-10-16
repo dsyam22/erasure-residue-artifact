@@ -1,0 +1,31 @@
+Changed database context to 'erasure_lab'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 01:53:38.1287282
+--- BEFORE update ---
+tbl id full_name email phone
+--- -- --------- ----- -----
+customer 77 Subject_000077 subject77@example.invalid +1-555-0077
+tbl id full_name email phone
+--- -- --------- ----- -----
+member 77 Subject_000077 subject77@example.invalid +1-555-0077
+--- Erasure by overwrite: UPDATE subject 77 in both tables ---
+--- AFTER update: source tables ---
+tbl id full_name email phone
+--- -- --------- ----- -----
+customer 77 REDACTED redacted@example.invalid NULL
+tbl id full_name email phone
+--- -- --------- ----- -----
+member 77 REDACTED redacted@example.invalid NULL
+--- CDC change table for subject 77 ---
+    operation: 1 = delete, 2 = insert, 3 = update (before), 4 = update (after)
+operation change_time customer_id full_name email phone
+--------- ----------- ----------- --------- ----- -----
+2 2026-10-08 01:46:47.643 77 Subject_000077 subject77@example.invalid +1-555-0077
+3 2026-10-08 01:53:38.130 77 Subject_000077 subject77@example.invalid +1-555-0077
+4 2026-10-08 01:53:38.130 77 REDACTED redacted@example.invalid NULL
+--- Temporal history table for subject 77 ---
+member_id full_name email phone valid_from valid_to
+--------- --------- ----- ----- ---------- --------
+77 Subject_000077 subject77@example.invalid +1-555-0077 2026-10-08 01:53:33.3011243 2026-10-08 01:53:38.1287282

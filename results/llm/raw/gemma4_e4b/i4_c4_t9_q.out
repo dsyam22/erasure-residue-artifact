@@ -1,0 +1,18 @@
+table_name|column_name|data_type|max_bytes
+----------|-----------|---------|---------
+customer|customer_id|int|2
+customer|full_name|nvarchar|100
+customer|email|nvarchar|200
+customer|phone|nvarchar|30
+member|member_id|int|2
+member|full_name|nvarchar|100
+member|email|nvarchar|200
+member|phone|nvarchar|30
+member|valid_from|datetime2|4
+member|valid_to|datetime2|4
+(10 rows affected)
+index_name|table_name|column_name|constraint_type
+----------|----------|-----------|---------------
+PK__customer__CD65CB8571399F8F|customer|customer_id|PK
+PK__member__B29B8534E90191CC|member|member_id|PK
+(2 rows affected)

@@ -1,0 +1,18 @@
+```sql
+WITH DataSearch AS (
+    SELECT 
+        COUNT(c.full_name) AS FoundCount
+    FROM 
+        dbo.customer c
+    WHERE 
+        -- Check for any match on the defining attributes, as deletion was performed on this table
+        c.full_name = 'Subject_0000042' OR
+        c.email = 'subject42@example.invalid' OR
+        c.phone = '+1-555-0000042'
+)
+SELECT 
+    'dbo.customer' AS object_name,
+    ISNULL(T.FoundCount, 0) AS rows_found
+FROM 
+    DataSearch T;
+```

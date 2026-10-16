@@ -1,0 +1,42 @@
+WITH CheckResults AS (
+    -- 1. Checking the Customer CDC Change Table (cdc.dbo_customer_CT)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN T.[full_name] = 'Subject_0000042' OR T.[email] = 'subject42@example.invalid' OR T.[phone] = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM cdc.dbo_customer_CT AS T
+
+    UNION ALL
+
+    -- 2. Checking the Customer Main Table (dbo.customer) - Should be 0 after DELETE
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN C.[full_name] = 'Subject_0000042' OR C.[email] = 'subject42@example.invalid' OR C.[phone] = '+1-555-0000042' THEN 1 END)
+    FROM dbo.customer AS C
+
+    UNION ALL
+
+    -- 3. Checking the Member Main Table (dbo.member) - Should be 0 after DELETE
+    SELECT
+        'dbo.member' AS object_name,
+        COUNT(CASE WHEN M.[full_name] = 'Subject_0000042' OR M.[email] = 'subject42@example.invalid' OR M.[phone] = '+1-555-0000042' THEN 1 END)
+    FROM dbo.member AS M
+
+    UNION ALL
+
+    -- 4. Checking the Member History Table (dbo.member_history) - HIGH RISK AREA due to temporal retention
+    SELECT
+        'dbo.member_history' AS object_name,
+        COUNT(CASE WHEN H.[full_name] = 'Subject_0000042' OR H.[email] = 'subject42@example.invalid' OR H.[phone] = '+1-555-0000042' THEN 1 END)
+    FROM dbo.member_history AS H
+
+    UNION ALL
+
+    -- 5. Checking the Customer Temporal History (If applicable, though not explicitly named, it is good practice to check history if CDC was involved)
+    SELECT
+        'N/A (No dedicated customer history table detected)' AS object_name,
+        0 -- Assuming no separate temporal copy exists for dbo.customer based on schema provided
+)
+SELECT
+    object_name,
+    rows_found
+FROM CheckResults;

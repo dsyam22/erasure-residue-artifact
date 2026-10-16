@@ -1,0 +1,8 @@
+name|type_desc
+----|---------
+captured_columns|USER_TABLE
+change_tables|USER_TABLE
+customer|USER_TABLE
+dbo_customer_CT|USER_TABLE
+ddl_history|USER_TABLE
+(5 rows affected)

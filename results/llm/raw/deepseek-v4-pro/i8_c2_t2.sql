@@ -1,0 +1,56 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id INT = 42;
+DECLARE @full_name NVARCHAR(255) = N'Subject_0000042';
+DECLARE @email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check system tables for any references (e.g., in stored procedures, views, etc.)
+-- This is a basic check for object definitions containing the data
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'sys.sql_modules',
+    COUNT(*)
+FROM sys.sql_modules
+WHERE definition LIKE N'%Subject_0000042%'
+   OR definition LIKE N'%subject42@example.invalid%'
+   OR definition LIKE N'%+1-555-0000042%';
+
+-- Check if CDC is enabled (it's not per config, but include for completeness)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'cdc',
+    0
+WHERE NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = DB_NAME() AND is_cdc_enabled = 1);
+
+-- Check temporal tables (none per config, but include for completeness)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'temporal_history',
+    0
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM sys.tables t
+    WHERE t.temporal_type <> 0
+);
+
+-- Return results
+SELECT object_name, rows_found FROM #results;
+
+DROP TABLE #results;

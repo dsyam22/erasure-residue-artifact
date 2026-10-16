@@ -1,0 +1,68 @@
+```sql
+SELECT 'cdc.captured_columns' AS object_name,
+       COUNT(*) AS rows_found
+FROM cdc.captured_columns
+WHERE column_name = N'+1-555-0000042'
+   OR column_type = N'+1-555-0000042'
+   OR masking_function = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT 'cdc.change_tables',
+       COUNT(*)
+FROM cdc.change_tables
+WHERE capture_instance = N'+1-555-0000042'
+   OR role_name = N'+1-555-0000042'
+   OR index_name = N'+1-555-0000042'
+   OR filegroup_name = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT 'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+  AND phone = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT 'cdc.ddl_history',
+       COUNT(*)
+FROM cdc.ddl_history
+WHERE ddl_command LIKE N'%+1-555-0000042%'
+
+UNION ALL
+
+SELECT 'cdc.index_columns',
+       COUNT(*)
+FROM cdc.index_columns
+WHERE column_name = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT 'cdc.lsn_time_mapping',
+       0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM cdc.lsn_time_mapping
+    WHERE 1 = 0
+)
+
+UNION ALL
+
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE full_name = N'+1-555-0000042'
+   OR email = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT 'dbo.systranschemas',
+       0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM dbo.systranschemas
+    WHERE 1 = 0
+);
+```

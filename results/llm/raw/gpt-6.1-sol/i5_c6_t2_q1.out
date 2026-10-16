@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type_desc|history_schema|history_table|column_name|data_type|is_hidden
+-----------|----------|------------------|--------------|-------------|-----------|---------|---------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|customer_id|int|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|full_name|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|email|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|phone|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|valid_from|datetime2|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|valid_to|datetime2|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|customer_id|int|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|full_name|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|email|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|phone|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|valid_from|datetime2|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|valid_to|datetime2|0
+(12 rows affected)

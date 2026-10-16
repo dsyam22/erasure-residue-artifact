@@ -1,0 +1,63 @@
+WITH TableChecks AS (
+    -- Check dbo.customer (Explicit PII fields)
+    SELECT
+        'dbo.customer' AS [object_name],
+        COUNT(CASE WHEN T.[full_name] = 'Subject_0000042' OR 
+                          T.[email] = 'subject42@example.invalid' OR 
+                          T.[phone] = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer T
+
+    UNION ALL
+
+    -- Check captured_columns (Generic string search for PII leakage)
+    SELECT
+        'captured_columns' AS [object_name],
+        COUNT(CASE WHEN c.[column_data] LIKE '%Subject_0000042%' OR 
+                          c.[column_data] LIKE '%subject42@example.invalid%' OR 
+                          c.[column_data] LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+    FROM captured_columns c
+
+    UNION ALL
+
+    -- Check change_tables (Generic string search for PII leakage)
+    SELECT
+        'change_tables' AS [object_name],
+        COUNT(CASE WHEN t.[column_data] LIKE '%Subject_0000042%' OR 
+                          t.[column_data] LIKE '%subject42@example.invalid%' OR 
+                          t.[column_data] LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+    FROM change_tables t
+
+    UNION ALL
+
+    -- Check ddl_history (Generic string search for PII leakage, assuming a general text column exists or all columns are checked)
+    SELECT
+        'ddl_history' AS [object_name],
+        COUNT(CASE WHEN dh.[statement] LIKE '%Subject_0000042%' OR 
+                          dh.[statement] LIKE '%subject42@example.invalid%' OR 
+                          dh.[statement] LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+    FROM ddl_history dh
+
+    UNION ALL
+
+    -- Check index_columns (Generic string search for PII leakage)
+    SELECT
+        'index_columns' AS [object_name],
+        COUNT(CASE WHEN ic.[column_name] LIKE '%Subject_0000042%' OR 
+                          ic.[column_name] LIKE '%subject42@example.invalid%' OR 
+                          ic.[column_name] LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+    FROM index_columns ic
+
+    UNION ALL
+
+    -- Check lsn_time_mapping (Generic string search for PII leakage)
+    SELECT
+        'lsn_time_mapping' AS [object_name],
+        COUNT(CASE WHEN lsm.[operation] LIKE '%Subject_0000042%' OR 
+                          lsm.[value] LIKE '%subject42@example.invalid%' OR 
+                          lsm.[value] LIKE '%+1-555-0000042%' THEN 1 END) AS rows_found
+    FROM lsn_time_mapping lsm
+)
+SELECT
+    [object_name],
+    ISNULL(rows_found, 0) AS [rows_found]
+FROM TableChecks;

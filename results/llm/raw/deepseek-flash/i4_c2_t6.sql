@@ -1,0 +1,58 @@
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @mid int = 42;
+DECLARE @full nvarchar(4000) = N'Subject_0000042';
+DECLARE @email nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #res (object_name sysname, rows_found bigint);
+
+-- dbo.customer
+INSERT INTO #res
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+  AND (
+        full_name = @full
+     OR email = @email
+     OR phone = @phone
+      );
+
+-- dbo.member
+INSERT INTO #res
+SELECT N'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = @mid
+  AND (
+        full_name = @full
+     OR email = @email
+     OR phone = @phone
+      );
+
+-- dbo.member_history (temporal history)
+INSERT INTO #res
+SELECT N'dbo.member_history', COUNT(*)
+FROM dbo.member_history
+WHERE member_id = @mid
+  AND (
+        full_name = @full
+     OR email = @email
+     OR phone = @phone
+      );
+
+-- cdc.dbo_customer_CT (CDC change table)
+INSERT INTO #res
+SELECT N'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+  AND (
+        full_name = @full
+     OR email = @email
+     OR phone = @phone
+      );
+
+SELECT object_name, rows_found
+FROM #res;
+
+DROP TABLE #res;

@@ -1,0 +1,6 @@
+dbo.customer|0
+cdc.dbo_customer_CT|2
+dbo.member_history|1
+dbo.member|0
+
+(4 rows affected)

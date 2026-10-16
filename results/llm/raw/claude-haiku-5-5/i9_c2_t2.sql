@@ -1,0 +1,51 @@
+SET NOCOUNT ON;
+
+DECLARE @q   char(1)       = CHAR(39);   -- single quote
+DECLARE @sql nvarchar(max);
+
+;WITH pats AS
+(
+    -- Original personal data of data subject customer_id 42 (LIKE-escaped where needed)
+    SELECT CAST(v.pat AS nvarchar(200)) AS pat
+    FROM (VALUES
+        (N'%Subject\_0000042%'),
+        (N'%subject42@example.invalid%'),
+        (N'%+1-555-0000042%')
+    ) AS v(pat)
+)
+SELECT @sql =
+    STRING_AGG(
+        CAST(
+            N'SELECT N' + @q + REPLACE(tbl.disp, @q, @q + @q) + @q + N' AS object_name, '
+          + N'COUNT(*) AS rows_found FROM ' + tbl.fq
+          + N' WHERE ' + ISNULL(cond.w, N'1=0')
+          AS nvarchar(max)),
+        N' UNION ALL ')
+FROM
+(
+    SELECT
+        t.object_id,
+        QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name) AS fq,
+        SCHEMA_NAME(t.schema_id) + N'.' + t.name                        AS disp
+    FROM sys.tables AS t
+    WHERE t.is_ms_shipped = 0
+) AS tbl
+LEFT JOIN
+(
+    SELECT
+        c.object_id,
+        STRING_AGG(
+            CAST(
+                QUOTENAME(c.name) + N' LIKE N' + @q + p.pat + @q
+              + N' ESCAPE ' + @q + N'\' + @q
+              AS nvarchar(max)),
+            N' OR ') AS w
+    FROM sys.columns AS c
+    JOIN pats AS p ON 1 = 1
+    WHERE c.system_type_id IN (167, 175, 231, 239)   -- varchar, char, nvarchar, nchar
+    GROUP BY c.object_id
+) AS cond
+    ON cond.object_id = tbl.object_id;
+
+-- Single result set: one row per checked object (0 where nothing found)
+EXEC sys.sp_executesql @sql;

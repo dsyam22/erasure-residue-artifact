@@ -1,0 +1,12 @@
+
+(1 rows affected)
+
+(1 rows affected)
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 30
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i1'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 30
+The user does not have permission to perform this action.
+
+(0 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 74
+Invalid object name 'dbo.customer_audit'.

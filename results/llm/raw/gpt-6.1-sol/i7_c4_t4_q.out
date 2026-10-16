@@ -1,0 +1,34 @@
+database_name|is_cdc_enabled|snapshot_isolation_state_desc
+-------------|--------------|-----------------------------
+llm_i7|0|OFF
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|is_external|ledger_type_desc|is_dropped_ledger_table|column_id|column_name|data_type|max_length|is_computed|is_hidden|encryption_type_desc|computed_definition
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|-----------|----------------|-----------------------|---------|-----------|---------|----------|-----------|---------|--------------------|-------------------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|1|customer_id|int|4|0|0|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|2|full_name|nvarchar|200|0|0|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|3|email|nvarchar|400|0|0|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|4|phone|nvarchar|60|0|0|NULL|NULL
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|1|customer_id|int|4|0|0|NULL|NULL
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|2|full_name|nvarchar|200|0|0|NULL|NULL
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|3|email|nvarchar|400|0|0|NULL|NULL
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|NON_LEDGER_TABLE|0|4|phone|nvarchar|60|0|0|NULL|NULL
+(8 rows affected)
+schema_name|view_name|object_id|index_name|index_type_desc|definition
+-----------|---------|---------|----------|---------------|----------
+(0 rows affected)
+schema_name|trigger_name|parent_schema_name|parent_object_name|is_disabled|definition
+-----------|------------|------------------|------------------|-----------|----------
+(0 rows affected)
+schema_name|table_name|is_track_columns_updated_on
+-----------|----------|---------------------------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+policy_schema_name|policy_name|is_enabled|target_schema_name|target_object_name|predicate_type_desc|operation_desc|predicate_definition
+------------------|-----------|----------|------------------|------------------|-------------------|--------------|--------------------
+(0 rows affected)
+database_user|is_db_owner|can_view_definition|can_select_database
+-------------|-----------|-------------------|-------------------
+llm_reader|0|1|1
+(1 rows affected)

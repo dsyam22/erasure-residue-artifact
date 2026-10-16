@@ -1,0 +1,29 @@
+```sql
+WITH CheckCurrent AS (
+    -- Check dbo.customer table (current state)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+),
+CheckHistory AS (
+    -- Check dbo.customer_history table (historical state)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.customer_history
+    WHERE
+        full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+)
+SELECT * FROM CheckCurrent
+UNION ALL
+SELECT * FROM CheckHistory;
+```

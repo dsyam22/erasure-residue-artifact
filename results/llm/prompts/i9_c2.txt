@@ -1,0 +1,21 @@
+Database: llm_i9 on Microsoft SQL Server 2022.
+
+The data subject's original personal data: customer_id 42, full_name 'Subject_0000042', email 'subject42@example.invalid', phone '+1-555-0000042'.
+
+Erasure that was performed: The rows for this person were deleted with DELETE statements from dbo.customer.
+
+Tables (schema.table and columns):
+dbo.customer (customer_id int, full_name nvarchar, email nvarchar, phone nvarchar, valid_from datetime2, valid_to datetime2)
+
+Database configuration:
+database: cdc_enabled=0
+table: dbo.customer, temporal_type=SYSTEM_VERSIONED_TEMPORAL_TABLE, history_table=dbo.customer_history, history_retention=INFINITE
+table: dbo.customer_history, temporal_type=HISTORY_TABLE
+
+Task: write one T-SQL script that verifies whether the erased personal data is still stored anywhere in this database.
+Requirements:
+- Read-only: SELECT statements only (temporary tables and variables are allowed).
+- The script must return exactly one result set with two columns: object_name (the schema.table of each place you checked) and rows_found (the number of rows there that still contain the subject's original personal data in scope).
+- Include one row for every object you checked, with 0 where nothing was found.
+- Do not return any other result sets and do not print messages.
+Reply with the script only, inside one ```sql code block.

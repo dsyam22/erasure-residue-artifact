@@ -1,0 +1,19 @@
+-- SCRIPT
+DECLARE @phone_to_find NVARCHAR(50) = '+1-555-0000042';
+DECLARE @customer_id INT = 42;
+
+SELECT 
+    'dbo.customer' AS object_name,
+    SUM(CASE 
+            WHEN COL_LENGTH('dbo.customer', 'phone') IS NOT NULL 
+                 AND EXISTS (
+                     SELECT 1 
+                     FROM dbo.customer 
+                     WHERE customer_id = @customer_id 
+                       AND phone = @phone_to_find
+                 )
+            THEN 1 
+            ELSE 0 
+        END) AS rows_found
+FROM dbo.customer
+WHERE customer_id = @customer_id;

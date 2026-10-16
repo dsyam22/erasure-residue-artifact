@@ -1,0 +1,31 @@
+```sql
+SELECT 'dbo.customer' AS object_name, ISNULL(T1.rows_found, 0) AS rows_found
+UNION ALL
+SELECT 'reporting.customer_replica', ISNULL(T2.rows_found, 0);
+
+WITH CheckCustomerData AS (
+    SELECT COUNT(*) AS rows_found
+    FROM dbo.customer c
+    WHERE c.customer_id = 42
+      AND c.full_name = 'Subject_0000042'
+      AND c.email = 'subject42@example.invalid'
+      AND c.phone = '+1-555-0000042'
+),
+CheckReplicaData AS (
+    SELECT COUNT(*) AS rows_found
+    FROM reporting.customer_replica rc
+    WHERE rc.customer_id = 42
+      AND rc.full_name = 'Subject_0000042'
+      AND rc.email = 'subject42@example.invalid'
+      AND rc.phone = '+1-555-0000042'
+)
+SELECT 
+    'dbo.customer' AS object_name, C.rows_found
+FROM CheckCustomerData C
+
+UNION ALL
+
+SELECT 
+    'reporting.customer_replica', R.rows_found
+FROM CheckReplicaData R;
+```

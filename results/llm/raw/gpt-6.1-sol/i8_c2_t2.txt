@@ -1,0 +1,132 @@
+```sql
+/*
+  Read-only scan of the current database's user tables, including history
+  tables, if any. Each table produces exactly one result row.
+
+  Matches the original name, email or phone within character/XML values
+  and UTF-8/ASCII or UTF-16 binary representations. A column named
+  customer_id also matches the original identifier, 42.
+
+  IMPORTANT: This is a logical-data check, not proof of physical erasure.
+  SELECT queries cannot comprehensively inspect deallocated pages,
+  transaction-log remnants, encrypted/compressed application payloads,
+  backups, or external storage. Identifier matches can also be unrelated
+  to this subject. Results reflect the data visible to the executing
+  principal, including any row-level security restrictions.
+*/
+DECLARE @sql nvarchar(max);
+
+;WITH ColumnPredicates AS
+(
+    SELECT
+        t.object_id,
+        s.name AS schema_name,
+        t.name AS table_name,
+        CONVERT(nvarchar(max),
+            CASE
+                WHEN c.system_type_id IN
+                     (35, 99, 167, 175, 231, 239, 241)
+                THEN
+                    N'(CHARINDEX(N''Subject_0000042'', TRY_CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(N''subject42@example.invalid'', TRY_CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(N''+1-555-0000042'', TRY_CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0)'
+                WHEN c.system_type_id IN (34, 165, 173)
+                THEN
+                    N'('
+                    + N'CHARINDEX(''Subject_0000042'', CONVERT(varchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(''subject42@example.invalid'', CONVERT(varchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(''+1-555-0000042'', CONVERT(varchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(N''Subject_0000042'', CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(N''subject42@example.invalid'', CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0'
+                    + N' OR CHARINDEX(N''+1-555-0000042'', CONVERT(nvarchar(max), '
+                    + QUOTENAME(c.name)
+                    + N') COLLATE Latin1_General_100_BIN2) > 0)'
+                ELSE NULL
+            END
+        ) AS content_predicate,
+        CONVERT(nvarchar(max),
+            CASE
+                WHEN c.name = N'customer_id'
+                 AND c.system_type_id IN
+                     (48, 52, 56, 127, 106, 108, 59, 62, 60, 122,
+                      35, 99, 167, 175, 231, 239)
+                THEN
+                    N'TRY_CONVERT(decimal(38,10), '
+                    + QUOTENAME(c.name) + N') = 42'
+                ELSE NULL
+            END
+        ) AS id_predicate
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s
+      ON s.schema_id = t.schema_id
+    LEFT JOIN sys.columns AS c
+      ON c.object_id = t.object_id
+    WHERE t.is_ms_shipped = 0
+),
+TablePredicates AS
+(
+    SELECT
+        object_id,
+        schema_name,
+        table_name,
+        STRING_AGG(
+            CONVERT(nvarchar(max),
+                CASE
+                    WHEN content_predicate IS NOT NULL
+                     AND id_predicate IS NOT NULL
+                    THEN N'(' + content_predicate
+                         + N' OR ' + id_predicate + N')'
+                    ELSE COALESCE(content_predicate, id_predicate)
+                END
+            ),
+            N' OR '
+        ) AS predicate_sql
+    FROM ColumnPredicates
+    GROUP BY object_id, schema_name, table_name
+)
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N'''
+            + REPLACE(
+                QUOTENAME(schema_name) + N'.' + QUOTENAME(table_name),
+                N'''', N''''''
+              )
+            + N''' AS object_name, COUNT_BIG(*) AS rows_found FROM '
+            + QUOTENAME(schema_name) + N'.' + QUOTENAME(table_name)
+            + N' WHERE ' + COALESCE(predicate_sql, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM TablePredicates;
+
+IF @sql IS NULL
+    SELECT
+        CONVERT(nvarchar(517), NULL) AS object_name,
+        CONVERT(bigint, NULL) AS rows_found
+    WHERE 1 = 0;
+ELSE
+BEGIN
+    SELECT @sql =
+        N'SELECT object_name, rows_found FROM (' + @sql
+        + N') AS findings ORDER BY object_name;';
+
+    EXEC sys.sp_executesql @sql;
+END;
+```

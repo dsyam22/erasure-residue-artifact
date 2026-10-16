@@ -1,0 +1,11 @@
+table_name|schema_name|column_name|data_type|max_length|is_nullable
+----------|-----------|-----------|---------|----------|-----------
+customer|dbo|customer_id|int|4|0
+customer|dbo|full_name|nvarchar|200|0
+customer|dbo|email|nvarchar|400|0
+customer|dbo|phone|nvarchar|60|1
+customer_replica|reporting|customer_id|int|4|0
+customer_replica|reporting|full_name|nvarchar|200|0
+customer_replica|reporting|email|nvarchar|400|0
+customer_replica|reporting|phone|nvarchar|60|1
+(8 rows affected)

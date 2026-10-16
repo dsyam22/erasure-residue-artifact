@@ -1,0 +1,38 @@
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @full nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* Base table */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @full
+   OR email = @email
+   OR phone = @phone;
+
+/* CDC change table: check captured columns for the subject's data */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', COUNT_BIG(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @cid
+       OR full_name = @full
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found) VALUES ('cdc.dbo_customer_CT', 0);
+END
+
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

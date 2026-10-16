@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type_desc|column_name|type_name
+-----------|----------|------------------|-----------|---------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|customer_id|int
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|full_name|nvarchar
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|email|nvarchar
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|phone|nvarchar
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|valid_from|datetime2
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|valid_to|datetime2
+dbo|customer_history|HISTORY_TABLE|customer_id|int
+dbo|customer_history|HISTORY_TABLE|full_name|nvarchar
+dbo|customer_history|HISTORY_TABLE|email|nvarchar
+dbo|customer_history|HISTORY_TABLE|phone|nvarchar
+dbo|customer_history|HISTORY_TABLE|valid_from|datetime2
+dbo|customer_history|HISTORY_TABLE|valid_to|datetime2
+(12 rows affected)

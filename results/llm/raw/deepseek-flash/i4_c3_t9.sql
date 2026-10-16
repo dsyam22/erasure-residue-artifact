@@ -1,0 +1,55 @@
+/* Read-only verification: where might the subject's original personal data still exist? */
+
+DECLARE @cid int = 42;
+DECLARE @mid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(400) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* 1. dbo.customer - live table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+/* 2. dbo.member - live (system-versioned) table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member',
+       COUNT_BIG(*)
+FROM dbo.member
+WHERE member_id = @mid
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+/* 3. dbo.member_history - temporal history table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member_history',
+       COUNT_BIG(*)
+FROM dbo.member_history
+WHERE member_id = @mid
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+/* 4. CDC capture table for dbo.customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT_BIG(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+/* 5. Any other CDC capture instances that might have captured this customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT (other instances)',
+       COUNT_BIG(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

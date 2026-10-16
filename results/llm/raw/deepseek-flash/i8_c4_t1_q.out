@@ -1,0 +1,22 @@
+schema_name|object_name|object_type|column_name|data_type|max_length|is_nullable|is_computed|column_id
+-----------|-----------|-----------|-----------|---------|----------|-----------|-----------|---------
+dbo|customer|USER_TABLE|customer_id|int|4|0|0|1
+dbo|customer|USER_TABLE|full_name|nvarchar|200|0|0|2
+dbo|customer|USER_TABLE|email|nvarchar|400|0|0|3
+dbo|customer|USER_TABLE|phone|nvarchar|60|1|0|4
+(4 rows affected)
+schema_name|object_name|object_type|definition
+-----------|-----------|-----------|----------
+(0 rows affected)
+schema_name|table_name|index_name|index_type|is_unique|column_name
+-----------|----------|----------|----------|---------|-----------
+dbo|customer|PK__customer__CD65CB85E787FACC|CLUSTERED|1|customer_id
+(1 rows affected)
+table_name|object_id
+----------|---------
+customer|901578250
+(1 rows affected)
+schema_name|object_name|object_type
+-----------|-----------|-----------
+dbo|customer|USER_TABLE
+(1 rows affected)

@@ -1,0 +1,16 @@
+-- SCRIPT
+-- Check current rows and every retained CDC image, including delete images.
+-- Counts describe queryable table data, not backups or unallocated/log pages.
+SELECT N'dbo.customer' AS object_name, COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042'
+UNION ALL
+SELECT N'cdc.dbo_customer_CT' AS object_name, COUNT_BIG(*) AS rows_found
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';

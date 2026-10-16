@@ -1,0 +1,16 @@
+DECLARE @Target_ID INT = 42;
+DECLARE @Target_Phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Check 1: Primary table dbo.customer
+-- Since the phone column was dropped from dbo.customer, we expect 0 records found here.
+SELECT
+    'dbo.customer' AS object_name,
+    (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = @Target_ID AND 1=0) AS rows_found
+
+UNION ALL
+
+-- Check 2: Change Data Capture table cdc.dbo_customer_CT
+-- The phone column was captured and should be checked here for historical data remnants.
+SELECT
+    'cdc.dbo_customer_CT' AS object_name,
+    (SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE customer_id = @Target_ID AND [phone] = @Target_Phone) AS rows_found;

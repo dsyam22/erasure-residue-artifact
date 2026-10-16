@@ -1,0 +1,25 @@
+schema_name|table_name|object_id|temporal_type_desc|history_table_id|history_schema|history_table|is_tracked_by_cdc|change_tracking_enabled|approx_row_count
+-----------|----------|---------|------------------|----------------|--------------|-------------|-----------------|-----------------------|----------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|dbo|customer_history|0|0|99
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|NULL|0|0|1
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+dbo|customer_history|customer_id|int|4
+dbo|customer_history|full_name|nvarchar|200
+dbo|customer_history|email|nvarchar|400
+dbo|customer_history|phone|nvarchar|60
+(8 rows affected)
+type_desc|schema_name|object_name
+---------|-----------|-----------
+(0 rows affected)
+schema_name|table_name
+-----------|----------
+(0 rows affected)
+schema_name|table_name|column_name|label|information_type
+-----------|----------|-----------|-----|----------------
+(0 rows affected)

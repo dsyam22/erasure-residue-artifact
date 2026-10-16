@@ -1,0 +1,31 @@
+SELECT x.object_name, x.rows_found
+FROM (
+    SELECT
+        CAST('dbo.customer' AS nvarchar(256)) AS object_name,
+        (SELECT COUNT(*)
+         FROM dbo.customer AS c
+         WHERE c.full_name = N'Subject_0000042'
+            OR c.email = N'subject42@example.invalid'
+            OR c.phone = N'+1-555-0000042') AS rows_found
+
+    UNION ALL
+
+    SELECT
+        CAST('cdc.dbo_customer_CT' AS nvarchar(256)),
+        (SELECT COUNT(*)
+         FROM cdc.dbo_customer_CT AS ct
+         WHERE ct.full_name = N'Subject_0000042'
+            OR ct.email = N'subject42@example.invalid'
+            OR ct.phone = N'+1-555-0000042')
+
+    UNION ALL
+
+    SELECT
+        CAST('cdc.ddl_history' AS nvarchar(256)),
+        (SELECT COUNT(*)
+         FROM cdc.ddl_history AS dh
+         WHERE CHARINDEX(N'Subject_0000042', dh.ddl_command) > 0
+            OR CHARINDEX(N'subject42@example.invalid', dh.ddl_command) > 0
+            OR CHARINDEX(N'+1-555-0000042', dh.ddl_command) > 0)
+) AS x
+ORDER BY x.object_name;

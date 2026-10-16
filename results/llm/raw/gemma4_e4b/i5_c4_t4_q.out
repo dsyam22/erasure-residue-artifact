@@ -1,0 +1,15 @@
+table_name|column_name|data_type|potential_data_type_category
+----------|-----------|---------|----------------------------
+customer|customer_id|int|General Data Type
+customer|full_name|nvarchar|Potential PII/String
+customer|email|nvarchar|Potential PII/String
+customer|phone|nvarchar|Potential PII/String
+customer|valid_from|datetime2|General Data Type
+customer|valid_to|datetime2|General Data Type
+customer_history|customer_id|int|General Data Type
+customer_history|full_name|nvarchar|Potential PII/String
+customer_history|email|nvarchar|Potential PII/String
+customer_history|phone|nvarchar|Potential PII/String
+customer_history|valid_from|datetime2|General Data Type
+customer_history|valid_to|datetime2|General Data Type
+(12 rows affected)

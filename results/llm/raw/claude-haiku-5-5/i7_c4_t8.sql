@@ -1,0 +1,24 @@
+SET NOCOUNT ON;
+
+SELECT v.object_name,
+       v.rows_found
+FROM (
+    SELECT N'dbo.customer' AS object_name,
+           COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = 42
+       OR full_name = N'Subject_0000042'
+       OR email = N'subject42@example.invalid'
+       OR phone = N'+1-555-0000042'
+
+    UNION ALL
+
+    SELECT N'reporting.customer_replica',
+           COUNT(*)
+    FROM reporting.customer_replica
+    WHERE customer_id = 42
+       OR full_name = N'Subject_0000042'
+       OR email = N'subject42@example.invalid'
+       OR phone = N'+1-555-0000042'
+) AS v
+ORDER BY v.object_name;

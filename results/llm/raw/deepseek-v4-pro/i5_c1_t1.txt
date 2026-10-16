@@ -1,0 +1,31 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @CustomerID int = 42;
+DECLARE @FullName nvarchar(255) = N'Subject_0000042';
+DECLARE @Email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @Phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #Results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found int NOT NULL
+);
+
+-- Check dbo.customer
+INSERT INTO #Results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @CustomerID
+   OR full_name = @FullName
+   OR email = @Email
+   OR phone = @Phone;
+
+-- Return the results
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;
+```

@@ -1,0 +1,18 @@
+TableName|ColumnName|DataType|MaxLengthBytes
+---------|----------|--------|--------------
+customer|customer_id|int|2
+customer|full_name|nvarchar|100
+customer|email|nvarchar|200
+customer|phone|nvarchar|30
+customer|valid_from|datetime2|4
+customer|valid_to|datetime2|4
+customer_history|customer_id|int|2
+customer_history|full_name|nvarchar|100
+customer_history|email|nvarchar|200
+customer_history|phone|nvarchar|30
+customer_history|valid_from|datetime2|4
+customer_history|valid_to|datetime2|4
+(12 rows affected)
+name|object_id|principal_id|schema_id|parent_object_id|type|type_desc|create_date|modify_date|is_ms_shipped|is_published|is_schema_published|referenced_object_id|key_index_id|is_disabled|is_not_for_replication|is_not_trusted|delete_referential_action|delete_referential_action_desc|update_referential_action|update_referential_action_desc|is_system_named
+----|---------|------------|---------|----------------|----|---------|-----------|-----------|-------------|------------|-------------------|--------------------|------------|-----------|----------------------|--------------|-------------------------|------------------------------|-------------------------|------------------------------|---------------
+(0 rows affected)

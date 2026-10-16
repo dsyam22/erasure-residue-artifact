@@ -1,0 +1,75 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found int NOT NULL
+);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check dbo.customer_history
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer_history',
+    COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check for CDC change tables (if any exist)
+DECLARE @cdc_table_name nvarchar(255);
+DECLARE cdc_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name + N'.' + t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name LIKE 'customer%'
+      AND t.is_tracked_by_cdc = 1;
+
+OPEN cdc_cursor;
+FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @sql nvarchar(max);
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT 
+            @obj_name,
+            COUNT(*)
+        FROM ' + QUOTENAME(PARSENAME(@cdc_table_name, 2)) + N'.' + QUOTENAME(PARSENAME(@cdc_table_name, 1)) + N'
+        WHERE customer_id = @customer_id
+           OR full_name = @full_name
+           OR email = @email
+           OR phone = @phone;';
+    
+    EXEC sp_executesql @sql, N'@obj_name nvarchar(255), @customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+        @obj_name = @cdc_table_name, @customer_id = @customer_id, @full_name = @full_name, @email = @email, @phone = @phone;
+    
+    FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+END;
+
+CLOSE cdc_cursor;
+DEALLOCATE cdc_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,5 @@
+schema_name|table_name|index_name|column_name
+-----------|----------|----------|-----------
+dbo|customer|PK__customer__CD65CB85D7C39AEE|customer_id
+dbo|systranschemas|uncsystranschemas|startlsn
+(2 rows affected)

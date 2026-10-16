@@ -1,0 +1,72 @@
+```sql
+SET NOCOUNT ON;
+
+-- Temporary structure to hold results for all checked objects
+IF OBJECT_ID('tempdb..#VerificationResults') IS NOT NULL DROP TABLE #VerificationResults;
+
+CREATE TABLE #VerificationResults (
+    object_name NVARCHAR(256),
+    rows_found INT
+);
+
+DECLARE @TableName NVARCHAR(256);
+DECLARE @SchemaName NVARCHAR(128);
+DECLARE @SQL NVARCHAR(MAX);
+
+-- Cursor to iterate over all user tables in the current database
+DECLARE TableCursor CURSOR FOR
+SELECT 
+    s.name AS SchemaName, 
+    t.name AS TableName
+FROM 
+    sys.tables t
+JOIN 
+    sys.schemas s ON t.schema_id = s.schema_id
+WHERE 
+    t.is_ms_shipped = 0; -- Exclude system tables
+
+OPEN TableCursor;
+FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'
+        INSERT INTO #VerificationResults (object_name, rows_found)
+        SELECT 
+            ''' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + ''', 
+            ISNULL(COUNT(*), 0)
+        FROM 
+            ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + ' AS T
+        WHERE 
+            -- Check for Name match (Subject_0000042)
+            CAST(T.full_name AS NVARCHAR(MAX)) LIKE ''%Subject_0000042%'' OR
+            -- Check for Email match (subject42@example.invalid)
+            CAST(T.email AS NVARCHAR(MAX)) LIKE ''%subject42@example.invalid%'' OR
+            -- Check for Phone match (+1-555-0000042)
+            CAST(T.phone AS NVARCHAR(MAX)) LIKE ''%1-555-0000042%'' OR
+            -- Check for ID match (42). This assumes there is a numeric column or the ID appears as text.
+            CAST(T.customer_id AS NVARCHAR(MAX)) = ''42'';
+    ';
+
+    -- Execute the dynamic SQL batch
+    EXEC sp_executesql @SQL;
+
+    FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final result set selection: Must return exactly one result set.
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    #VerificationResults
+ORDER BY
+    CASE WHEN object_name = 'dbo.customer' THEN 0 ELSE 1 END, -- Ensure deleted table is first if it was checked
+    object_name;
+
+-- Cleanup (optional but good practice)
+DROP TABLE #VerificationResults;
+```

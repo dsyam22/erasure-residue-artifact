@@ -1,0 +1,7 @@
+schema_name|table_name|column_name
+-----------|----------|-----------
+cdc|dbo_customer_CT|customer_id
+cdc|dbo_customer_CT|email
+cdc|dbo_customer_CT|full_name
+cdc|dbo_customer_CT|phone
+(4 rows affected)

@@ -1,0 +1,7 @@
+COLUMN_NAME|DATA_TYPE
+-----------|---------
+customer_id|int
+full_name|nvarchar
+email|nvarchar
+phone|nvarchar
+(4 rows affected)

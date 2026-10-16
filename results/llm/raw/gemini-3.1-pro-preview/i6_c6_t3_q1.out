@@ -1,0 +1,8 @@
+customer_id|full_name|email
+-----------|---------|-----
+1|Subject_0000001|subject1@example.invalid
+2|Subject_0000002|subject2@example.invalid
+3|Subject_0000003|subject3@example.invalid
+4|Subject_0000004|subject4@example.invalid
+5|Subject_0000005|subject5@example.invalid
+(5 rows affected)

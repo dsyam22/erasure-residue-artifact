@@ -1,0 +1,13 @@
+Changed database context to 'llm_i4'.
+cdc.captured_columns|0
+cdc.change_tables|0
+cdc.dbo_customer_CT|2
+cdc.ddl_history|0
+cdc.index_columns|0
+cdc.lsn_time_mapping|0
+dbo.customer|0
+dbo.member|0
+dbo.member_history|1
+dbo.systranschemas|0
+
+(10 rows affected)

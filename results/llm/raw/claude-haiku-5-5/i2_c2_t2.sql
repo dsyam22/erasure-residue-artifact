@@ -1,0 +1,66 @@
+SET NOCOUNT ON;
+
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50)  = N'+1-555-0000042';
+DECLARE @cid   int           = 42;
+
+CREATE TABLE #scan (
+    object_name nvarchar(300) NOT NULL PRIMARY KEY,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj nvarchar(300);
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj  = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred = NULL;
+    SET @cnt  = 0;
+
+    -- Character columns: match any of the subject's original personal data values
+    SELECT @pred = STRING_AGG(
+               CAST(N'(' + QUOTENAME(c.name) + N' = @name OR '
+                         + QUOTENAME(c.name) + N' = @email OR '
+                         + QUOTENAME(c.name) + N' = @phone)' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@obj)
+      AND c.system_type_id IN (167, 175, 231, 239);  -- varchar, char, nvarchar, nchar
+
+    -- Identifier column: match the subject's customer_id where present
+    IF EXISTS (SELECT 1 FROM sys.columns
+               WHERE object_id = OBJECT_ID(@obj) AND name = N'customer_id')
+        SET @pred = CONCAT_WS(N' OR ', NULLIF(@pred, N''), N'[customer_id] = @cid');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sp_executesql
+             @sql,
+             N'@name nvarchar(200), @email nvarchar(320), @phone nvarchar(50), @cid int, @cnt bigint OUTPUT',
+             @name = @name, @email = @email, @phone = @phone, @cid = @cid, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan (object_name, rows_found) VALUES (@obj, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;

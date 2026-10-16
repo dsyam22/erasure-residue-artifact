@@ -1,0 +1,11 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+dbo.customer|0
+dbo.customer.full_name|0
+dbo.customer.email|0
+
+(3 rows affected)

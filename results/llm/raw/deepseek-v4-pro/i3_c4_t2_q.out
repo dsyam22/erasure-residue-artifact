@@ -1,0 +1,30 @@
+table_name|column_name|data_type|max_length|is_nullable
+----------|-----------|---------|----------|-----------
+customer|customer_id|int|4|0
+customer|full_name|nvarchar|200|0
+customer|email|nvarchar|400|0
+customer|phone|nvarchar|60|1
+member|member_id|int|4|0
+member|full_name|nvarchar|200|0
+member|email|nvarchar|400|0
+member|phone|nvarchar|60|1
+member|valid_from|datetime2|8|0
+member|valid_to|datetime2|8|0
+(10 rows affected)
+table_name|index_name|type_desc|is_unique|is_primary_key
+----------|----------|---------|---------|--------------
+customer|PK__customer__CD65CB85B7DCDB16|CLUSTERED|1|1
+member|PK__member__B29B8534F263E778|CLUSTERED|1|1
+(2 rows affected)
+referencing_table|referencing_column|referenced_table|referenced_column
+-----------------|------------------|----------------|-----------------
+(0 rows affected)
+trigger_name|table_name|is_disabled|type_desc
+------------|----------|-----------|---------
+(0 rows affected)
+default_constraint_name|table_name|column_name|definition
+-----------------------|----------|-----------|----------
+(0 rows affected)
+check_constraint_name|table_name|definition
+---------------------|----------|----------
+(0 rows affected)

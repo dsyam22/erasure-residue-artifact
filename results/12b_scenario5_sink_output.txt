@@ -1,0 +1,63 @@
+Changed database context to 'erasure_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-10 16:18:39.8708645
+--- Initial load: consumer run 1 ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+0 0 100
+sink_rows
+---------
+100
+=== PART A: consumer keeps up ===
+--- Consumer run 2 ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+0 1 0
+--- Subject 42 in the sink (no rows = delete propagated) ---
+subscriber_id full_name email
+------------- --------- -----
+=== PART B: consumer lags, cleanup runs first ===
+--- Delete of subject 43 is in the change table (operation 1 = delete) ---
+operation subscriber_id full_name email
+--------- ------------- --------- -----
+2 43 Subject_000043 subject43@example.invalid
+1 43 Subject_000043 subject43@example.invalid
+--- Cleanup at 1-minute retention, repeated once a minute until subject 43 is gone ---
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+cleanup_runs minutes_waited change_rows_for_subject_43_left
+------------ -------------- -------------------------------
+11 11.000000 0
+--- Change table rows for subject 43 after cleanup ---
+change_rows_for_subject_43
+--------------------------
+0
+--- Consumer run 3 (after cleanup) ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+1 0 0
+--- Subject 43: source table ---
+source_rows_for_subject_43
+--------------------------
+0
+--- Subject 43: sink (a row here = erased at source, still present downstream) ---
+subscriber_id full_name email
+------------- --------- -----
+43 Subject_000043 subject43@example.invalid
+--- Row counts ---
+source_rows sink_rows
+----------- ---------
+98 99
+=== Restore default retention ===

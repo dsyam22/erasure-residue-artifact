@@ -1,0 +1,31 @@
+DECLARE @TargetCustomerID INT = 42;
+DECLARE @TargetFullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Declare a temporary table to hold the results of the checks
+IF OBJECT_ID('tempdb..#LeakCheckResults') IS NOT NULL DROP TABLE #LeakCheckResults;
+
+CREATE TABLE #LeakCheckResults (
+    object_name NVARCHAR(128),
+    rows_found INT
+);
+
+-- Check dbo.customer for residual data using OR logic across all identifying fields
+INSERT INTO #LeakCheckResults (object_name, rows_found)
+SELECT 
+    'dbo.customer',
+    COUNT(T.*)
+FROM 
+    dbo.customer AS T
+WHERE 
+    T.customer_id = @TargetCustomerID OR 
+    T.full_name = @TargetFullName OR 
+    T.email = @TargetEmail OR 
+    T.phone = @TargetPhone;
+
+-- Select the final required result set structure (ensures only one result set is returned)
+SELECT object_name, rows_found FROM #LeakCheckResults ORDER BY object_name;
+
+-- Clean up temporary table (optional but good practice)
+DROP TABLE #LeakCheckResults;

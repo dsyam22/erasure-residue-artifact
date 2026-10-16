@@ -1,0 +1,62 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(400) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+-- Check dbo.customer: phone column was dropped, so check all remaining columns
+-- for the phone number value in case it was retained elsewhere.
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE CONVERT(nvarchar(4000), full_name) LIKE N'%' + @needle + N'%'
+   OR CONVERT(nvarchar(4000), email)     LIKE N'%' + @needle + N'%';
+
+-- Dynamically scan every user table and every character/binary column
+-- in the database for the phone number value.
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name, c.name
+FROM sys.columns c
+JOIN sys.tables t  ON t.object_id = c.object_id
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE c.system_type_id IN (
+        SELECT system_type_id FROM sys.types
+        WHERE name IN ('nvarchar','varchar','nchar','char','text','ntext')
+      )
+  AND t.is_ms_shipped = 0
+  AND NOT (s.name = 'dbo' AND t.name = 'customer');
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE CONVERT(nvarchar(max), ' + QUOTENAME(@column) + N') LIKE N''%'' + @needle + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @needle nvarchar(400)',
+        @obj = @schema + N'.' + @table + N'.' + @column,
+        @needle = @needle;
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+-- Aggregate per object (a table may have multiple matching columns).
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name;
+
+DROP TABLE #results;
+```

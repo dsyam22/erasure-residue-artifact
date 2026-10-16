@@ -1,0 +1,2 @@
+Msg 229, Level 14, State 5, Server 651334c31df8, Line 2
+The SELECT permission was denied on the object 'fn_dblog', database 'mssqlsystemresource', schema 'sys'.

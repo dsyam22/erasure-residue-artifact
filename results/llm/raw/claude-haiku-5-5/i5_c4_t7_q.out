@@ -1,0 +1,26 @@
+schema_name|table_name|object_id|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|is_ms_shipped
+-----------|----------|---------|------------------|--------------|-------------|-----------------|-------------------|-------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|0
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|0|0|0
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+dbo|customer|4|phone|nvarchar|60|1
+dbo|customer_history|1|customer_id|int|4|0
+dbo|customer_history|2|full_name|nvarchar|200|0
+dbo|customer_history|3|email|nvarchar|400|0
+dbo|customer_history|4|phone|nvarchar|60|1
+(8 rows affected)
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 31
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i5'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 31
+The user does not have permission to perform this action.
+schema_name|object_name|type_desc|mentions_customer_or_pii
+-----------|-----------|---------|------------------------
+(0 rows affected)
+parent_schema|parent_table|trigger_name|is_disabled
+-------------|------------|------------|-----------
+(0 rows affected)

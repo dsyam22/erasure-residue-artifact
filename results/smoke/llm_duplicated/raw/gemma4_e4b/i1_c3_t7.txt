@@ -1,0 +1,19 @@
+```sql
+WITH CheckResults AS (
+    -- 1. Check the main customer table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS rows_found
+    UNION ALL
+
+    -- 2. Check the Change Data Capture (CDC) change table (cdc.dbo_customer_CT)
+    -- We check for records containing the subject's data that were logged during the delete operation or immediately prior.
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        (SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042')
+)
+SELECT
+    object_name,
+    CAST(rows_found AS INT)
+FROM CheckResults;
+```

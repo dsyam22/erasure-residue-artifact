@@ -1,0 +1,43 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(4000) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+DECLARE @schema sysname, @table sysname, @col sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME
+WHERE t.TABLE_TYPE = 'BASE TABLE'
+  AND c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext','xml','sysname')
+ORDER BY c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT QUOTENAME(@s) + N''.'' + QUOTENAME(@t), COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + QUOTENAME(@col) + N' LIKE N''%'' + @n + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@s sysname, @t sysname, @n nvarchar(4000), @results TABLE (object_name sysname, rows_found bigint) READONLY',
+        @s = @schema, @t = @table, @n = @needle, @results = @results;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @col;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM @results
+GROUP BY object_name
+ORDER BY object_name;

@@ -1,0 +1,10 @@
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 1
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i7'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 1
+The user does not have permission to perform this action.
+child_schema|child_table|parent_schema|parent_table|fk_name
+------------|-----------|-------------|------------|-------
+(0 rows affected)
+module_schema|module_name|type_desc
+-------------|-----------|---------
+(0 rows affected)

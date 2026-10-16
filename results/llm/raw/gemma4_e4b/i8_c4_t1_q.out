@@ -1,0 +1,10 @@
+SchemaName|TableName|ColumnName|DataType|MaxLength|IsNullable
+----------|---------|----------|--------|---------|----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|full_name|sysname|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|email|sysname|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|customer|phone|sysname|60|1
+(7 rows affected)

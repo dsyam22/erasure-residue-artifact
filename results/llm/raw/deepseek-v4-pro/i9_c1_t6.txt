@@ -1,0 +1,106 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255),
+    rows_found int
+);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check all user tables for columns that might contain the subject's data
+DECLARE @sql nvarchar(max);
+DECLARE @table_name nvarchar(255);
+DECLARE @schema_name nvarchar(255);
+DECLARE @column_name nvarchar(255);
+DECLARE @full_table_name nvarchar(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    s.name AS schema_name,
+    t.name AS table_name,
+    c.name AS column_name
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+INNER JOIN sys.columns c ON t.object_id = c.object_id
+INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('nvarchar', 'varchar', 'nchar', 'char', 'ntext', 'text')
+  AND t.name <> 'customer' -- already checked
+ORDER BY s.name, t.name, c.name;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @full_table_name = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+    
+    SET @sql = N'
+        IF EXISTS (SELECT 1 FROM #results WHERE object_name = @full_table_name)
+        BEGIN
+            UPDATE #results
+            SET rows_found = rows_found + (
+                SELECT COUNT(*)
+                FROM ' + @full_table_name + N'
+                WHERE ' + QUOTENAME(@column_name) + N' = @full_name
+                   OR ' + QUOTENAME(@column_name) + N' = @email
+                   OR ' + QUOTENAME(@column_name) + N' = @phone
+            )
+            WHERE object_name = @full_table_name;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            SELECT 
+                @full_table_name,
+                COUNT(*)
+            FROM ' + @full_table_name + N'
+            WHERE ' + QUOTENAME(@column_name) + N' = @full_name
+               OR ' + QUOTENAME(@column_name) + N' = @email
+               OR ' + QUOTENAME(@column_name) + N' = @phone;
+        END';
+    
+    EXEC sp_executesql @sql, 
+        N'@full_table_name nvarchar(255), @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(50)',
+        @full_table_name, @full_name, @email, @phone;
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @column_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Ensure all checked tables have a row, even if no matching columns were checked
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+    0
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM #results r 
+    WHERE r.object_name = QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+);
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

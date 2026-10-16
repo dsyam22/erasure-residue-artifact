@@ -1,0 +1,13 @@
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc
+-----------|----------|------------------|-------------------|------------------|-----------------
+cdc|captured_columns|NON_TEMPORAL_TABLE|NULL|NULL|0
+cdc|change_tables|NON_TEMPORAL_TABLE|NULL|NULL|0
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|NULL|NULL|0
+cdc|ddl_history|NON_TEMPORAL_TABLE|NULL|NULL|0
+cdc|index_columns|NON_TEMPORAL_TABLE|NULL|NULL|0
+cdc|lsn_time_mapping|NON_TEMPORAL_TABLE|NULL|NULL|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|1
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|member_history|0
+dbo|member_history|HISTORY_TABLE|NULL|NULL|0
+dbo|systranschemas|NON_TEMPORAL_TABLE|NULL|NULL|0
+(10 rows affected)

@@ -1,0 +1,19 @@
+TableName|ColumnName|DataType|Classification
+---------|----------|--------|--------------
+customer|customer_id|int|Other Data
+customer|email|nvarchar|Potential PII
+customer|full_name|nvarchar|Potential PII
+customer|phone|nvarchar|Potential PII
+member|email|nvarchar|Potential PII
+member|full_name|nvarchar|Potential PII
+member|member_id|int|Other Data
+member|phone|nvarchar|Potential PII
+member|valid_from|datetime2|Other Data
+member|valid_to|datetime2|Other Data
+member_history|email|nvarchar|Potential PII
+member_history|full_name|nvarchar|Potential PII
+member_history|member_id|int|Other Data
+member_history|phone|nvarchar|Potential PII
+member_history|valid_from|datetime2|Other Data
+member_history|valid_to|datetime2|Other Data
+(16 rows affected)

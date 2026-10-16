@@ -1,0 +1,34 @@
+scope|object_name|flag1|flag2|detail
+-----|-----------|-----|-----|------
+database|llm_i5|0|0|NULL
+(1 rows affected)
+schema_name|table_name|temporal_type_desc|history_table|is_tracked_by_cdc|change_tracking_on|approx_rows
+-----------|----------|------------------|-------------|-----------------|------------------|-----------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo.customer_history|0|0|99
+dbo|customer_history|HISTORY_TABLE|NULL|0|0|1
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+dbo|customer_history|customer_id|int|4
+dbo|customer_history|full_name|nvarchar|200
+dbo|customer_history|email|nvarchar|400
+dbo|customer_history|phone|nvarchar|60
+(8 rows affected)
+schema_name|table_name|index_name|type_desc|is_unique|has_fulltext
+-----------|----------|----------|---------|---------|------------
+dbo|customer|PK__customer__CD65CB85A8B6E4A9|CLUSTERED|1|0
+dbo|customer_history|ix_customer_history|CLUSTERED|0|0
+(2 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+(0 rows affected)
+schema_name|parent_table|trigger_name|is_disabled
+-----------|------------|------------|-----------
+(0 rows affected)
+database_audit_spec|is_state_enabled|audit_action_name|audited_principal_id|class_desc
+-------------------|----------------|-----------------|--------------------|----------
+(0 rows affected)

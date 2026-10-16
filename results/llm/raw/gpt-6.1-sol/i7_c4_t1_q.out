@@ -1,0 +1,35 @@
+database_name|is_cdc_enabled|snapshot_isolation_state_desc
+-------------|--------------|-----------------------------
+llm_i7|0|OFF
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|is_external|column_id|column_name|data_type|max_length|is_computed|generated_always_type_desc
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|-----------|---------|-----------|---------|----------|-----------|--------------------------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|1|customer_id|int|4|0|NOT_APPLICABLE
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|2|full_name|nvarchar|200|0|NOT_APPLICABLE
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|3|email|nvarchar|400|0|NOT_APPLICABLE
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|4|phone|nvarchar|60|0|NOT_APPLICABLE
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|1|customer_id|int|4|0|NOT_APPLICABLE
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|2|full_name|nvarchar|200|0|NOT_APPLICABLE
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|3|email|nvarchar|400|0|NOT_APPLICABLE
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|0|4|phone|nvarchar|60|0|NOT_APPLICABLE
+(8 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|is_track_columns_updated_on
+-----------|----------|---------------------------
+(0 rows affected)
+source_table|customer_id|full_name|email|phone
+------------|-----------|---------|-----|-----
+(0 rows affected)
+source_table|customer_id|full_name|email|phone
+------------|-----------|---------|-----|-----
+reporting.customer_replica|42|Subject_0000042|subject42@example.invalid|+1-555-0000042
+(1 rows affected)
+can_view_definition|can_select_database|is_db_owner
+-------------------|-------------------|-----------
+1|1|0
+(1 rows affected)

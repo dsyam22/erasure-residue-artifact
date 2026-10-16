@@ -1,0 +1,156 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id INT = 42;
+DECLARE @full_name NVARCHAR(255) = N'Subject_0000042';
+DECLARE @email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255) NOT NULL,
+    rows_found INT NOT NULL
+);
+
+-- Check dbo.customer (the main table)
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check for CDC change tables (even though cdc_enabled=0, we still verify)
+IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.name LIKE '%cdc%' OR t.name LIKE '%change%')
+BEGIN
+    DECLARE @cdc_table_name NVARCHAR(255);
+    DECLARE cdc_cursor CURSOR FOR
+        SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.name LIKE '%cdc%' OR t.name LIKE '%change%';
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @cdc_sql NVARCHAR(MAX);
+        SET @cdc_sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @cdc_table_name + N''', COUNT(*)
+            FROM ' + @cdc_table_name + N'
+            WHERE CAST(' + QUOTENAME('customer_id') + N' AS NVARCHAR(50)) = CAST(@customer_id AS NVARCHAR(50))
+               OR CAST(' + QUOTENAME('full_name') + N' AS NVARCHAR(255)) = @full_name
+               OR CAST(' + QUOTENAME('email') + N' AS NVARCHAR(255)) = @email
+               OR CAST(' + QUOTENAME('phone') + N' AS NVARCHAR(255)) = @phone';
+        BEGIN TRY
+            EXEC sp_executesql @cdc_sql, N'@customer_id INT, @full_name NVARCHAR(255), @email NVARCHAR(255), @phone NVARCHAR(255)', @customer_id, @full_name, @email, @phone;
+        END TRY
+        BEGIN CATCH
+            -- If columns don't exist, skip
+        END CATCH;
+
+        FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+    END;
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+-- Check for temporal history tables (even though temporal_type=NON_TEMPORAL_TABLE, we still verify)
+IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.temporal_type = 1)
+BEGIN
+    DECLARE @history_table_name NVARCHAR(255);
+    DECLARE history_cursor CURSOR FOR
+        SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.temporal_type = 1;
+
+    OPEN history_cursor;
+    FETCH NEXT FROM history_cursor INTO @history_table_name;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @history_sql NVARCHAR(MAX);
+        SET @history_sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @history_table_name + N''', COUNT(*)
+            FROM ' + @history_table_name + N'
+            WHERE CAST(' + QUOTENAME('customer_id') + N' AS NVARCHAR(50)) = CAST(@customer_id AS NVARCHAR(50))
+               OR CAST(' + QUOTENAME('full_name') + N' AS NVARCHAR(255)) = @full_name
+               OR CAST(' + QUOTENAME('email') + N' AS NVARCHAR(255)) = @email
+               OR CAST(' + QUOTENAME('phone') + N' AS NVARCHAR(255)) = @phone';
+        BEGIN TRY
+            EXEC sp_executesql @history_sql, N'@customer_id INT, @full_name NVARCHAR(255), @email NVARCHAR(255), @phone NVARCHAR(255)', @customer_id, @full_name, @email, @phone;
+        END TRY
+        BEGIN CATCH
+            -- If columns don't exist, skip
+        END CATCH;
+
+        FETCH NEXT FROM history_cursor INTO @history_table_name;
+    END;
+
+    CLOSE history_cursor;
+    DEALLOCATE history_cursor;
+END
+
+-- Check all user tables for potential downstream copies (excluding the main table and any CDC/history tables already checked)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+    COUNT(*)
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+CROSS APPLY (
+    SELECT 1
+    WHERE EXISTS (
+        SELECT 1 
+        FROM sys.columns c 
+        WHERE c.object_id = t.object_id 
+          AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+    )
+) AS has_columns
+WHERE NOT (QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) = N'[dbo].[customer]')
+  AND NOT (t.temporal_type = 1)
+  AND NOT (t.name LIKE '%cdc%' OR t.name LIKE '%change%')
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.name = 'customer_id'
+  )
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.name = 'full_name'
+  )
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.name = 'email'
+  )
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.name = 'phone'
+  )
+GROUP BY QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+HAVING COUNT(*) > 0;
+
+-- If no rows found in any table, ensure we still return the main table row with 0
+IF NOT EXISTS (SELECT 1 FROM #results WHERE object_name = N'dbo.customer')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.customer', 0;
+END
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

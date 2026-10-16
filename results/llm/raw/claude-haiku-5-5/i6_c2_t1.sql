@@ -1,0 +1,55 @@
+SET NOCOUNT ON;
+
+DECLARE @v nvarchar(50) = N'+1-555-0000042';  -- subject's original phone number
+
+CREATE TABLE #r (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid int, @obj nvarchar(300), @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @oid, @obj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build predicate over all character columns of the table
+    SELECT @pred = STRING_AGG(CAST(QUOTENAME(c.name) + N' = @v' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN (N'varchar', N'nvarchar', N'char', N'nchar');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql
+             @sql,
+             N'@v nvarchar(50), @c bigint OUTPUT',
+             @v = @v,
+             @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #r (object_name, rows_found)
+    VALUES (@obj, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tcur INTO @oid, @obj;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;

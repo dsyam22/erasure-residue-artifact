@@ -1,0 +1,23 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+cdc.dbo_customer_CT|2
+dbo.customer|0
+dbo.customer_audit|0
+dbo.customer_backup|0
+dbo.customer_history|0
+dbo.customer_log|0
+dbo.customer_staging|0
+
+(7 rows affected)

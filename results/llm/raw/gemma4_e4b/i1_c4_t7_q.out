@@ -1,0 +1,20 @@
+TableName|ColumnName|DataType|MaxLengthInBytes
+---------|----------|--------|----------------
+captured_columns|column_name|nvarchar|128
+captured_columns|column_type|nvarchar|128
+captured_columns|masking_function|nvarchar|4000
+change_tables|capture_instance|nvarchar|128
+change_tables|filegroup_name|nvarchar|128
+change_tables|index_name|nvarchar|128
+change_tables|role_name|nvarchar|128
+customer|email|nvarchar|200
+customer|full_name|nvarchar|100
+customer|phone|nvarchar|30
+dbo_customer_CT|email|nvarchar|200
+dbo_customer_CT|full_name|nvarchar|100
+dbo_customer_CT|phone|nvarchar|30
+ddl_history|ddl_command|nvarchar|0
+index_columns|column_name|nvarchar|128
+(15 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 19
+Invalid object name 'sys_foreign_key_columns'.

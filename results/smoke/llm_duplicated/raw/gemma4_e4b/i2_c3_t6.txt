@@ -1,0 +1,21 @@
+```sql
+WITH ObjectChecks AS (
+    -- Check the primary transactional table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN customer_id = 42 AND full_name LIKE '%Subject\_0000042%' THEN 1 END) AS rows_found
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- Check the System-Versioned Temporal History table (dbo.customer_history)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(CASE WHEN customer_id = 42 AND full_name LIKE '%Subject\_0000042%' THEN 1 END) AS rows_found
+    FROM dbo.customer_history
+)
+SELECT
+    object_name,
+    rows_found
+FROM ObjectChecks;
+```

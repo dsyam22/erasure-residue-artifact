@@ -1,0 +1,34 @@
+```sql
+WITH ObjectChecks AS (
+    -- 1. Current State Check: dbo.customer
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS rows_found
+
+    UNION ALL
+
+    -- 2. Current State Check: dbo.member
+    SELECT
+        'dbo.member',
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+
+    UNION ALL
+
+    -- 3. CDC Change Tracking Check: cdc.dbo_customer_CT
+    SELECT
+        'cdc.dbo_customer_CT',
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+
+    UNION ALL
+
+    -- 4. Temporal History Check: dbo.member_history
+    SELECT
+        'dbo.member_history',
+        COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END)
+)
+-- Final selection to meet the requirement of exactly one result set structure
+SELECT
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM ObjectChecks;
+```

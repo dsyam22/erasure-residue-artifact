@@ -1,0 +1,86 @@
+schema_name|object_name|object_type|column_id|column_name|data_type|max_length|is_nullable|is_identity|is_computed
+-----------|-----------|-----------|---------|-----------|---------|----------|-----------|-----------|-----------
+cdc|captured_columns|USER_TABLE|2|column_name|sysname|256|0|0|0
+cdc|captured_columns|USER_TABLE|7|masking_function|nvarchar|8000|1|0|0
+cdc|change_tables|USER_TABLE|9|role_name|sysname|256|1|0|0
+cdc|change_tables|USER_TABLE|10|index_name|sysname|256|1|0|0
+cdc|change_tables|USER_TABLE|11|filegroup_name|sysname|256|1|0|0
+cdc|dbo_customer_CT|USER_TABLE|6|customer_id|int|4|1|0|0
+cdc|dbo_customer_CT|USER_TABLE|7|full_name|nvarchar|200|1|0|0
+cdc|dbo_customer_CT|USER_TABLE|8|email|nvarchar|400|1|0|0
+cdc|dbo_customer_CT|USER_TABLE|9|phone|nvarchar|60|1|0|0
+cdc|ddl_history|USER_TABLE|4|ddl_command|nvarchar|-1|1|0|0
+cdc|index_columns|USER_TABLE|2|column_name|sysname|256|0|0|0
+dbo|customer|USER_TABLE|1|customer_id|int|4|0|0|0
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|0|0
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|0|0
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|1|0|0
+dbo|member|USER_TABLE|1|member_id|int|4|0|0|0
+dbo|member|USER_TABLE|2|full_name|nvarchar|200|0|0|0
+dbo|member|USER_TABLE|3|email|nvarchar|400|0|0|0
+dbo|member|USER_TABLE|4|phone|nvarchar|60|1|0|0
+dbo|member_history|USER_TABLE|1|member_id|int|4|0|0|0
+dbo|member_history|USER_TABLE|2|full_name|nvarchar|200|0|0|0
+dbo|member_history|USER_TABLE|3|email|nvarchar|400|0|0|0
+dbo|member_history|USER_TABLE|4|phone|nvarchar|60|1|0|0
+(23 rows affected)
+schema_name|object_name|object_type|definition
+-----------|-----------|-----------|----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_batchinsert_1333579789]
+	(
+	 @rowcount int,
+	  @__$start_lsn_1 binary(10), @__$seqval_1 binary(10), @__$operation_1 int, @__$update_mask_1 varbinary(128), @c6_1 int, @c7_1 nvarchar(100), @c8_1 nvarchar(200), @c9_1 nvarchar(3
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_insdel_1333579789]
+	(	@__$start_lsn binary(10),
+		@__$seqval binary(10),
+		@__$operation int,
+		@__$update_mask varbinary(128) , @c6 int, @c7 nvarchar(100), @c8 nvarchar(200), @c9 nvarchar(30),
+		@__$command_id int = null
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_upd_1333579789]
+	(	@__$start_lsn binary(10),
+		@__$seqval binary(10),
+		@__$update_mask varbinary(128) , @c6_old int, @c7_old nvarchar(100), @c8_old nvarchar(200), @c9_old nvarchar(30), @c6_new int, @c7_new nvarchar(100), @c
+(5 rows affected)
+schema_name|table_name|index_name|index_type|column_name|key_ordinal|is_included_column
+-----------|----------|----------|----------|-----------|-----------|------------------
+dbo|customer|PK__customer__CD65CB8571399F8F|CLUSTERED|customer_id|1|0
+dbo|member|PK__member__B29B8534E90191CC|CLUSTERED|member_id|1|0
+(2 rows affected)
+schema_name|table_name|column_name|qualified_column
+-----------|----------|-----------|----------------
+dbo|customer|customer_id|customer.customer_id
+dbo|customer|full_name|customer.full_name
+dbo|customer|email|customer.email
+dbo|customer|phone|customer.phone
+dbo|member|member_id|member.member_id
+dbo|member|full_name|member.full_name
+dbo|member|email|member.email
+dbo|member|phone|member.phone
+dbo|member|valid_from|member.valid_from
+dbo|member|valid_to|member.valid_to
+(10 rows affected)

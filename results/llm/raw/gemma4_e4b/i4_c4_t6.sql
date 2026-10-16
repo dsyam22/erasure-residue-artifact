@@ -1,0 +1,24 @@
+WITH CustomerCheck AS (
+    -- Count rows in dbo.customer that still contain original PII data
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE full_name = 'Subject_0000042' OR 
+          email = 'subject42@example.invalid' OR 
+          phone = '+1-555-0000042'
+),
+MemberCheck AS (
+    -- Count rows in dbo.member that still contain original PII data
+    SELECT 
+        CAST('dbo.member' AS NVARCHAR(128)) AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.member
+    WHERE full_name = 'Subject_0000042' OR 
+          email = 'subject42@example.invalid' OR 
+          phone = '+1-555-0000042'
+)
+-- Combine results into the required single result set format
+SELECT object_name, rows_found FROM CustomerCheck
+UNION ALL
+SELECT object_name, rows_found FROM MemberCheck;

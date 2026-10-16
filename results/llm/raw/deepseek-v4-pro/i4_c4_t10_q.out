@@ -1,0 +1,26 @@
+table_name|column_name|data_type|max_length|is_nullable
+----------|-----------|---------|----------|-----------
+customer|customer_id|int|4|0
+customer|full_name|nvarchar|200|0
+customer|email|nvarchar|400|0
+customer|phone|nvarchar|60|1
+member|member_id|int|4|0
+member|full_name|nvarchar|200|0
+member|email|nvarchar|400|0
+member|phone|nvarchar|60|1
+member|valid_from|datetime2|8|0
+member|valid_to|datetime2|8|0
+(10 rows affected)
+index_name|type_desc|table_name|is_unique|filter_definition
+----------|---------|----------|---------|-----------------
+PK__customer__CD65CB8571399F8F|CLUSTERED|customer|1|NULL
+PK__member__B29B8534E90191CC|CLUSTERED|member|1|NULL
+(2 rows affected)
+referencing_table|referencing_column|referenced_table|referenced_column
+-----------------|------------------|----------------|-----------------
+(0 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|100
+dbo|member|100
+(2 rows affected)

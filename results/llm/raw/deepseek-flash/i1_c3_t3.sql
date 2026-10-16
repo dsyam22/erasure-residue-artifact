@@ -1,0 +1,156 @@
+/* Read-only verification: is the erased subject's personal data still stored anywhere? */
+
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+/* Normalized (case- and whitespace-insensitive) comparison values */
+DECLARE @n_name  nvarchar(200) = LOWER(LTRIM(RTRIM(@name)));
+DECLARE @n_email nvarchar(200) = LOWER(LTRIM(RTRIM(@email)));
+DECLARE @n_phone nvarchar(200) = LOWER(LTRIM(RTRIM(@phone)));
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* ------------------------------------------------------------------
+   1. dbo.customer - live table
+   ------------------------------------------------------------------ */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR LOWER(LTRIM(RTRIM(full_name))) = @n_name
+   OR LOWER(LTRIM(RTRIM(email)))     = @n_email
+   OR LOWER(LTRIM(RTRIM(phone)))     = @n_phone;
+
+/* ------------------------------------------------------------------
+   2. CDC change table cdc.dbo_customer_CT
+      CDC keeps the last two captured column values per change row.
+      Check both the current (__$operation / *col*) and the
+      before-image (__$update_mask dependent) columns.
+   ------------------------------------------------------------------ */
+IF OBJECT_ID(N'cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT',
+           COUNT_BIG(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @cid
+       OR LOWER(LTRIM(RTRIM(full_name))) = @n_name
+       OR LOWER(LTRIM(RTRIM(email)))     = @n_email
+       OR LOWER(LTRIM(RTRIM(phone)))     = @n_phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', CONVERT(bigint, 0);
+END
+
+/* ------------------------------------------------------------------
+   3. Any temporal history table for dbo.customer (if one exists).
+      Dynamically locate it and query it.
+   ------------------------------------------------------------------ */
+DECLARE @hist_schema sysname, @hist_table sysname, @hist_full sysname;
+DECLARE @sql nvarchar(max);
+
+SELECT TOP (1)
+       @hist_schema = OBJECT_SCHEMA_NAME(history_table_id),
+       @hist_table  = OBJECT_NAME(history_table_id)
+FROM sys.tables t
+CROSS APPLY (SELECT t.history_table_id) AS h(history_table_id)
+WHERE t.object_id = OBJECT_ID(N'dbo.customer')
+  AND t.temporal_type = 2            /* system-versioned */
+  AND t.history_table_id IS NOT NULL;
+
+IF @hist_table IS NOT NULL
+BEGIN
+    SET @hist_full = QUOTENAME(@hist_schema) + N'.' + QUOTENAME(@hist_table);
+
+    SET @sql = N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT @obj, COUNT_BIG(*)
+        FROM ' + @hist_full + N'
+        WHERE customer_id = @cid
+           OR LOWER(LTRIM(RTRIM(full_name))) = @n_name
+           OR LOWER(LTRIM(RTRIM(email)))     = @n_email
+           OR LOWER(LTRIM(RTRIM(phone)))     = @n_phone;';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @cid int, @n_name nvarchar(200), @n_email nvarchar(200), @n_phone nvarchar(200)',
+        @obj = @hist_full, @cid = @cid, @n_name = @n_name, @n_email = @n_email, @n_phone = @n_phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer (temporal history)', CONVERT(bigint, 0);
+END
+
+/* ------------------------------------------------------------------
+   4. Any other user table that contains the subject's values.
+      Scan sys.columns / sys.tables for the identifying columns and
+      probe matching rows.
+   ------------------------------------------------------------------ */
+DECLARE @tbl_schema sysname, @tbl_name sysname, @tbl_full sysname;
+DECLARE @col_cid sysname, @col_name sysname, @col_email sysname, @col_phone sysname;
+
+DECLARE tbl_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, tb.name
+    FROM sys.tables tb
+    JOIN sys.schemas s ON s.schema_id = tb.schema_id
+    WHERE tb.is_ms_shipped = 0
+      AND tb.name NOT LIKE N'%_CT'
+      AND tb.name NOT LIKE N'%History'
+      AND tb.object_id <> OBJECT_ID(N'dbo.customer');
+
+OPEN tbl_cursor;
+FETCH NEXT FROM tbl_cursor INTO @tbl_schema, @tbl_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @tbl_full = QUOTENAME(@tbl_schema) + N'.' + QUOTENAME(@tbl_name);
+
+    SET @col_cid   = NULL;
+    SET @col_name  = NULL;
+    SET @col_email = NULL;
+    SET @col_phone = NULL;
+
+    SELECT @col_cid   = MAX(CASE WHEN c.name = N'customer_id' THEN c.name END),
+           @col_name  = MAX(CASE WHEN c.name = N'full_name'   THEN c.name END),
+           @col_email = MAX(CASE WHEN c.name = N'email'       THEN c.name END),
+           @col_phone = MAX(CASE WHEN c.name = N'phone'       THEN c.name END)
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID(@tbl_full);
+
+    IF @col_cid IS NOT NULL OR @col_name IS NOT NULL
+       OR @col_email IS NOT NULL OR @col_phone IS NOT NULL
+    BEGIN
+        SET @sql = N'
+            IF EXISTS (SELECT 1 FROM ' + @tbl_full + N')
+            BEGIN
+                INSERT INTO @results (object_name, rows_found)
+                SELECT @obj, COUNT_BIG(*)
+                FROM ' + @tbl_full + N'
+                WHERE 1 = 0'
+            + CASE WHEN @col_cid   IS NOT NULL THEN N' OR customer_id = @cid' END
+            + CASE WHEN @col_name  IS NOT NULL THEN N' OR LOWER(LTRIM(RTRIM(full_name))) = @n_name' END
+            + CASE WHEN @col_email IS NOT NULL THEN N' OR LOWER(LTRIM(RTRIM(email)))     = @n_email' END
+            + CASE WHEN @col_phone IS NOT NULL THEN N' OR LOWER(LTRIM(RTRIM(phone)))     = @n_phone' END
+            + N'; END';
+
+        EXEC sp_executesql @sql,
+            N'@obj sysname, @cid int, @n_name nvarchar(200), @n_email nvarchar(200), @n_phone nvarchar(200)',
+            @obj = @tbl_full, @cid = @cid, @n_name = @n_name, @n_email = @n_email, @n_phone = @n_phone;
+    END
+
+    FETCH NEXT FROM tbl_cursor INTO @tbl_schema, @tbl_name;
+END
+
+CLOSE tbl_cursor;
+DEALLOCATE tbl_cursor;
+
+/* ------------------------------------------------------------------
+   Single result set
+   ------------------------------------------------------------------ */
+SELECT object_name, rows_found
+FROM @results;

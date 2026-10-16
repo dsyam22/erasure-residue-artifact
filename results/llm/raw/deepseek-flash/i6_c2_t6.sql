@@ -1,0 +1,151 @@
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(400) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* 1. dbo.customer - phone column was dropped, so check all surviving columns */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE CONVERT(nvarchar(max), full_name) LIKE N'%' + @needle + N'%'
+   OR CONVERT(nvarchar(max), email)     LIKE N'%' + @needle + N'%';
+
+/* 2. CDC change table cdc.dbo_customer_CT - captured_columns still list phone */
+IF OBJECT_ID(N'cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE CONVERT(nvarchar(max), customer_id) LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), full_name)   LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), email)       LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), phone)       LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END
+
+/* 3. cdc.dbo_customer_CT_CT - capture instance index/other CDC artifacts if present */
+IF OBJECT_ID(N'cdc.dbo_customer_CT_CT') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT_CT
+    WHERE CONVERT(nvarchar(max), customer_id) LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), full_name)   LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), email)       LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), phone)       LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT_CT', 0;
+END
+
+/* 4. cdc.lsn_time_mapping - CDC metadata could contain values */
+IF OBJECT_ID(N'cdc.lsn_time_mapping') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.lsn_time_mapping', COUNT(*)
+    FROM cdc.lsn_time_mapping
+    WHERE CONVERT(nvarchar(max), tran_begin_time) LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), tran_end_time)   LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.lsn_time_mapping', 0;
+END
+
+/* 5. cdc.change_tables - capture instance metadata */
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.change_tables', COUNT(*)
+    FROM cdc.change_tables
+    WHERE CONVERT(nvarchar(max), capture_instance) LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), source_object_id) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.change_tables', 0;
+END
+
+/* 6. cdc.captured_columns - column names/definitions captured */
+IF OBJECT_ID(N'cdc.captured_columns') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.captured_columns', COUNT(*)
+    FROM cdc.captured_columns
+    WHERE CONVERT(nvarchar(max), column_name) LIKE N'%' + @needle + N'%'
+       OR CONVERT(nvarchar(max), column_type) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.captured_columns', 0;
+END
+
+/* 7. cdc.index_columns */
+IF OBJECT_ID(N'cdc.index_columns') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.index_columns', COUNT(*)
+    FROM cdc.index_columns
+    WHERE CONVERT(nvarchar(max), column_name) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.index_columns', 0;
+END
+
+/* 8. sys.sql_modules - stored procedures, functions, views, triggers may embed the value */
+IF OBJECT_ID(N'sys.sql_modules') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.sql_modules', COUNT(*)
+    FROM sys.sql_modules
+    WHERE CONVERT(nvarchar(max), definition) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.sql_modules', 0;
+END
+
+/* 9. sys.default_constraints - default values may embed the value */
+IF OBJECT_ID(N'sys.default_constraints') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.default_constraints', COUNT(*)
+    FROM sys.default_constraints
+    WHERE CONVERT(nvarchar(max), definition) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.default_constraints', 0;
+END
+
+/* 10. sys.check_constraints - check definitions may embed the value */
+IF OBJECT_ID(N'sys.check_constraints') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.check_constraints', COUNT(*)
+    FROM sys.check_constraints
+    WHERE CONVERT(nvarchar(max), definition) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'sys.check_constraints', 0;
+END
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

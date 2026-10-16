@@ -1,0 +1,86 @@
+```sql
+-- This script uses dynamic SQL to iterate over every user-defined table 
+-- and check if any row contains the subject's personal identifiers (ID, Name, Email, Phone) 
+-- in any column that supports string or numeric comparison.
+
+IF OBJECT_ID('tempdb..#CheckResults') IS NOT NULL DROP TABLE #CheckResults;
+
+CREATE TABLE #CheckResults (
+    object_name sysname NOT NULL,
+    rows_found INT NOT NULL
+);
+
+DECLARE @TableName sysname;
+DECLARE @SchemaName sysname;
+DECLARE @SQL NVARCHAR(MAX);
+
+-- Cursor to select all user tables in the current database schema
+DECLARE TableCursor CURSOR FOR 
+SELECT 
+    s.name AS SchemaName,
+    t.name AS TableName
+FROM 
+    sys.tables t
+JOIN 
+    sys.schemas s ON t.schema_id = s.schema_id
+WHERE 
+    t.is_ms_shipped = 0;
+
+OPEN TableCursor;
+FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'';
+    DECLARE @CountResult INT = 0;
+    
+    -- Build the WHERE clause condition dynamically. We check for matches against all PII fields.
+    -- This assumes that if the data exists, it will match one of these criteria in any relevant column type (string or number).
+    SET @SQL = N'SELECT @Count = COUNT(*) FROM ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + N' WHERE ';
+
+    -- Initialize the conditions list
+    DECLARE @ConditionList NVARCHAR(MAX) = '';
+    
+    -- Iterate through all columns of the current table to build complex OR conditions
+    SELECT 
+        @ConditionList = STUFF((
+            SELECT 
+                N'(' + QUOTENAME(c.name) + N') LIKE ''%Subject_0000042%'' OR ' +
+                CASE WHEN c.system_type_id IN (int, smallint, tinyint) THEN QUOTENAME(c.name) + N' = 42' ELSE N'' END + N' OR ' +
+                CASE WHEN c.system_type_id IN (varchar, nvarchar, char) AND LEN(c.name) > 0 THEN ''1=1'' ELSE N'' END -- Placeholder to force structure
+            FROM sys.columns c
+            WHERE c.object_id = OBJECT_ID(@SchemaName + '.' + @TableName)
+            FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)')
+        , 1, 4, '');
+
+    -- Reconstruct the final query structure: SELECT COUNT(*) WHERE (Condition1 OR Condition2 OR ...)
+    SET @SQL = N'SELECT @Count = ISNULL(COUNT(*), 0) FROM ' + QUOTENAME(@SchemaName) + N'.' + QUOTENAME(@TableName) + N' WHERE (' + REPLACE(@ConditionList, ' OR ', '') + N')';
+
+    -- Execute the query and capture the count
+    BEGIN TRY
+        EXEC sp_executesql @SQL, N'@Count INT OUTPUT', @Count = @CountResult OUTPUT;
+    END TRY
+    BEGIN CATCH
+        -- Handle tables that might fail due to complex type casting or structure issues
+        SET @CountResult = -1; -- Use a sentinel value if error occurs
+    END CATCH
+
+    -- Insert the result into the temporary table
+    INSERT INTO #CheckResults (object_name, rows_found) VALUES (@SchemaName + '.' + @TableName, @CountResult);
+
+
+    FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final required result set structure
+SELECT 
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM 
+    #CheckResults
+ORDER BY 
+    object_name;
+```

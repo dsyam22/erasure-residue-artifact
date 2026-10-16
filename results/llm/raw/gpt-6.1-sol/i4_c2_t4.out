@@ -1,0 +1,7 @@
+Changed database context to 'llm_i4'.
+dbo.customer|0
+dbo.member|0
+dbo.member_history|1
+cdc.dbo_customer_CT|2
+
+(4 rows affected)

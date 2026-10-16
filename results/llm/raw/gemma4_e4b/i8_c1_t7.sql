@@ -1,0 +1,28 @@
+SELECT 
+    object_name, 
+    rows_found
+FROM (
+    -- Check dbo.customer for any lingering signs of the data subject's personal information
+    SELECT 
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer
+
+    -- If there were other tables (e.g., dbo.orders, dbo.user_log), they would be added here:
+    /*
+    UNION ALL
+    SELECT 
+        'dbo.orders',
+        COUNT(CASE WHEN customer_id = 42 THEN 1 END)
+    FROM dbo.orders
+    */
+
+    -- Example of checking a hypothetical related table (if it existed and was relevant)
+    /*
+    UNION ALL
+    SELECT 
+        'dbo.user_logs',
+        COUNT(CASE WHEN user_identifier = 'subject42@example.invalid' THEN 1 END)
+    FROM dbo.user_logs
+    */
+) AS LeakCheckResults;

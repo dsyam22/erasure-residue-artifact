@@ -1,0 +1,48 @@
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+DECLARE @count INT;
+DECLARE @sql NVARCHAR(MAX);
+DECLARE @history_table_schema NVARCHAR(128);
+DECLARE @history_table_name NVARCHAR(128);
+DECLARE @full_history_table NVARCHAR(256);
+
+-- Check main table
+SELECT @count = COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = 'Subject_0000042'
+   OR email = 'subject42@example.invalid'
+   OR phone = '+1-555-0000042';
+
+INSERT INTO @Results (object_name, rows_found)
+VALUES ('dbo.customer', @count);
+
+-- Check if dbo.customer is a system-versioned temporal table and check its history table
+SELECT 
+    @history_table_schema = s.name,
+    @history_table_name = h.name
+FROM sys.tables t
+JOIN sys.tables h ON t.history_table_id = h.object_id
+JOIN sys.schemas s ON h.schema_id = s.schema_id
+WHERE t.object_id = OBJECT_ID('dbo.customer') 
+  AND t.temporal_type = 2;
+
+IF @history_table_schema IS NOT NULL AND @history_table_name IS NOT NULL
+BEGIN
+    SET @full_history_table = @history_table_schema + '.' + @history_table_name;
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@history_table_schema) + '.' + QUOTENAME(@history_table_name) + N' WHERE customer_id = 42 OR full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042'';';
+    
+    EXEC sp_executesql @sql, N'@cnt INT OUTPUT', @cnt = @count OUTPUT;
+    
+    INSERT INTO @Results (object_name, rows_found)
+    VALUES (@full_history_table, @count);
+END
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM @Results;

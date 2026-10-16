@@ -1,0 +1,145 @@
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* Base table */
+IF OBJECT_ID(N'dbo.customer', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.customer',
+           COUNT_BIG(*)
+    FROM dbo.customer
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found) VALUES (N'dbo.customer', 0);
+END
+
+/* CDC change tables: any capture instance whose schema is cdc and table name matches cdc.dbo_customer_CT */
+DECLARE @object_name sysname;
+DECLARE @sql nvarchar(max);
+
+DECLARE cdc_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE s.name = N'cdc'
+      AND t.name LIKE N'%customer%';
+
+OPEN cdc_cursor;
+FETCH NEXT FROM cdc_cursor INTO @object_name;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT_BIG(*)
+        FROM ' + @object_name + N' AS c
+        WHERE c.customer_id = @cid
+           OR c.full_name = @fn
+           OR c.email = @em
+           OR c.phone = @ph;';
+
+    EXEC sp_executesql
+        @sql,
+        N'@obj sysname, @cid int, @fn nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+        @obj = @object_name, @cid = @customer_id, @fn = @full_name, @em = @email, @ph = @phone;
+
+    FETCH NEXT FROM cdc_cursor INTO @object_name;
+END
+
+CLOSE cdc_cursor;
+DEALLOCATE cdc_cursor;
+
+/* Temporal history tables for dbo.customer, if any */
+IF EXISTS (
+    SELECT 1
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE s.name = N'dbo' AND t.name = N'customer' AND t.temporal_type = 1
+)
+BEGIN
+    DECLARE @hist sysname;
+
+    SELECT @hist = QUOTENAME(s.name) + N'.' + QUOTENAME(h.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    JOIN sys.tables AS h ON h.object_id = t.history_table_id
+    WHERE s.name = N'dbo' AND t.name = N'customer';
+
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT_BIG(*)
+        FROM ' + @hist + N' AS h
+        WHERE h.customer_id = @cid
+           OR h.full_name = @fn
+           OR h.email = @em
+           OR h.phone = @ph;';
+
+    EXEC sp_executesql
+        @sql,
+        N'@obj sysname, @cid int, @fn nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+        @obj = @hist, @cid = @customer_id, @fn = @full_name, @em = @email, @ph = @phone;
+END
+
+/* Other tables in this database that contain any of the subject's identifiers */
+DECLARE @other sysname;
+DECLARE other_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND NOT (s.name = N'dbo' AND t.name = N'customer')
+      AND NOT (s.name = N'cdc')
+      AND EXISTS (
+          SELECT 1
+          FROM sys.columns AS c
+          WHERE c.object_id = t.object_id
+            AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+      );
+
+OPEN other_cursor;
+FETCH NEXT FROM other_cursor INTO @other;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @where nvarchar(max) = N'';
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id WHERE s.name=PARSENAME(@other,2) AND t.name=PARSENAME(@other,1) AND c.name=N'customer_id')
+        SET @where = @where + N' OR customer_id = @cid';
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id WHERE s.name=PARSENAME(@other,2) AND t.name=PARSENAME(@other,1) AND c.name=N'full_name')
+        SET @where = @where + N' OR full_name = @fn';
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id WHERE s.name=PARSENAME(@other,2) AND t.name=PARSENAME(@other,1) AND c.name=N'email')
+        SET @where = @where + N' OR email = @em';
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id WHERE s.name=PARSENAME(@other,2) AND t.name=PARSENAME(@other,1) AND c.name=N'phone')
+        SET @where = @where + N' OR phone = @ph';
+
+    IF @where <> N''
+    BEGIN
+        SET @where = STUFF(@where, 1, 4, N''); /* remove leading ' OR ' */
+
+        SET @sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @obj, COUNT_BIG(*)
+            FROM ' + @other + N' AS o
+            WHERE ' + @where + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@obj sysname, @cid int, @fn nvarchar(200), @em nvarchar(200), @ph nvarchar(200)',
+            @obj = @other, @cid = @customer_id, @fn = @full_name, @em = @email, @ph = @phone;
+    END
+
+    FETCH NEXT FROM other_cursor INTO @other;
+END
+
+CLOSE other_cursor;
+DEALLOCATE other_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

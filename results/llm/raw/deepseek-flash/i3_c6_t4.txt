@@ -1,0 +1,47 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+SELECT N'dbo.customer' AS object_name,
+       COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone
+
+UNION ALL
+
+SELECT N'dbo.member',
+       COUNT(*)
+FROM dbo.member
+WHERE member_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone
+
+UNION ALL
+
+SELECT N'dbo.member_history',
+       COUNT(*)
+FROM dbo.member_history
+WHERE member_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone
+
+UNION ALL
+
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone
+
+ORDER BY object_name;

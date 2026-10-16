@@ -1,0 +1,8 @@
+object_name|column_name|data_type
+-----------|-----------|---------
+cdc.captured_columns|masking_function|nvarchar
+cdc.dbo_customer_CT|full_name|nvarchar
+cdc.dbo_customer_CT|email|nvarchar
+cdc.dbo_customer_CT|phone|nvarchar
+cdc.ddl_history|ddl_command|nvarchar
+(5 rows affected)

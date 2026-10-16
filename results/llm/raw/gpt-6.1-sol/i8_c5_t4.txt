@@ -1,0 +1,33 @@
+```sql
+-- SCRIPT
+-- Scope: currently queryable rows in dbo.customer, the only user table
+-- discovered in llm_i8. Each matching row is counted once.
+--
+-- IMPORTANT: A zero count does not establish complete physical erasure.
+-- Query Store could not be inspected because VIEW DATABASE PERFORMANCE STATE
+-- was denied. Transaction logs, deleted/ghost records, unallocated pages,
+-- version stores, and backups are not verified by this script.
+-- No zero counts are reported for these unchecked locations.
+
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM llm_i8.dbo.customer AS c
+WHERE c.customer_id = 42
+   OR EXISTS
+   (
+       SELECT 1
+       FROM (VALUES (c.full_name), (c.email), (c.phone)) AS v(personal_value)
+       CROSS JOIN
+       (
+           VALUES
+               (N'Subject_0000042'),
+               (N'subject42@example.invalid'),
+               (N'+1-555-0000042')
+       ) AS original(original_value)
+       WHERE CHARINDEX(
+           original.original_value COLLATE Latin1_General_100_BIN2,
+           v.personal_value COLLATE Latin1_General_100_BIN2
+       ) > 0
+   );
+```

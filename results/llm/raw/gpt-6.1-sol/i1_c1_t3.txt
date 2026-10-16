@@ -1,0 +1,81 @@
+```sql
+/*
+  Read-only logical scan of all catalog-visible tables in llm_i1, including
+  temporal history and CDC tables exposed through sys.tables.
+
+  Run with SELECT permission on every table and sufficient metadata visibility.
+  Row-level security, encrypted data, inaccessible objects, transaction logs,
+  deallocated pages, backups, and external copies prevent this scan from being
+  proof of physical erasure.
+
+  Matches identify rows containing the supplied original values; an occurrence
+  of 42 alone does not establish that the row belongs to this person.
+*/
+USE [llm_i1];
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' AS src WHERE ' + COALESCE(p.predicate, N'1 = 0')
+        ),
+        N' UNION ALL '
+    ) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+  ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'(' +
+            CASE
+                WHEN c.system_type_id IN (48, 52, 56, 59, 60, 62, 106, 108, 122, 127)
+                THEN N'src.' + QUOTENAME(c.name) + N' = 42 OR '
+                ELSE N''
+            END +
+            N'EXISTS (SELECT 1 FROM (VALUES (' +
+            CASE
+                WHEN c.system_type_id IN (34, 165, 173, 189)
+                THEN
+                    N'TRY_CONVERT(nvarchar(max), CONVERT(varbinary(max), src.' +
+                    QUOTENAME(c.name) + N'))), (' +
+                    N'TRY_CONVERT(nvarchar(max), CONVERT(varchar(max), ' +
+                    N'CONVERT(varbinary(max), src.' + QUOTENAME(c.name) + N')))'
+                WHEN c.system_type_id = 240
+                THEN N'src.' + QUOTENAME(c.name) + N'.ToString()'
+                ELSE N'TRY_CONVERT(nvarchar(max), src.' + QUOTENAME(c.name) + N')'
+            END +
+            N')) AS v(value) WHERE ' +
+            N'v.value COLLATE Latin1_General_100_BIN2 = N''42'' OR ' +
+            N'CHARINDEX(@full_name, v.value COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(@email, v.value COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(@phone, v.value COLLATE Latin1_General_100_BIN2) > 0))'
+        ),
+        N' OR '
+    ) WITHIN GROUP (ORDER BY c.column_id) AS predicate
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+) AS p;
+
+SELECT @sql =
+    N'SELECT object_name, rows_found FROM (' +
+    COALESCE(
+        @sql,
+        N'SELECT CONVERT(nvarchar(257), NULL) AS object_name, ' +
+        N'CONVERT(bigint, 0) AS rows_found WHERE 1 = 0'
+    ) +
+    N') AS findings ORDER BY object_name;';
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@full_name nvarchar(100), @email nvarchar(320), @phone nvarchar(100)',
+    @full_name = N'Subject_0000042',
+    @email = N'subject42@example.invalid',
+    @phone = N'+1-555-0000042';
+```

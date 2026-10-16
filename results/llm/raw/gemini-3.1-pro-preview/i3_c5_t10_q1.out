@@ -1,0 +1,5 @@
+schema_name|table_name|history_schema_name|history_table_name
+-----------|----------|-------------------|------------------
+dbo|customer|NULL|NULL
+dbo|member|dbo|member_history
+(2 rows affected)

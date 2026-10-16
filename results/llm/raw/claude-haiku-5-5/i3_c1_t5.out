@@ -1,0 +1,2 @@
+Msg 130, Level 15, State 1, Server 651334c31df8, Line 19
+Cannot perform an aggregate function on an expression containing an aggregate or a subquery.

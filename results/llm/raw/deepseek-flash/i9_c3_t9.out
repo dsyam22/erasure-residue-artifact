@@ -1,0 +1,15 @@
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 84
+Incorrect syntax near the keyword 'NULL'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 96
+Unclosed quotation mark after the character string ');
+
+IF @sql2 <> N'
+    EXEC sp_executesql @sql2;
+
+/* Return the single result set */
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+'.

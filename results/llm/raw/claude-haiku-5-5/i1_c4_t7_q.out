@@ -1,0 +1,20 @@
+schema_name|table_name|object_id|temporal_type_desc|is_memory_optimized|is_tracked_by_cdc|is_ms_shipped|approx_row_count|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|------------------|-------------------|-----------------|-------------|----------------|---------|-----------|---------|----------|-----------
+cdc|captured_columns|1077578877|NON_TEMPORAL_TABLE|0|0|1|4|2|column_name|sysname|256|0
+cdc|captured_columns|1077578877|NON_TEMPORAL_TABLE|0|0|1|4|4|column_type|sysname|256|0
+cdc|captured_columns|1077578877|NON_TEMPORAL_TABLE|0|0|1|4|7|masking_function|nvarchar|8000|1
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|0|0|1|1|4|capture_instance|sysname|256|0
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|0|0|1|1|9|role_name|sysname|256|1
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|0|0|1|1|10|index_name|sysname|256|1
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|0|0|1|1|11|filegroup_name|sysname|256|1
+cdc|dbo_customer_CT|1285579618|NON_TEMPORAL_TABLE|0|0|1|101|7|full_name|nvarchar|200|1
+cdc|dbo_customer_CT|1285579618|NON_TEMPORAL_TABLE|0|0|1|101|8|email|nvarchar|400|1
+cdc|dbo_customer_CT|1285579618|NON_TEMPORAL_TABLE|0|0|1|101|9|phone|nvarchar|60|1
+cdc|ddl_history|1013578649|NON_TEMPORAL_TABLE|0|0|1|0|4|ddl_command|nvarchar|-1|1
+cdc|index_columns|1109578991|NON_TEMPORAL_TABLE|0|0|1|1|2|column_name|sysname|256|0
+cdc|lsn_time_mapping|1045578763|NON_TEMPORAL_TABLE|0|0|1|1220|NULL|NULL|NULL|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|0|1|0|99|2|full_name|nvarchar|200|0
+dbo|customer|901578250|NON_TEMPORAL_TABLE|0|1|0|99|3|email|nvarchar|400|0
+dbo|customer|901578250|NON_TEMPORAL_TABLE|0|1|0|99|4|phone|nvarchar|60|1
+dbo|systranschemas|933578364|NON_TEMPORAL_TABLE|0|0|1|0|NULL|NULL|NULL|NULL|NULL
+(17 rows affected)

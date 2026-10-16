@@ -1,0 +1,6 @@
+dbo.customer|0
+[cdc].[dbo_customer_CT].[customer_id]|2
+[cdc].[dbo_customer_CT].[full_name]|2
+[cdc].[dbo_customer_CT].[email]|2
+[cdc].[dbo_customer_CT].[phone]|2
+[cdc].[dbo_customer_CT].[__$command_id]|1

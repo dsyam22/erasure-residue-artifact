@@ -1,0 +1,80 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* dbo.customer */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* reporting.customer_replica */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'reporting.customer_replica', COUNT(*)
+FROM reporting.customer_replica
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* cdc change tables (cdc schema) - only if CDC is present */
+IF EXISTS (SELECT 1 FROM sys.schemas WHERE name = N'cdc')
+BEGIN
+    DECLARE @sql nvarchar(max) = N'';
+    SELECT @sql = @sql + N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT N''cdc.'' + QUOTENAME(t.name) + N'''' , COUNT(*)
+        FROM cdc.' + QUOTENAME(t.name) + N' AS c
+        WHERE EXISTS (
+            SELECT 1 FROM cdc.' + QUOTENAME(t.name) + N' AS c2
+            WHERE c2.[__$start_lsn] = c.[__$start_lsn]
+        );'
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE s.name = N'cdc' AND t.name LIKE N'%customer%';
+
+    IF @sql <> N''
+    BEGIN
+        SET @sql = N'
+        DECLARE @customer_id int = 42;
+        DECLARE @full_name nvarchar(200) = N''Subject_0000042'';
+        DECLARE @email nvarchar(320) = N''subject42@example.invalid'';
+        DECLARE @phone nvarchar(50) = N''+1-555-0000042'';' + @sql;
+        EXEC sp_executesql @sql;
+    END
+END
+
+/* temporal history tables */
+DECLARE @sql2 nvarchar(max) = N'';
+SELECT @sql2 = @sql2 + N'
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', COUNT(*)
+    FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N'
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;'
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.temporal_type = 2
+  AND t.name LIKE N'%customer%';
+
+IF @sql2 <> N''
+BEGIN
+    SET @sql2 = N'
+    DECLARE @customer_id int = 42;
+    DECLARE @full_name nvarchar(200) = N''Subject_0000042'';
+    DECLARE @email nvarchar(320) = N''subject42@example.invalid'';
+    DECLARE @phone nvarchar(50) = N''+1-555-0000042'';' + @sql2;
+    EXEC sp_executesql @sql2;
+END
+
+SELECT object_name, rows_found FROM @results;

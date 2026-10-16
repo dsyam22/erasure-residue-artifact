@@ -1,0 +1,86 @@
+```sql
+/* Read-only verification: is the subject's original phone number still stored anywhere? */
+
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+
+/* Sanitize the needle for LIKE: escape wildcard characters */
+DECLARE @phoneLike nvarchar(4000) =
+    REPLACE(REPLACE(REPLACE(@phone, N'[', N'[[]'), N'%', N'[%]'), N'_', N'[_]');
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* ---------------------------------------------------------------
+   1. Check every base table in the database, every string-ish
+      column, for the exact phone number (plus a LIKE variant that
+      catches the number embedded inside a larger string).
+   --------------------------------------------------------------- */
+DECLARE @schema sysname, @table sysname, @column sysname, @type sysname;
+DECLARE @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, c.name, ty.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    JOIN sys.columns AS c ON c.object_id = t.object_id
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE t.is_ms_shipped = 0
+      AND ty.name IN ('char','varchar','nchar','nvarchar','text','ntext','sysname');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column, @type;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N''' + REPLACE(@schema + N'.' + @table, N'''', N'''''') + N''',
+               COUNT_BIG(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + QUOTENAME(@column) + N' LIKE N''%' + @phoneLike + N'%'' ESCAPE N''['';';
+
+    EXEC sp_executesql @sql;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column, @type;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+/* ---------------------------------------------------------------
+   2. Collapse per-column hits into one row per table.
+   --------------------------------------------------------------- */
+SELECT object_name, SUM(rows_found) AS rows_found
+INTO #agg
+FROM #results
+GROUP BY object_name;
+
+/* ---------------------------------------------------------------
+   3. Make sure every base table in the database appears, even if
+      it has no text columns at all (0 rows found).
+   --------------------------------------------------------------- */
+INSERT INTO #agg (object_name, rows_found)
+SELECT s.name + N'.' + t.name, 0
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
+  AND NOT EXISTS (SELECT 1 FROM #agg AS a WHERE a.object_name = s.name + N'.' + t.name);
+
+/* ---------------------------------------------------------------
+   4. Also check the dropped-column scenario: if dbo.customer ever
+      had a phone column, it no longer exists. Explicitly record
+      the customer table as checked (already covered above, but
+      this guarantees the scoped object is always reported).
+   --------------------------------------------------------------- */
+IF NOT EXISTS (SELECT 1 FROM #agg WHERE object_name = N'dbo.customer')
+    INSERT INTO #agg (object_name, rows_found) VALUES (N'dbo.customer', 0);
+
+/* ---------------------------------------------------------------
+   5. Final single result set.
+   --------------------------------------------------------------- */
+SELECT object_name, rows_found
+FROM #agg
+ORDER BY object_name;
+
+DROP TABLE #agg;
+DROP TABLE #results;
+```

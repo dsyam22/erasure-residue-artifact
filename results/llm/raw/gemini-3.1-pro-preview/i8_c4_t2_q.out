@@ -1,0 +1,7 @@
+schema_name|table_name|object_id|temporal_type_desc|history_table_name|column_name|data_type
+-----------|----------|---------|------------------|------------------|-----------|---------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|customer_id|int
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|full_name|nvarchar
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|email|nvarchar
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|phone|nvarchar
+(4 rows affected)

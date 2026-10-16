@@ -1,0 +1,94 @@
+```sql
+/* Read-only verification: is the erased personal data still stored anywhere? */
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+/* Build a work list of candidate objects: base tables + CDC change tables + temporal history tables. */
+DECLARE @targets TABLE (object_name sysname, column_name sysname);
+
+/* 1) All base tables in the database (dbo.customer and any downstream copies). */
+INSERT INTO @targets (object_name, column_name)
+SELECT s.name + '.' + t.name, c.name
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+JOIN sys.columns AS c ON c.object_id = t.object_id
+WHERE t.is_ms_shipped = 0
+  AND c.name IN ('customer_id','full_name','email','phone');
+
+/* 2) CDC change tables (cdc.<capture_instance>_CT), if any exist. */
+IF OBJECT_ID('cdc.change_tables') IS NOT NULL
+BEGIN
+    INSERT INTO @targets (object_name, column_name)
+    SELECT 'cdc.' + ct.capture_instance + '_CT', c.name
+    FROM cdc.change_tables AS ct
+    JOIN sys.columns AS c
+      ON c.object_id = OBJECT_ID('cdc.' + ct.capture_instance + '_CT')
+    WHERE c.name IN ('customer_id','full_name','email','phone');
+END
+
+/* 3) Temporal history tables for temporal-enabled tables, if any exist. */
+INSERT INTO @targets (object_name, column_name)
+SELECT s.name + '.' + h.name, c.name
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+JOIN sys.tables AS h ON h.object_id = t.history_table_id
+JOIN sys.columns AS c ON c.object_id = h.object_id
+WHERE t.temporal_type = 1
+  AND c.name IN ('customer_id','full_name','email','phone');
+
+/* Evaluate each candidate object. */
+DECLARE @object_name sysname, @column_name sysname, @sql nvarchar(max), @cnt bigint;
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+DECLARE @done TABLE (object_name sysname);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT object_name, column_name FROM @targets;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @object_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM @done WHERE object_name = @object_name)
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(PARSENAME(@object_name,2))
+                 + N'.' + QUOTENAME(PARSENAME(@object_name,1))
+                 + N' WHERE (' 
+                 + CASE WHEN COL_LENGTH(@object_name, 'customer_id') IS NOT NULL
+                        THEN N'customer_id = @cid OR ' ELSE N'' END
+                 + CASE WHEN COL_LENGTH(@object_name, 'full_name') IS NOT NULL
+                        THEN N'full_name = @name OR ' ELSE N'' END
+                 + CASE WHEN COL_LENGTH(@object_name, 'email') IS NOT NULL
+                        THEN N'email = @email OR ' ELSE N'' END
+                 + CASE WHEN COL_LENGTH(@object_name, 'phone') IS NOT NULL
+                        THEN N'phone = @phone OR ' ELSE N'' END
+                 + N'1 = 0);';
+
+        EXEC sp_executesql @sql,
+             N'@cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(50)',
+             @cid = @cid, @name = @name, @email = @email, @phone = @phone,
+             @cnt = @cnt OUTPUT;
+
+        INSERT INTO @results (object_name, rows_found) VALUES (@object_name, @cnt);
+        INSERT INTO @done (object_name) VALUES (@object_name);
+    END
+
+    FETCH NEXT FROM cur INTO @object_name, @column_name;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+/* Guarantee at least the primary subject table is reported even if absent. */
+IF NOT EXISTS (SELECT 1 FROM @results WHERE object_name = 'dbo.customer')
+    INSERT INTO @results (object_name, rows_found) VALUES ('dbo.customer', 0);
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;
+```

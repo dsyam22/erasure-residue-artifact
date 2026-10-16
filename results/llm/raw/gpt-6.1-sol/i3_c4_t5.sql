@@ -1,0 +1,57 @@
+-- Checks current rows, temporal history (directly, including zero-duration
+-- versions), and all retained CDC operations, including delete before-images.
+-- Counts each matching row once, even when multiple original values match.
+-- This verifies queryable retained data, not transaction-log or deallocated
+-- page contents, backups, or external copies.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR CHARINDEX(N'Subject_0000042', full_name) > 0
+   OR CHARINDEX(N'subject42@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-0000042', phone) > 0
+
+UNION ALL
+
+SELECT
+    N'dbo.member',
+    COUNT_BIG(*)
+FROM dbo.member
+WHERE member_id = 42
+   OR CHARINDEX(N'Subject_0000042', full_name) > 0
+   OR CHARINDEX(N'subject42@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-0000042', phone) > 0
+
+UNION ALL
+
+SELECT
+    N'dbo.member_history',
+    COUNT_BIG(*)
+FROM dbo.member_history
+WHERE member_id = 42
+   OR CHARINDEX(N'Subject_0000042', full_name) > 0
+   OR CHARINDEX(N'subject42@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-0000042', phone) > 0
+
+UNION ALL
+
+SELECT
+    N'cdc.dbo_customer_CT',
+    COUNT_BIG(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+   OR CHARINDEX(N'Subject_0000042', full_name) > 0
+   OR CHARINDEX(N'subject42@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-0000042', phone) > 0
+
+UNION ALL
+
+SELECT
+    N'cdc.ddl_history',
+    COUNT_BIG(*)
+FROM cdc.ddl_history
+WHERE CHARINDEX(N'Subject_0000042', ddl_command) > 0
+   OR CHARINDEX(N'subject42@example.invalid', ddl_command) > 0
+   OR CHARINDEX(N'+1-555-0000042', ddl_command) > 0
+ORDER BY object_name;

@@ -1,0 +1,65 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+DECLARE @pattern nvarchar(100) = N'%' + @phone + N'%';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found  bigint  NOT NULL
+);
+
+-- Every user table gets a row, starting at 0.
+INSERT INTO #results (object_name, rows_found)
+SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), 0
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id;
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Build OR predicate across all character columns of this table.
+    SELECT @pred = STRING_AGG(CAST(QUOTENAME(c.name) + N' LIKE @pattern' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+      AND c.system_type_id IN (167, 231, 175, 239); -- varchar, nvarchar, char, nchar
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        SET @cnt = 0;
+        EXEC sp_executesql @sql,
+             N'@pattern nvarchar(100), @c bigint OUTPUT',
+             @pattern = @pattern,
+             @c = @cnt OUTPUT;
+
+        UPDATE #results
+        SET rows_found = @cnt
+        WHERE object_name = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    END
+
+    SET @pred = NULL;
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

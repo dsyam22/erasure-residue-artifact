@@ -1,0 +1,33 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #verification_results (
+    object_name nvarchar(260) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+-- dbo.customer: rows matching any original personal identifier of data subject 42
+INSERT INTO #verification_results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer AS c
+WHERE c.customer_id = 42
+   OR c.full_name = N'Subject_0000042'
+   OR c.email = N'subject42@example.invalid'
+   OR c.phone = N'+1-555-0000042';
+
+-- Module definitions (views, procedures, functions, triggers) that embed the subject's literal values
+INSERT INTO #verification_results (object_name, rows_found)
+SELECT N'sys.sql_modules (definitions)',
+       COUNT(*)
+FROM sys.sql_modules AS m
+WHERE m.definition LIKE N'%subject42@example.invalid%'
+   OR m.definition LIKE N'%Subject_0000042%'
+   OR m.definition LIKE N'%+1-555-0000042%';
+
+SELECT object_name, rows_found
+FROM #verification_results
+ORDER BY object_name;
+
+DROP TABLE #verification_results;
+```

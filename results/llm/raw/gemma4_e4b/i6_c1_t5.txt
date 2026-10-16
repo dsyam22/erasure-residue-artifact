@@ -1,0 +1,12 @@
+```sql
+SELECT
+    'dbo.customer' AS object_name,
+    (
+        -- Check if the specific phone number appears in any of the remaining string fields (full_name or email)
+        SELECT COUNT(DISTINCT T.customer_id)
+        FROM dbo.customer AS T
+        WHERE 
+            T.full_name LIKE '%+1-555-0000042%' OR
+            T.email LIKE '%+1-555-0000042%'
+    ) AS rows_found;
+```

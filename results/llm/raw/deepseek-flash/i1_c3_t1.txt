@@ -1,0 +1,46 @@
+```sql
+/* Read-only verification of residual personal data for customer_id 42 */
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(4000) = N'Subject_0000042';
+DECLARE @em nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #res (object_name sysname, rows_found bigint);
+
+/* 1. dbo.customer */
+INSERT INTO #res
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+/* 2. CDC change table cdc.dbo_customer_CT (captured columns) */
+IF OBJECT_ID(N'cdc.dbo_customer_CT') IS NOT NULL
+    INSERT INTO #res
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @cid
+       OR full_name = @fn
+       OR email = @em
+       OR phone = @ph;
+ELSE
+    INSERT INTO #res VALUES ('cdc.dbo_customer_CT', 0);
+
+/* 3. Temporal history table, if one exists for dbo.customer */
+IF OBJECT_ID(N'dbo.customer_history') IS NOT NULL
+    INSERT INTO #res
+    SELECT 'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @cid
+       OR full_name = @fn
+       OR email = @em
+       OR phone = @ph;
+ELSE
+    INSERT INTO #res VALUES ('dbo.customer_history', 0);
+
+SELECT object_name, rows_found FROM #res;
+
+DROP TABLE #res;
+```

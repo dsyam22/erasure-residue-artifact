@@ -1,0 +1,13 @@
+```sql
+SELECT 
+    'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('dbo.customer')
+        AND c.name = 'phone'
+  );
+```

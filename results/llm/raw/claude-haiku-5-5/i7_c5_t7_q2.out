@@ -1,0 +1,5 @@
+schema_name|table_name|object_id|approx_rows
+-----------|----------|---------|-----------
+dbo|customer|901578250|99
+reporting|customer_replica|933578364|100
+(2 rows affected)

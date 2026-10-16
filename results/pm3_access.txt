@@ -1,0 +1,33 @@
+psql:/tmp/pm3_access.sql:4: NOTICE:  role "pm3_reader" does not exist, skipping
+DROP ROLE
+DROP ROLE
+psql:/tmp/pm3_access.sql:5: NOTICE:  role "pm3_repl" does not exist, skipping
+CREATE ROLE
+GRANT ROLE
+CREATE ROLE
+        ?column?        
+------------------------
+ slot created: pm3_slot
+(1 row)
+
+=== 1. role with pg_read_all_data but without REPLICATION (an error is the expected result)
+SET
+psql:/tmp/pm3_access.sql:12: ERROR:  permission denied to use replication slots
+DETAIL:  Only roles with the REPLICATION attribute may use replication slots.
+RESET
+=== 2. role with REPLICATION
+SET
+ current_user | changes_readable 
+--------------+------------------
+ pm3_repl     |                0
+(1 row)
+
+RESET
+ pg_drop_replication_slot 
+--------------------------
+ 
+(1 row)
+
+DROP ROLE
+DROP ROLE
+=== done

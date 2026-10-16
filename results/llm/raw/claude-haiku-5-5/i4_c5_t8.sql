@@ -1,0 +1,24 @@
+-- SCRIPT
+SELECT v.object_name, v.rows_found
+FROM (VALUES
+    (N'dbo.customer',
+        (SELECT COUNT(*) FROM dbo.customer
+         WHERE full_name = N'Subject_0000042'
+            OR email = N'subject42@example.invalid'
+            OR phone = N'+1-555-0000042')),
+    (N'dbo.member',
+        (SELECT COUNT(*) FROM dbo.member
+         WHERE full_name = N'Subject_0000042'
+            OR email = N'subject42@example.invalid'
+            OR phone = N'+1-555-0000042')),
+    (N'dbo.member_history',
+        (SELECT COUNT(*) FROM dbo.member_history
+         WHERE full_name = N'Subject_0000042'
+            OR email = N'subject42@example.invalid'
+            OR phone = N'+1-555-0000042')),
+    (N'cdc.dbo_customer_CT',
+        (SELECT COUNT(*) FROM cdc.dbo_customer_CT
+         WHERE full_name = N'Subject_0000042'
+            OR email = N'subject42@example.invalid'
+            OR phone = N'+1-555-0000042'))
+) AS v(object_name, rows_found);

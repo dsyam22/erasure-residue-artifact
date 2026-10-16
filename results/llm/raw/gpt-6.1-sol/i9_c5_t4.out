@@ -1,0 +1,5 @@
+Changed database context to 'llm_i9'.
+dbo.customer|0
+dbo.customer_history|0
+
+(2 rows affected)

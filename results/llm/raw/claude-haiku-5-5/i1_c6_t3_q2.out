@@ -1,0 +1,5 @@
+object_name|matching_rows
+-----------|-------------
+dbo.customer|0
+cdc.dbo_customer_CT|2
+(2 rows affected)

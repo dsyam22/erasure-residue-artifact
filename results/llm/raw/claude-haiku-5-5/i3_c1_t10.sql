@@ -1,0 +1,74 @@
+SET NOCOUNT ON;
+
+DECLARE @full  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(64)  = N'+1-555-0000042';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @object_id int,
+        @schema    sysname,
+        @table     sysname,
+        @pred      nvarchar(max),
+        @sql       nvarchar(max),
+        @cnt       bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt  = 0;
+
+    -- Build a predicate over all character-type columns of this table
+    SELECT @pred = STRING_AGG(
+               CAST(QUOTENAME(c.name) + N' = @f OR ' +
+                    QUOTENAME(c.name) + N' = @e OR ' +
+                    QUOTENAME(c.name) + N' = @p' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @object_id
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'sysname');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@f nvarchar(200), @e nvarchar(320), @p nvarchar(64), @cnt_out bigint OUTPUT',
+             @f = @full,
+             @e = @email,
+             @p = @phone,
+             @cnt_out = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, @cnt);
+
+    FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

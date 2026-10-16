@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 7
+Invalid column name 'phone'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 7
+Invalid column name 'phone'.
+Msg 205, Level 16, State 1, Server 651334c31df8, Line 5
+All queries combined using a UNION, INTERSECT or EXCEPT operator must have an equal number of expressions in their target lists.

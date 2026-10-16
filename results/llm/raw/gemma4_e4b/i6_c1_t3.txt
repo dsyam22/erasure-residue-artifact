@@ -1,0 +1,11 @@
+```sql
+DECLARE @phone_number NVARCHAR(50) = '+1-555-0000042';
+
+SELECT
+    'dbo.customer' AS object_name,
+    CAST((
+        SELECT COUNT(*) 
+        FROM dbo.customer 
+        WHERE full_name LIKE '%' + @phone_number + '%' OR email LIKE '%' + @phone_number + '%'
+    ) AS INT) AS rows_found;
+```

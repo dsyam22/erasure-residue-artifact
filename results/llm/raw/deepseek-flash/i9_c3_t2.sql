@@ -1,0 +1,82 @@
+/* Read-only verification: is the erased personal data still present anywhere? */
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found int NOT NULL);
+
+/* 1. Current table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* 2. Temporal history table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* 3. CDC change tables (if CDC were enabled) - check existence dynamically */
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @cdcSql nvarchar(max) = N'';
+    SELECT @cdcSql = @cdcSql
+        + N'INSERT INTO #results (object_name, rows_found)
+           SELECT N''cdc.'' + ct.capture_instance, COUNT(*)
+           FROM cdc.'' + QUOTENAME(ct.capture_instance) + N'' c
+           WHERE c.customer_id = @cid
+              OR c.full_name = @name
+              OR c.email = @email
+              OR c.phone = @phone;'
+    FROM cdc.change_tables ct
+    WHERE ct.source_object_id = OBJECT_ID(N'dbo.customer');
+
+    IF @cdcSql <> N''
+        EXEC sp_executesql @cdcSql,
+             N'@cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+             @cid, @name, @email, @phone;
+END
+
+/* 4. Any other table in the database with matching columns that may hold copies */
+DECLARE @sql nvarchar(max) = N'';
+DECLARE @schema sysname, @table sysname;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT IN (N'customer', N'customer_history')
+      AND t.name NOT LIKE N'cdc%'
+      AND EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id AND c.name IN (N'customer_id', N'full_name', N'email', N'phone'))
+      AND NOT EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id AND c.name = N'customer_id')
+      AND NOT EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id AND c.name = N'full_name')
+      ;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO #results (object_name, rows_found)
+                 SELECT @obj, COUNT(*)
+                 FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+                 WHERE 1 = 0';
+    EXEC sp_executesql @sql, N'@obj sysname', @schema;
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found FROM #results ORDER BY object_name;
+
+DROP TABLE #results;

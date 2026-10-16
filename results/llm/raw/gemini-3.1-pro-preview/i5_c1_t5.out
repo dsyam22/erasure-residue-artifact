@@ -1,0 +1,4 @@
+dbo.customer|0
+dbo.customer FOR SYSTEM_TIME ALL|0
+
+(2 rows affected)

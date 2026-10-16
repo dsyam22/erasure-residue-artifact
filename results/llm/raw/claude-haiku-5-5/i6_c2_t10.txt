@@ -1,0 +1,50 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @needle_lit nvarchar(60) = N'%+1-555-0000042%';   -- subject's original phone, as a LIKE pattern
+DECLARE @oid int, @obj nvarchar(400), @disp nvarchar(400), @pred nvarchar(max), @sql nvarchar(max), @n bigint;
+
+CREATE TABLE #r (object_name nvarchar(400) NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE tc CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+           s.name + N'.' + t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tc;
+FETCH NEXT FROM tc INTO @oid, @obj, @disp;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @n = 0;
+    SET @pred = NULL;
+
+    -- Build a predicate over all character columns of this table
+    SELECT @pred = STRING_AGG(
+               CONVERT(nvarchar(max), QUOTENAME(c.name) + N' LIKE N''' + @needle_lit + N''''),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (167, 175, 231, 239);   -- varchar, char, nvarchar, nchar
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT_BIG(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sp_executesql @sql, N'@n bigint OUTPUT', @n = @n OUTPUT;
+    END
+
+    INSERT INTO #r (object_name, rows_found) VALUES (@disp, ISNULL(@n, 0));
+
+    FETCH NEXT FROM tc INTO @oid, @obj, @disp;
+END
+
+CLOSE tc;
+DEALLOCATE tc;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;
+```

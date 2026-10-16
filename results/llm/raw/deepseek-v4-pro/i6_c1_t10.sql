@@ -1,0 +1,50 @@
+DECLARE @PhoneToFind NVARCHAR(50) = '+1-555-0000042';
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer for any remaining column that might contain the phone number
+-- Since the phone column was dropped, we check all remaining character columns for the exact phone value
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.customer' AS object_name,
+    SUM(CASE 
+            WHEN full_name = @PhoneToFind OR email = @PhoneToFind THEN 1 
+            ELSE 0 
+        END) AS rows_found
+FROM dbo.customer;
+
+-- Also check all other tables and columns in the database for the phone number
+DECLARE @Sql NVARCHAR(MAX) = N'';
+
+SELECT @Sql = @Sql + 
+    'INSERT INTO @Results (object_name, rows_found) ' +
+    'SELECT ''' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ''' AS object_name, ' +
+    'COUNT(*) AS rows_found ' +
+    'FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' ' +
+    'WHERE ' + QUOTENAME(c.name) + ' = @PhoneToFind; '
+FROM sys.schemas s
+INNER JOIN sys.tables t ON s.schema_id = t.schema_id
+INNER JOIN sys.columns c ON t.object_id = c.object_id
+INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('nvarchar', 'varchar', 'nchar', 'char', 'ntext', 'text')
+  AND t.name NOT IN ('customer')  -- already handled explicitly, but include anyway for completeness
+  AND s.name = 'dbo';
+
+-- Execute dynamic SQL if any tables found
+IF LEN(@Sql) > 0
+BEGIN
+    DECLARE @DynamicSql NVARCHAR(MAX);
+    SET @DynamicSql = N'DECLARE @PhoneToFind NVARCHAR(50) = ''' + @PhoneToFind + '''; ' + @Sql;
+    EXEC sp_executesql @DynamicSql, N'@PhoneToFind NVARCHAR(50)', @PhoneToFind = @PhoneToFind;
+END
+
+-- Return final result set
+SELECT 
+    object_name,
+    SUM(rows_found) AS rows_found
+FROM @Results
+GROUP BY object_name
+ORDER BY object_name;

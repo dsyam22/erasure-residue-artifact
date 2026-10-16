@@ -1,0 +1,11 @@
+schema_name|object_name|column_name|data_type
+-----------|-----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+reporting|customer_replica|customer_id|int
+reporting|customer_replica|full_name|nvarchar
+reporting|customer_replica|email|nvarchar
+reporting|customer_replica|phone|nvarchar
+(8 rows affected)

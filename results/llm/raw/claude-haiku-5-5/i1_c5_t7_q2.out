@@ -1,0 +1,4 @@
+object_name|matching_rows|id_42_rows|pii_match_rows
+-----------|-------------|----------|--------------
+cdc.dbo_customer_CT|101|2|2
+(1 rows affected)

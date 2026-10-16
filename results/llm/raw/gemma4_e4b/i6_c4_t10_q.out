@@ -1,0 +1,21 @@
+ColumnName|DataType|MaxLength
+----------|--------|---------
+customer_id|int|4
+full_name|nvarchar|200
+email|nvarchar|400
+(3 rows affected)
+SchemaName|TableOrViewName|ObjectType
+----------|---------------|----------
+dbo|customer|Table
+dbo|systranschemas|Table
+cdc|change_tables|Table
+cdc|ddl_history|Table
+cdc|lsn_time_mapping|Table
+cdc|captured_columns|Table
+cdc|index_columns|Table
+cdc|dbo_customer_CT|Table
+(8 rows affected)
+name|object_id|principal_id|schema_id|parent_object_id|type|type_desc|create_date|modify_date|is_ms_shipped|is_published|is_schema_published
+----|---------|------------|---------|----------------|----|---------|-----------|-----------|-------------|------------|-------------------
+customer|901578250|NULL|1|0|U |USER_TABLE|2026-10-10 19:08:21.073|2026-10-10 19:08:33.570|0|0|0
+(1 rows affected)

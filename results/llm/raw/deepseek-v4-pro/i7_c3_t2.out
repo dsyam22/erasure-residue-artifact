@@ -1,0 +1,6 @@
+
+(1 rows affected)
+
+(1 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 60
+Invalid object name 'dbo.customer_audit'.

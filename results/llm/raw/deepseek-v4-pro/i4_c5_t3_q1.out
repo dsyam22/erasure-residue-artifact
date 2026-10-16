@@ -1,0 +1,23 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|member|member_id|int
+dbo|member|full_name|nvarchar
+dbo|member|email|nvarchar
+dbo|member|phone|nvarchar
+dbo|member|valid_from|datetime2
+dbo|member|valid_to|datetime2
+dbo|member_history|member_id|int
+dbo|member_history|full_name|nvarchar
+dbo|member_history|email|nvarchar
+dbo|member_history|phone|nvarchar
+dbo|member_history|valid_from|datetime2
+dbo|member_history|valid_to|datetime2
+dbo|systranschemas|tabid|int
+dbo|systranschemas|startlsn|binary
+dbo|systranschemas|endlsn|binary
+dbo|systranschemas|typeid|int
+(20 rows affected)

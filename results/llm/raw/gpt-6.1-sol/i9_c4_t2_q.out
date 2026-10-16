@@ -1,0 +1,40 @@
+database_name|is_cdc_enabled|is_broker_enabled|snapshot_isolation_state_desc
+-------------|--------------|-----------------|-----------------------------
+llm_i9|0|1|OFF
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|ledger_type_desc|is_dropped_ledger_table
+-----------|----------|---------|------------------|--------------|-------------|-----------------|-------------------|----------------|-----------------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|NON_LEDGER_TABLE|0
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|0|0|NON_LEDGER_TABLE|0
+(2 rows affected)
+schema_name|table_name|column_id|column_name|type_schema|data_type|base_type|max_length|is_nullable|is_computed|is_hidden|encryption_type_desc|generated_always_type_desc
+-----------|----------|---------|-----------|-----------|---------|---------|----------|-----------|-----------|---------|--------------------|--------------------------
+dbo|customer|1|customer_id|sys|int|int|4|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer|2|full_name|sys|nvarchar|nvarchar|200|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer|3|email|sys|nvarchar|nvarchar|400|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer|4|phone|sys|nvarchar|nvarchar|60|1|0|0|NULL|NOT_APPLICABLE
+dbo|customer|5|valid_from|sys|datetime2|datetime2|8|0|0|0|NULL|AS_ROW_START
+dbo|customer|6|valid_to|sys|datetime2|datetime2|8|0|0|0|NULL|AS_ROW_END
+dbo|customer_history|1|customer_id|sys|int|int|4|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer_history|2|full_name|sys|nvarchar|nvarchar|200|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer_history|3|email|sys|nvarchar|nvarchar|400|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer_history|4|phone|sys|nvarchar|nvarchar|60|1|0|0|NULL|NOT_APPLICABLE
+dbo|customer_history|5|valid_from|sys|datetime2|datetime2|8|0|0|0|NULL|NOT_APPLICABLE
+dbo|customer_history|6|valid_to|sys|datetime2|datetime2|8|0|0|0|NULL|NOT_APPLICABLE
+(12 rows affected)
+schema_name|view_name|object_id|definition
+-----------|---------|---------|----------
+(0 rows affected)
+schema_name|trigger_name|parent_schema|parent_object|is_disabled|definition
+-----------|------------|-------------|-------------|-----------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|policy_name|is_enabled|predicate_type_desc|operation_desc|predicate_definition
+-----------|----------|-----------|----------|-------------------|--------------|--------------------
+(0 rows affected)
+database_user|is_db_owner|can_view_definition|can_select_database|has_control_database
+-------------|-----------|-------------------|-------------------|--------------------
+llm_reader|0|1|1|0
+(1 rows affected)

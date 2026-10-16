@@ -1,0 +1,38 @@
+database_name|database_id|state_desc|recovery_model_desc|snapshot_isolation_state_desc|is_read_committed_snapshot_on|is_cdc_enabled|is_encrypted|is_broker_enabled|source_database_id|can_view_definition|can_view_database_state|has_database_control
+-------------|-----------|----------|-------------------|-----------------------------|-----------------------------|--------------|------------|-----------------|------------------|-------------------|-----------------------|--------------------
+llm_i8|32|ONLINE|FULL|OFF|0|0|0|1|NULL|1|0|0
+(1 rows affected)
+schema_name|table_name|object_id|is_ms_shipped|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|ledger_type_desc|is_dropped_ledger_table|filestream_data_space_id|lob_data_space_id|is_track_columns_updated_on|approximate_rows
+-----------|----------|---------|-------------|------------------|-------------------|------------------|-----------------|-------------------|---------------|----------------|-----------------------|------------------------|-----------------|---------------------------|----------------
+dbo|customer|901578250|0|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|NULL|0|NULL|99
+(1 rows affected)
+schema_name|object_name|object_type|column_id|column_name|type_schema|data_type|max_length|precision|scale|collation_name|is_nullable|is_computed|computed_definition|generated_always_type_desc|is_hidden|encryption_type_desc|is_filestream
+-----------|-----------|-----------|---------|-----------|-----------|---------|----------|---------|-----|--------------|-----------|-----------|-------------------|--------------------------|---------|--------------------|-------------
+dbo|customer|USER_TABLE|1|customer_id|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+dbo|customer|USER_TABLE|2|full_name|sys|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+dbo|customer|USER_TABLE|3|email|sys|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+dbo|customer|USER_TABLE|4|phone|sys|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|1|backup_metadata_uuid|sys|uniqueidentifier|16|0|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|2|database_guid|sys|uniqueidentifier|16|0|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|3|physical_database_name|sys|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|4|time_zone|sys|smallint|2|5|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|5|first_lsn|sys|numeric|13|25|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|6|last_lsn|sys|numeric|13|25|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|7|checkpoint_lsn|sys|numeric|13|25|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|8|database_backup_lsn|sys|numeric|13|25|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|9|backup_start_date|sys|datetime2|8|27|7|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|10|backup_finish_date|sys|datetime2|8|27|7|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|11|backup_type|sys|char|1|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|12|backup_storage_redundancy|sys|nvarchar|128|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|13|database_version|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|14|backup_size|sys|numeric|13|20|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|15|compressed_backup_size|sys|numeric|13|20|0|NULL|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|16|server_name|sys|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|17|is_damaged|sys|bit|1|1|0|NULL|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|18|last_recovery_fork_guid|sys|uniqueidentifier|16|0|0|NULL|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|19|differential_base_lsn|sys|numeric|13|25|0|NULL|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|20|differential_base_guid|sys|uniqueidentifier|16|0|0|NULL|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|21|backup_path|sys|nvarchar|520|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|22|last_valid_restore_time|sys|datetime2|8|27|7|NULL|1|0|NULL|NOT_APPLICABLE|0|NULL|0
+sys|backup_metadata_store|INTERNAL_TABLE|23|compression_algorithm|sys|nv
+[output truncated]

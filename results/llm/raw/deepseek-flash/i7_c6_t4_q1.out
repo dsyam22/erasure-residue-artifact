@@ -1,0 +1,5 @@
+object_name|schema_name|type_desc
+-----------|-----------|---------
+customer|dbo|USER_TABLE
+customer_replica|reporting|USER_TABLE
+(2 rows affected)

@@ -1,0 +1,6 @@
+object_name|matching_rows
+-----------|-------------
+cdc.dbo_customer_CT|2
+dbo.customer|99
+dbo.systranschemas|0
+(3 rows affected)

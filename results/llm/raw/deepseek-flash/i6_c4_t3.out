@@ -1,0 +1,7 @@
+cdc.captured_columns|1
+cdc.dbo_customer_CT|1
+cdc.ddl_history|1
+dbo.customer|1
+dbo.systranschemas|0
+
+(5 rows affected)

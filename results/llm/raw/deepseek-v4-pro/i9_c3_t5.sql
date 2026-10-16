@@ -1,0 +1,51 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found bigint NOT NULL
+);
+
+-- Check the current table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check the temporal history table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check for CDC change tables (schema and naming convention may vary)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE '%customer%' AND is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_schema nvarchar(128) = 'cdc';
+    DECLARE @cdc_table nvarchar(255) = @cdc_schema + N'.' + QUOTENAME(DB_NAME()) + N'_dbo_customer_CT';
+    
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE schema_name(schema_id) = @cdc_schema AND name = DB_NAME() + N'_dbo_customer_CT')
+    BEGIN
+        DECLARE @sql nvarchar(max) = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @cdc_table + N''', COUNT(*)
+            FROM ' + @cdc_table + N'
+            WHERE customer_id = 42
+               OR full_name = N''Subject_0000042''
+               OR email = N''subject42@example.invalid''
+               OR phone = N''+1-555-0000042'';';
+        EXEC sp_executesql @sql;
+    END
+END
+
+-- Return the results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

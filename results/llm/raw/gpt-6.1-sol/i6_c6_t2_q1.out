@@ -1,0 +1,6 @@
+schema_name|object_name|type_desc|column_id|column_name|data_type|is_hidden|encryption_type_desc
+-----------|-----------|---------|---------|-----------|---------|---------|--------------------
+dbo|customer|USER_TABLE|1|customer_id|int|0|NULL
+dbo|customer|USER_TABLE|2|full_name|nvarchar|0|NULL
+dbo|customer|USER_TABLE|3|email|nvarchar|0|NULL
+(3 rows affected)

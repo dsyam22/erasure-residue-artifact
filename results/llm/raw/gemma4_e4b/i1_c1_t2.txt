@@ -1,0 +1,12 @@
+```sql
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(T1.customer_id) AS rows_found
+FROM
+    dbo.customer AS T1
+WHERE
+        T1.customer_id = 42
+        AND T1.full_name = N'Subject_0000042'
+        AND T1.email = N'subject42@example.invalid'
+        AND T1.phone = N'+1-555-0000042';
+```

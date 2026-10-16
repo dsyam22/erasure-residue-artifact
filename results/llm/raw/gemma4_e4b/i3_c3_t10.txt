@@ -1,0 +1,46 @@
+```sql
+WITH CheckCustomer AS (
+    SELECT COUNT(DISTINCT customer_id) AS CountFound
+    FROM dbo.customer c
+    WHERE c.full_name = 'Subject_0000042'
+       OR c.email = 'subject42@example.invalid'
+       OR c.phone = '+1-555-0000042'
+),
+CheckCDC AS (
+    -- Checking the CDC change table for evidence of the deleted record
+    SELECT COUNT(DISTINCT CAST(customer_id AS INT)) AS CountFound
+    FROM cdc.dbo_customer_CT ct
+    INNER JOIN dbo.cdc_kv k ON ct.object_id = k.object_id
+    WHERE EXISTS (
+        SELECT 1
+        FROM (VALUES ('Subject_0000042'), 'subject42@example.invalid', '+1-555-0000042') AS Values(DataToCheck)
+        WHERE ct.full_name LIKE '%' + Values.DataToCheck + '%' OR
+              ct.email LIKE '%' + Values.DataToCheck + '%' OR
+              ct.phone LIKE '%' + Values.DataToCheck + '%'
+    )
+),
+CheckMember AS (
+    -- Checking the primary member table
+    SELECT COUNT(DISTINCT member_id) AS CountFound
+    FROM dbo.member m
+    WHERE m.full_name = 'Subject_0000042'
+       OR m.email = 'subject42@example.invalid'
+       OR m.phone = '+1-555-0000042'
+),
+CheckHistory AS (
+    -- Checking the temporal history table
+    SELECT COUNT(DISTINCT member_id) AS CountFound
+    FROM dbo.member_history mh
+    WHERE mh.full_name = 'Subject_0000042'
+       OR mh.email = 'subject42@example.invalid'
+       OR mh.phone = '+1-555-0000042'
+)
+-- Combine all results into the required single result set format
+SELECT 'dbo.customer' AS object_name, ISNULL(c.CountFound, 0) AS rows_found FROM CheckCustomer c
+UNION ALL
+SELECT 'cdc.dbo_customer_CT' AS object_name, ISNULL(d.CountFound, 0) AS rows_found FROM CheckCDC d
+UNION ALL
+SELECT 'dbo.member' AS object_name, ISNULL(m.CountFound, 0) AS rows_found FROM CheckMember m
+UNION ALL
+SELECT 'dbo.member_history' AS object_name, ISNULL(h.CountFound, 0) AS rows_found FROM CheckHistory h;
+```

@@ -1,0 +1,4 @@
+__$start_lsn|__$end_lsn|__$seqval|__$operation|__$update_mask|customer_id|full_name|email|phone|__$command_id
+------------|----------|---------|------------|--------------|-----------|---------|-----|-----|-------------
+0x0000002B00000478009C|NULL|0x0000002B000004780049|2|0x0F|42|Subject_0000042|subject42@example.invalid|+1-555-0000042|42
+(1 rows affected)

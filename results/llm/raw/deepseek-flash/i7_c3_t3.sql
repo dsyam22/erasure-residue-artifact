@@ -1,0 +1,30 @@
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(200) = N'Subject_0000042';
+DECLARE @em nvarchar(200) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #res (object_name sysname, rows_found bigint);
+
+INSERT INTO #res
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+INSERT INTO #res
+SELECT N'reporting.customer_replica',
+       COUNT(*)
+FROM reporting.customer_replica
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;
+
+DROP TABLE #res;

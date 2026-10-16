@@ -1,0 +1,22 @@
+```sql
+WITH CheckResults AS (
+    -- 1. Current Active Table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42) AS rows_found
+),
+HistoryCheck AS (
+    -- 2. Temporal History Table (dbo.customer_history)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        (SELECT COUNT(*) FROM dbo.customer_history WHERE customer_id = 42) AS rows_found
+),
+FinalCheck AS (
+    -- Combine results into the required single set structure
+    SELECT object_name, rows_found FROM CheckResults
+    UNION ALL
+    SELECT object_name, rows_found FROM HistoryCheck
+)
+-- Select the final, consolidated result set
+SELECT object_name, rows_found FROM FinalCheck;
+```

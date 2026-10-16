@@ -1,0 +1,103 @@
+/* ============================================================
+   Read-only verification script.
+   Scope: ONLY the data subject's phone number '+1-555-0000042'
+   is considered personal data to be erased.
+   Name/email are legitimately kept and are NOT searched.
+   ============================================================ */
+
+DECLARE @target_phone nvarchar(400) = N'+1-555-0000042';
+
+/* Normalized search value: digits only, so that formatting
+   variants (spaces, dashes, parentheses) are also detected. */
+DECLARE @target_digits varchar(400) =
+    (SELECT STRING_AGG(SUBSTRING(v.n, 1, 1), '')
+       FROM (SELECT @target_phone AS n) v
+      CROSS APPLY (SELECT TOP (LEN(@target_phone)) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
+                     FROM sys.all_objects) r
+      CROSS APPLY (SELECT SUBSTRING(@target_phone, r.rn, 1) AS n) s
+      WHERE SUBSTRING(@target_phone, r.rn, 1) LIKE '[0-9]');
+
+/* Result table: one row per object checked. */
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* ------------------------------------------------------------
+   1) dbo.customer  (live table)
+   The phone column was dropped, so we verify no remaining
+   column still contains the phone value. We check every
+   character-type column that exists.
+   ------------------------------------------------------------ */
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = STRING_AGG(
+        N'SELECT N''dbo.customer'' AS object_name, COUNT_BIG(*) AS rows_found ' +
+        N'FROM dbo.customer WHERE CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%'' + @p + N''%'' ' +
+        N'OR REPLACE(REPLACE(REPLACE(REPLACE(CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)), ''-'', ''''), '' '', ''''), ''('', ''''), '')'', '''') LIKE N''%'' + @p + N''%'';',
+        N' UNION ALL ')
+  FROM sys.columns c
+  JOIN sys.types t ON c.user_type_id = t.user_type_id
+ WHERE c.object_id = OBJECT_ID(N'dbo.customer')
+   AND (t.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext')
+        OR t.name IN (N'xml', N'sql_variant'));
+
+IF @sql IS NULL
+    INSERT INTO @results VALUES (N'dbo.customer', 0);
+ELSE
+    INSERT INTO @results EXEC sp_executesql @sql,
+        N'@p nvarchar(400)', @p = @target_phone;
+
+/* ------------------------------------------------------------
+   2) cdc.dbo_customer_CT  (CDC change table)
+   CDC change tables are only visible through system views,
+   so we enumerate the captured columns from cdc.captured_columns
+   and search each one.
+   ------------------------------------------------------------ */
+SET @sql = N'';
+
+SELECT @sql = STRING_AGG(
+        N'SELECT N''cdc.dbo_customer_CT'' AS object_name, COUNT_BIG(*) AS rows_found ' +
+        N'FROM cdc.dbo_customer_CT WHERE CAST(' + QUOTENAME(cc.column_name) + N' AS nvarchar(max)) LIKE N''%'' + @p + N''%'' ' +
+        N'OR REPLACE(REPLACE(REPLACE(REPLACE(CAST(' + QUOTENAME(cc.column_name) + N' AS nvarchar(max)), ''-'', ''''), '' '', ''''), ''('', ''''), '')'', '''') LIKE N''%'' + @p + N''%'';',
+        N' UNION ALL ')
+  FROM cdc.captured_columns cc
+ WHERE cc.object_id = OBJECT_ID(N'cdc.dbo_customer_CT');
+
+IF @sql IS NULL
+    INSERT INTO @results VALUES (N'cdc.dbo_customer_CT', 0);
+ELSE
+    INSERT INTO @results EXEC sp_executesql @sql,
+        N'@p nvarchar(400)', @p = @target_phone;
+
+/* ------------------------------------------------------------
+   3) Any other user table in the database that might hold a
+      copy of the phone number (defensive sweep).
+      We scan every character column of every user table,
+      excluding the ones already checked above.
+   ------------------------------------------------------------ */
+DECLARE @other nvarchar(max) = N'';
+
+SELECT @other = STRING_AGG(
+        N'SELECT N''' + REPLACE(s.name + N'.' + tb.name, '''', '''''') + N''' AS object_name, COUNT_BIG(*) AS rows_found ' +
+        N'FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(tb.name) + N' WHERE CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%'' + @p + N''%'' ' +
+        N'OR REPLACE(REPLACE(REPLACE(REPLACE(CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)), ''-'', ''''), '' '', ''''), ''('', ''''), '')'', '''') LIKE N''%'' + @p + N''%'';',
+        N' UNION ALL ')
+  FROM sys.tables tb
+  JOIN sys.schemas s ON tb.schema_id = s.schema_id
+  JOIN sys.columns c ON tb.object_id = c.object_id
+  JOIN sys.types t ON c.user_type_id = t.user_type_id
+ WHERE tb.is_ms_shipped = 0
+   AND tb.temporal_type = 0
+   AND NOT (s.name = N'dbo' AND tb.name = N'customer')
+   AND NOT (s.name = N'cdc' AND tb.name = N'dbo_customer_CT')
+   AND (t.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext')
+        OR t.name IN (N'xml', N'sql_variant'));
+
+IF @other IS NOT NULL
+    INSERT INTO @results EXEC sp_executesql @other,
+        N'@p nvarchar(400)', @p = @target_phone;
+
+/* ------------------------------------------------------------
+   Return exactly one result set.
+   ------------------------------------------------------------ */
+SELECT object_name, rows_found
+  FROM @results
+ ORDER BY object_name;

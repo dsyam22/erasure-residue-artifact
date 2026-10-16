@@ -1,0 +1,7 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+dbo|customer|valid_from|datetime2
+dbo|customer|valid_to|datetime2
+dbo|customer_history|valid_from|datetime2
+dbo|customer_history|valid_to|datetime2
+(4 rows affected)

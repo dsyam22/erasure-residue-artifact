@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type|history_schema|history_table|column_id|column_name|data_type|generated_always_type
+-----------|----------|-------------|--------------|-------------|---------|-----------|---------|---------------------
+dbo|customer|2|dbo|customer_history|1|customer_id|int|0
+dbo|customer|2|dbo|customer_history|2|full_name|nvarchar|0
+dbo|customer|2|dbo|customer_history|3|email|nvarchar|0
+dbo|customer|2|dbo|customer_history|4|phone|nvarchar|0
+dbo|customer|2|dbo|customer_history|5|valid_from|datetime2|1
+dbo|customer|2|dbo|customer_history|6|valid_to|datetime2|2
+dbo|customer_history|1|NULL|NULL|1|customer_id|int|0
+dbo|customer_history|1|NULL|NULL|2|full_name|nvarchar|0
+dbo|customer_history|1|NULL|NULL|3|email|nvarchar|0
+dbo|customer_history|1|NULL|NULL|4|phone|nvarchar|0
+dbo|customer_history|1|NULL|NULL|5|valid_from|datetime2|0
+dbo|customer_history|1|NULL|NULL|6|valid_to|datetime2|0
+(12 rows affected)

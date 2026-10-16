@@ -1,0 +1,83 @@
+USE [llm_i3];
+
+-- Checks all catalog-visible tables, including CDC change tables and temporal
+-- history tables. Matches original identifiers and original personal-data
+-- strings, including strings embedded in textual/XML payloads.
+-- This is a logical-data check, not forensic verification of transaction logs,
+-- deallocated pages, backups, encrypted payloads, or external copies.
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CAST(
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + COALESCE(p.predicate_sql, N'1 = 0')
+            AS nvarchar(max)
+        ),
+        N' UNION ALL '
+    ) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CAST(
+            CASE
+                WHEN c.name IN (N'customer_id', N'member_id')
+                THEN
+                    N'TRY_CONVERT(bigint, TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N')) = 42'
+            END +
+            CASE
+                WHEN c.name IN (N'customer_id', N'member_id')
+                     AND c.system_type_id IN
+                         (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN N' OR '
+                ELSE N''
+            END +
+            CASE
+                WHEN c.system_type_id IN
+                     (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN
+                    N'(' +
+                    N'CHARINDEX(N''Subject_0000042'', ' +
+                    N'TRY_CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(N''subject42@example.invalid'', ' +
+                    N'TRY_CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(N''+1-555-0000042'', ' +
+                    N'TRY_CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0)'
+                ELSE N''
+            END
+            AS nvarchar(max)
+        ),
+        N' OR '
+    ) AS predicate_sql
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND
+      (
+          c.name IN (N'customer_id', N'member_id')
+          OR c.system_type_id IN
+             (35, 99, 167, 175, 231, 239, 241, 98)
+      )
+) AS p;
+
+SET @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                     CAST(NULL AS bigint) AS rows_found WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS findings ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql @sql;

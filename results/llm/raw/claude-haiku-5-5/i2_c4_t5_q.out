@@ -1,0 +1,18 @@
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 4
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i2'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 4
+The user does not have permission to perform this action.
+schema_name|table_name|type_desc|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|USER_TABLE|customer_id|int|4|0
+dbo|customer|USER_TABLE|full_name|nvarchar|200|0
+dbo|customer|USER_TABLE|email|nvarchar|400|0
+dbo|customer|USER_TABLE|phone|nvarchar|60|1
+dbo|customer_history|USER_TABLE|customer_id|int|4|0
+dbo|customer_history|USER_TABLE|full_name|nvarchar|200|0
+dbo|customer_history|USER_TABLE|email|nvarchar|400|0
+dbo|customer_history|USER_TABLE|phone|nvarchar|60|1
+tracked_schema|tracked_table|is_track_columns_updated_on
+--------------|-------------|---------------------------
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 50
+Invalid object name 'cdc.change_tables'.

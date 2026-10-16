@@ -1,0 +1,74 @@
+database_name|product_version
+-------------|---------------
+llm_i4|16.0.4295.3
+(1 rows affected)
+object_id|schema_name|object_name|type|type_desc
+---------|-----------|-----------|----|---------
+1125579048|cdc|captured_columns|U |USER_TABLE
+1013578649|cdc|change_tables|U |USER_TABLE
+1333579789|cdc|dbo_customer_CT|U |USER_TABLE
+1061578820|cdc|ddl_history|U |USER_TABLE
+1157579162|cdc|index_columns|U |USER_TABLE
+1093578934|cdc|lsn_time_mapping|U |USER_TABLE
+901578250|dbo|customer|U |USER_TABLE
+933578364|dbo|member|U |USER_TABLE
+965578478|dbo|member_history|U |USER_TABLE
+981578535|dbo|systranschemas|U |USER_TABLE
+(10 rows affected)
+object_id|schema_name|table_name|temporal_type|temporal_type_desc|history_schema_name|history_table_name
+---------|-----------|----------|-------------|------------------|-------------------|------------------
+1125579048|cdc|captured_columns|0|NON_TEMPORAL_TABLE|NULL|NULL
+1013578649|cdc|change_tables|0|NON_TEMPORAL_TABLE|NULL|NULL
+1333579789|cdc|dbo_customer_CT|0|NON_TEMPORAL_TABLE|NULL|NULL
+1061578820|cdc|ddl_history|0|NON_TEMPORAL_TABLE|NULL|NULL
+1157579162|cdc|index_columns|0|NON_TEMPORAL_TABLE|NULL|NULL
+1093578934|cdc|lsn_time_mapping|0|NON_TEMPORAL_TABLE|NULL|NULL
+901578250|dbo|customer|0|NON_TEMPORAL_TABLE|NULL|NULL
+933578364|dbo|member|2|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|member_history
+965578478|dbo|member_history|1|HISTORY_TABLE|NULL|NULL
+981578535|dbo|systranschemas|0|NON_TEMPORAL_TABLE|NULL|NULL
+(10 rows affected)
+object_id|schema_name|object_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|generated_always_type_desc
+---------|-----------|-----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|--------------------------
+1125579048|cdc|captured_columns|1|object_id|int|4|10|0|0|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|2|column_name|sysname|256|0|0|0|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|3|column_id|int|4|10|0|1|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|4|column_type|sysname|256|0|0|0|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|5|column_ordinal|int|4|10|0|0|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|6|is_computed|bit|1|1|0|1|0|0|NOT_APPLICABLE
+1125579048|cdc|captured_columns|7|masking_function|nvarchar|8000|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|1|object_id|int|4|10|0|0|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|2|version|int|4|10|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|3|source_object_id|int|4|10|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|4|capture_instance|sysname|256|0|0|0|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|5|start_lsn|binary|10|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|6|end_lsn|binary|10|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|7|supports_net_changes|bit|1|1|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|8|has_drop_pending|bit|1|1|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|9|role_name|sysname|256|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|10|index_name|sysname|256|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|11|filegroup_name|sysname|256|0|0|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|12|create_date|datetime|8|23|3|1|0|0|NOT_APPLICABLE
+1013578649|cdc|change_tables|13|partition_switch|bit|1|1|0|0|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|1|__$start_lsn|binary|10|0|0|0|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|2|__$end_lsn|binary|10|0|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|3|__$seqval|binary|10|0|0|0|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|4|__$operation|int|4|10|0|0|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|5|__$update_mask|varbinary|128|0|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|6|customer_id|int|4|10|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|7|full_name|nvarchar|200|0|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|8|email|nvarchar|400|0|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|9|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE
+1333579789|cdc|dbo_customer_CT|10|__$command_id|int|4|10|0|1|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|1|source_object_id|int|4|10|0|1|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|2|object_id|int|4|10|0|0|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|3|required_column_update|bit|1|1|0|1|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|4|ddl_command|nvarchar|-1|0|0|1|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|5|ddl_lsn|binary|10|0|0|0|0|0|NOT_APPLICABLE
+1061578820|cdc|ddl_history|6|ddl_time|datetime|8|23|3|1|0|0|NOT_APPLICABLE
+1157579162|cdc|index_columns|1|object_id|int|4|10|0|0|0|0|NOT_APPLICABLE
+1157579162|cdc|index_columns|2|column_name|sysname|256|0|0|0|0|0|NOT_APPLICABLE
+1157579162|cdc|index_columns|3|index_ordinal|tinyint|1|3|0|0|0|0|NOT_APPLICABLE
+1157579162|cdc|index_columns|4|column_id|int|4|10|0|0|0|0|NOT_APPLICABLE
+1093578934|cdc|lsn_time_mapping|1|start_lsn|binary|10|0|0|0|0|0|NOT
+[output truncated]

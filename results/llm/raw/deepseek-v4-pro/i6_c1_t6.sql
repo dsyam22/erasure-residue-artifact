@@ -1,0 +1,83 @@
+DECLARE @SchemaName sysname = N'dbo';
+DECLARE @TableName sysname = N'customer';
+DECLARE @FullTableName nvarchar(257) = @SchemaName + N'.' + @TableName;
+DECLARE @CustomerId int = 42;
+DECLARE @PhonePattern nvarchar(50) = N'+1-555-0000042';
+
+DECLARE @Results TABLE (
+    object_name nvarchar(257),
+    rows_found int
+);
+
+DECLARE @Sql nvarchar(max);
+DECLARE @ColumnName sysname;
+DECLARE @DataType sysname;
+
+-- Check if phone column still exists in dbo.customer
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = @SchemaName
+      AND t.name = @TableName
+      AND c.name = N'phone'
+)
+BEGIN
+    SET @Sql = N'SELECT @RowsFound = COUNT(*) FROM ' + @FullTableName + N' WHERE customer_id = @CustomerId AND phone = @PhonePattern';
+    DECLARE @PhoneRows int = 0;
+    EXEC sp_executesql @Sql, N'@CustomerId int, @PhonePattern nvarchar(50), @RowsFound int OUTPUT', @CustomerId, @PhonePattern, @PhoneRows OUTPUT;
+    INSERT INTO @Results (object_name, rows_found)
+    VALUES (@FullTableName, @PhoneRows);
+END
+ELSE
+BEGIN
+    INSERT INTO @Results (object_name, rows_found)
+    VALUES (@FullTableName, 0);
+END
+
+-- Search all other tables and columns for the phone number as a literal string
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT 
+    s.name + N'.' + t.name AS FullTableName,
+    c.name AS ColumnName,
+    ty.name AS DataType
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN (N'varchar', N'nvarchar', N'char', N'nchar', N'text', N'ntext')
+  AND NOT (s.name = @SchemaName AND t.name = @TableName AND c.name = N'phone')  -- exclude already checked column
+ORDER BY s.name, t.name, c.name;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @FullTableName, @ColumnName, @DataType;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @Sql = N'SELECT @RowsFound = COUNT(*) FROM ' + QUOTENAME(SCHEMA_NAME(SCHEMA_ID(PARSENAME(@FullTableName, 2)))) + N'.' + QUOTENAME(PARSENAME(@FullTableName, 1)) +
+               N' WHERE ' + QUOTENAME(@ColumnName) + N' = @PhonePattern';
+    
+    DECLARE @Rows int = 0;
+    BEGIN TRY
+        EXEC sp_executesql @Sql, N'@PhonePattern nvarchar(50), @RowsFound int OUTPUT', @PhonePattern, @Rows OUTPUT;
+        INSERT INTO @Results (object_name, rows_found)
+        VALUES (@FullTableName + N'.' + @ColumnName, @Rows);
+    END TRY
+    BEGIN CATCH
+        -- In case of any error, insert 0
+        INSERT INTO @Results (object_name, rows_found)
+        VALUES (@FullTableName + N'.' + @ColumnName, 0);
+    END CATCH
+
+    FETCH NEXT FROM table_cursor INTO @FullTableName, @ColumnName, @DataType;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM @Results
+ORDER BY object_name;

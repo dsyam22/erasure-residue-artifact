@@ -1,0 +1,62 @@
+SET NOCOUNT ON;
+
+DECLARE @n nvarchar(200) = N'Subject_0000042';
+DECLARE @e nvarchar(200) = N'subject42@example.invalid';
+DECLARE @p nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build a predicate over all character-type and xml columns of this table.
+    SELECT @pred = STRING_AGG(CAST(
+        '(CHARINDEX(@n, CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max))) > 0 OR '
+      + 'CHARINDEX(@e, CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max))) > 0 OR '
+      + 'CHARINDEX(@p, CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max))) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'xml');
+
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + CASE WHEN @pred IS NULL THEN N' WHERE 1 = 0'
+                    ELSE N' WHERE ' + @pred END
+             + N';';
+
+    EXEC sys.sp_executesql
+         @sql,
+         N'@n nvarchar(200), @e nvarchar(200), @p nvarchar(200), @cnt bigint OUTPUT',
+         @n = @n, @e = @e, @p = @p, @cnt = @cnt OUTPUT;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl INTO @schema, @table;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

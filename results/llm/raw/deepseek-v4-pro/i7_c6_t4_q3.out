@@ -1,0 +1,5 @@
+object_name|rows_found
+-----------|----------
+dbo.customer|0
+reporting.customer_replica|1
+(2 rows affected)

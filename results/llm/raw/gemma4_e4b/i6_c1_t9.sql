@@ -1,0 +1,10 @@
+SELECT
+    'dbo.customer' AS object_name,
+    (
+        -- Search all available string columns for the literal phone number.
+        -- Since the column was dropped, we check if it leaked into other attributes.
+        SELECT COUNT(*)
+        FROM dbo.customer
+        WHERE full_name LIKE '%+1-555-0000042%' 
+           OR email LIKE '%+1-555-0000042%'
+    ) AS rows_found;

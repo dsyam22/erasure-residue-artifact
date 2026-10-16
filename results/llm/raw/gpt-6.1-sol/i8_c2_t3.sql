@@ -1,0 +1,21 @@
+/*
+No SELECT-only script can conclusively verify that the erased personal data
+is no longer stored anywhere in this database.
+
+DELETE removes logical rows, but the original values may remain in:
+  - Transaction-log records.
+  - Ghost records or deallocated data pages.
+  - Other tables, including application-maintained copies.
+
+CDC being disabled and dbo.customer being non-temporal do not rule out
+these locations. Ordinary SELECT queries cannot comprehensively inspect
+physical remnants, and SQL Server provides no supported SELECT interface
+that counts original personal-data rows across all such storage.
+
+Consequently, returning object_name and rows_found for logical tables alone
+would not satisfy the requested database-wide verification.
+
+A feasible read-only check requires limiting the scope to currently
+queryable logical rows. Physical erasure requires a separate assessment
+of transaction-log retention, page remnants, and storage lifecycle.
+*/

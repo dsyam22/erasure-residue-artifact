@@ -1,0 +1,60 @@
+```sql
+-- SCRIPT
+SELECT N'dbo.customer' AS object_name, COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE CHARINDEX(N'+1-555-0000042', full_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', email) > 0
+
+UNION ALL
+
+SELECT N'cdc.dbo_customer_CT', COUNT_BIG(*)
+FROM cdc.dbo_customer_CT
+WHERE CHARINDEX(N'+1-555-0000042', phone) > 0
+   OR CHARINDEX(N'+1-555-0000042', full_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', email) > 0
+
+UNION ALL
+
+SELECT N'cdc.captured_columns', COUNT_BIG(*)
+FROM cdc.captured_columns
+WHERE CHARINDEX(N'+1-555-0000042', column_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', column_type) > 0
+   OR CHARINDEX(N'+1-555-0000042', masking_function) > 0
+
+UNION ALL
+
+SELECT N'cdc.change_tables', COUNT_BIG(*)
+FROM cdc.change_tables
+WHERE CHARINDEX(N'+1-555-0000042', capture_instance) > 0
+   OR CHARINDEX(N'+1-555-0000042', role_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', index_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', filegroup_name) > 0
+
+UNION ALL
+
+SELECT N'cdc.ddl_history', COUNT_BIG(*)
+FROM cdc.ddl_history
+WHERE CHARINDEX(N'+1-555-0000042', ddl_command) > 0
+
+UNION ALL
+
+SELECT N'cdc.index_columns', COUNT_BIG(*)
+FROM cdc.index_columns
+WHERE CHARINDEX(N'+1-555-0000042', column_name) > 0
+
+UNION ALL
+
+-- These objects contain only numeric, datetime, and fixed-size binary
+-- metadata; none of their columns can hold the original phone string.
+SELECT N'cdc.lsn_time_mapping', COUNT_BIG(*)
+FROM cdc.lsn_time_mapping
+WHERE 1 = 0
+
+UNION ALL
+
+SELECT N'dbo.systranschemas', COUNT_BIG(*)
+FROM dbo.systranschemas
+WHERE 1 = 0
+
+ORDER BY object_name;
+```

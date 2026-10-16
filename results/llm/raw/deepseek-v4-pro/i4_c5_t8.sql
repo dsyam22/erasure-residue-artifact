@@ -1,0 +1,48 @@
+-- SCRIPT
+DECLARE @results TABLE (object_name NVARCHAR(255), rows_found INT);
+
+-- Check dbo.customer for original personal data
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (
+    full_name = 'Subject_0000042'
+    OR email = 'subject42@example.invalid'
+    OR phone = '+1-555-0000042'
+  );
+
+-- Check dbo.member for original personal data
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = 42
+  AND (
+    full_name = 'Subject_0000042'
+    OR email = 'subject42@example.invalid'
+    OR phone = '+1-555-0000042'
+  );
+
+-- Check all other tables in the database for the original personal data
+DECLARE @sql NVARCHAR(MAX) = N'';
+
+SELECT @sql = @sql + 
+  'INSERT INTO @results (object_name, rows_found) ' +
+  'SELECT ''' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ''', COUNT(*) ' +
+  'FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' ' +
+  'WHERE (full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042''); '
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+WHERE c.name IN ('full_name', 'email', 'phone')
+  AND NOT (s.name = 'dbo' AND t.name IN ('customer', 'member'));
+
+IF @sql <> N''
+BEGIN
+    EXEC sp_executesql @sql, N'@results TABLE (object_name NVARCHAR(255), rows_found INT)', @results = @results;
+END
+
+-- Return the final result set
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

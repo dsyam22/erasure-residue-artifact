@@ -1,0 +1,41 @@
+name|state_desc|recovery_model_desc|is_cdc_enabled|snapshot_isolation_state_desc|source_database_id|can_view_definition|can_view_database_state|has_database_control
+----|----------|-------------------|--------------|-----------------------------|------------------|-------------------|-----------------------|--------------------
+llm_i1|ONLINE|FULL|1|OFF|NULL|1|0|0
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|is_external|ledger_type_desc|is_dropped_ledger_table|is_ms_shipped|is_track_columns_updated_on|change_tracking_begin_version|change_tracking_min_valid_version
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|---------------|-----------|----------------|-----------------------|-------------|---------------------------|-----------------------------|---------------------------------
+cdc|captured_columns|1077578877|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+cdc|dbo_customer_CT|1285579618|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+cdc|ddl_history|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+cdc|index_columns|1109578991|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+cdc|lsn_time_mapping|1045578763|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|1|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|0|NULL|NULL|NULL
+dbo|systranschemas|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|NON_LEDGER_TABLE|0|1|NULL|NULL|NULL
+(8 rows affected)
+schema_name|object_name|object_type|column_id|column_name|type_schema|data_type|max_length|precision|scale|collation_name|is_nullable|is_computed|computed_definition|generated_always_type_desc|is_hidden|is_masked|encryption_type_desc|is_filestream|is_column_set
+-----------|-----------|-----------|---------|-----------|-----------|---------|----------|---------|-----|--------------|-----------|-----------|-------------------|--------------------------|---------|---------|--------------------|-------------|-------------
+cdc|captured_columns|USER_TABLE|1|object_id|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|2|column_name|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|3|column_id|sys|int|4|10|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|4|column_type|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|5|column_ordinal|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|6|is_computed|sys|bit|1|1|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|captured_columns|USER_TABLE|7|masking_function|sys|nvarchar|8000|0|0|Latin1_General_CI_AS_KS_WS|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|1|object_id|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|2|version|sys|int|4|10|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|3|source_object_id|sys|int|4|10|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|4|capture_instance|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|5|start_lsn|sys|binary|10|0|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|6|end_lsn|sys|binary|10|0|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|7|supports_net_changes|sys|bit|1|1|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|8|has_drop_pending|sys|bit|1|1|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|9|role_name|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|10|index_name|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|11|filegroup_name|sys|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|12|create_date|sys|datetime|8|23|3|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|change_tables|USER_TABLE|13|partition_switch|sys|bit|1|1|0|NULL|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|dbo_customer_CT|USER_TABLE|1|__$start_lsn|sys|binary|10|0|0|NULL|0|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|dbo_customer_CT|USER_TABLE|2|__$end_lsn|sys|binary|10|0|0|NULL|1|0|NULL|NOT_APPLICABLE|0|0|NULL|0|0
+cdc|dbo_customer_CT|USER_TABLE|3|__$seqval|sys|binary|10|0|0|NULL|0|0|NUL
+[output truncated]

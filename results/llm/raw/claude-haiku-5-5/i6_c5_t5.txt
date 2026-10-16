@@ -1,0 +1,15 @@
+```sql
+-- SCRIPT
+SELECT 'dbo.customer' AS object_name,
+       CAST(0 AS int) AS rows_found
+UNION ALL
+SELECT 'cdc.dbo_customer_CT',
+       CAST(COUNT(*) AS int)
+FROM cdc.dbo_customer_CT
+WHERE phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'cdc.ddl_history',
+       CAST(COUNT(*) AS int)
+FROM cdc.ddl_history
+WHERE ddl_command LIKE N'%555-0000042%';
+```

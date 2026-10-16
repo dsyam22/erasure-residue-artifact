@@ -1,0 +1,76 @@
+SET NOCOUNT ON;
+
+DECLARE @v1 nvarchar(200) = N'Subject_0000042';
+DECLARE @v2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @v3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL PRIMARY KEY,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname;
+DECLARE @qobj nvarchar(400), @obj nvarchar(400);
+DECLARE @pred nvarchar(max), @sql nvarchar(max);
+DECLARE @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj  = @schema + N'.' + @table;
+    SET @qobj = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred = NULL;
+    SET @cnt  = 0;
+
+    -- Build a predicate over all character-type columns of this table
+    -- (char, varchar, nchar, nvarchar; system_type_id 175, 167, 239, 231)
+    SELECT @pred = STRING_AGG(
+               CAST(N'CHARINDEX(@v1, ' + QUOTENAME(c.name) + N') > 0 OR '
+                  + N'CHARINDEX(@v2, ' + QUOTENAME(c.name) + N') > 0 OR '
+                  + N'CHARINDEX(@v3, ' + QUOTENAME(c.name) + N') > 0' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@qobj)
+      AND c.system_type_id IN (167, 175, 231, 239);
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found) VALUES (@obj, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT(*) FROM ' + @qobj
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@v1 nvarchar(200), @v2 nvarchar(200), @v3 nvarchar(200), @cnt_out bigint OUTPUT',
+             @v1 = @v1,
+             @v2 = @v2,
+             @v3 = @v3,
+             @cnt_out = @cnt OUTPUT;
+
+        INSERT INTO #results (object_name, rows_found) VALUES (@obj, @cnt);
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

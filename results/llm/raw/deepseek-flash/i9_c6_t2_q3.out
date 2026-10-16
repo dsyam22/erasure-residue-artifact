@@ -1,0 +1,5 @@
+object_id|type|schema_name|object_name
+---------|----|-----------|-----------
+901578250|U |dbo|customer
+933578364|U |dbo|customer_history
+(2 rows affected)

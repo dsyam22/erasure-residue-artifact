@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 19
+Invalid column name 'trigger_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 22
+Invalid column name 'trigger_id'.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 21
+The multi-part identifier "t.name" could not be bound.

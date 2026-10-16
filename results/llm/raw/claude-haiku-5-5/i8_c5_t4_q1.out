@@ -1,0 +1,7 @@
+schema_name|table_name|column_name|data_type|temporal_type|is_ms_shipped
+-----------|----------|-----------|---------|-------------|-------------
+dbo|customer|customer_id|int|0|0
+dbo|customer|full_name|nvarchar|0|0
+dbo|customer|email|nvarchar|0|0
+dbo|customer|phone|nvarchar|0|0
+(4 rows affected)

@@ -1,0 +1,66 @@
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+dbo|customer|4|phone|nvarchar|60|1
+dbo|member|1|member_id|int|4|0
+dbo|member|2|full_name|nvarchar|200|0
+dbo|member|3|email|nvarchar|400|0
+dbo|member|4|phone|nvarchar|60|1
+dbo|member|5|valid_from|datetime2|8|0
+dbo|member|6|valid_to|datetime2|8|0
+dbo|member_history|1|member_id|int|4|0
+dbo|member_history|2|full_name|nvarchar|200|0
+dbo|member_history|3|email|nvarchar|400|0
+dbo|member_history|4|phone|nvarchar|60|1
+dbo|member_history|5|valid_from|datetime2|8|0
+dbo|member_history|6|valid_to|datetime2|8|0
+dbo|systranschemas|1|tabid|int|4|0
+dbo|systranschemas|2|startlsn|binary|10|0
+dbo|systranschemas|3|endlsn|binary|10|0
+dbo|systranschemas|4|typeid|int|4|0
+(20 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|captured_columns|USER_TABLE
+cdc|change_tables|USER_TABLE
+cdc|dbo_customer_CT|USER_TABLE
+cdc|ddl_history|USER_TABLE
+cdc|fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|index_columns|USER_TABLE
+cdc|lsn_time_mapping|USER_TABLE
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_batchinsert_lsn_time_mapping|SQL_STORED_PROCEDURE
+cdc|sp_ins_dummy_lsn_time_mapping |SQL_STORED_PROCEDURE
+cdc|sp_ins_instance_enabling_lsn_time_mapping |SQL_STORED_PROCEDURE
+cdc|sp_ins_lsn_time_mapping|SQL_STORED_PROCEDURE
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE
+dbo|customer|USER_TABLE
+dbo|member|USER_TABLE
+dbo|member_history|USER_TABLE
+dbo|systranschemas|USER_TABLE
+(23 rows affected)
+schema_name|table_name|index_name|type_desc|is_unique|is_primary_key|is_unique_constraint
+-----------|----------|----------|---------|---------|--------------|--------------------
+cdc|captured_columns|captured_columns_clustered_idx|CLUSTERED|1|1|0
+cdc|change_tables|change_tables_clustered_idx|CLUSTERED|1|1|0
+cdc|change_tables|change_tables_unique_idx|NONCLUSTERED|1|0|0
+cdc|change_tables|source_object_id_idx|NONCLUSTERED|0|0|0
+cdc|dbo_customer_CT|dbo_customer_CT_clustered_idx|CLUSTERED|1|0|0
+cdc|dbo_customer_CT|dbo_customer_CT_idx|NONCLUSTERED|1|0|0
+cdc|ddl_history|ddl_history_clustered_idx|CLUSTERED|1|1|0
+cdc|index_columns|index_columns_clustered_idx|CLUSTERED|1|1|0
+cdc|lsn_time_mapping|lsn_time_mapping_clustered_idx|CLUSTERED|1|1|0
+cdc|lsn_time_mapping|lsn_time_mapping_nonunique_idx|NONCLUSTERED|0|0|0
+dbo|customer|PK__customer__CD65CB85B7DCDB16|CLUSTERED|1|1|0
+dbo|member|PK__member__B29B8534F263E778|CLUSTERED|1|1|0
+dbo|member_history|ix_member_history|CLUSTERED|0|0|0
+dbo|systranschemas|uncsystranschemas|CLUSTERED|1|0|0
+(14 rows affected)

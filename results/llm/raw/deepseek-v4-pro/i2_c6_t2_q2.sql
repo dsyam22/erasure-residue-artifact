@@ -1,0 +1,6 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE COLUMN_NAME IN ('customer_id', 'full_name', 'email', 'phone')
+  AND TABLE_SCHEMA = 'dbo'
+  AND TABLE_NAME <> 'customer';

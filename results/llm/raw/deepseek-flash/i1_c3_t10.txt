@@ -1,0 +1,60 @@
+```sql
+/* Read-only verification: does the erased subject's original personal data
+   still exist anywhere in this database (base tables, CDC change tables,
+   temporal history tables, and other copies)?
+   Returns exactly one result set: object_name, rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @cid  int          = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @mail nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+/* Match on the subject's original personal data in scope:
+   customer_id, full_name, email, phone. */
+DECLARE @where nvarchar(max) = N'
+    ([customer_id] = @cid)
+ OR ([full_name]   = @name)
+ OR ([email]       = @mail)
+ OR ([phone]       = @phone)';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+/* 1) Check every user table that has any of the subject's identifying columns. */
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT DISTINCT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    JOIN sys.columns AS c ON c.object_id = t.object_id
+    WHERE t.is_ms_shipped = 0
+      AND c.name IN ('customer_id', 'full_name', 'email', 'phone');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT_BIG(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + @where + N';';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @cid int, @name nvarchar(200), @mail nvarchar(200), @phone nvarchar(50)',
+        @obj = @schema + N'.' + @table,
+        @cid = @cid, @name = @name, @mail = @mail, @phone = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

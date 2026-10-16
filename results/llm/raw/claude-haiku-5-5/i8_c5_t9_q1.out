@@ -1,0 +1,6 @@
+schema_name|table_name|is_memory_optimized|temporal_type_desc|column_name|data_type|max_length
+-----------|----------|-------------------|------------------|-----------|---------|----------
+dbo|customer|0|NON_TEMPORAL_TABLE|full_name|nvarchar|200
+dbo|customer|0|NON_TEMPORAL_TABLE|email|nvarchar|400
+dbo|customer|0|NON_TEMPORAL_TABLE|phone|nvarchar|60
+(3 rows affected)

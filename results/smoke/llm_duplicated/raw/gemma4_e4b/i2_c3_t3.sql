@@ -1,0 +1,30 @@
+WITH SearchResults AS (
+    -- 1. Check the Primary Table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        customer_id = 42
+        AND full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- 2. Check the Temporal History Table (dbo.customer_history)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.customer_history
+    WHERE
+        customer_id = 42
+        AND full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+
+    -- Note: Since CDC is disabled (cdc_enabled=0), no other change tracking tables need to be checked.
+)
+SELECT object_name, rows_found FROM SearchResults;

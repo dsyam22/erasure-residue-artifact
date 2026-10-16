@@ -1,0 +1,12 @@
+-- QUERY
+SELECT 
+    t.name AS table_name,
+    s.name AS schema_name,
+    c.name AS column_name,
+    ty.name AS type_name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('nvarchar', 'varchar', 'nchar', 'char', 'ntext', 'text')
+ORDER BY s.name, t.name, c.column_id;

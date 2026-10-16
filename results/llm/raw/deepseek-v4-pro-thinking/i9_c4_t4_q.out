@@ -1,0 +1,40 @@
+database_name|server_name|product_version|edition
+-------------|-----------|---------------|-------
+llm_i9|651334c31df8|16.0.4295.3|Developer Edition (64-bit)
+(1 rows affected)
+schema_name|table_name|object_id|type_desc|temporal_type|temporal_type_desc|ledger_type|ledger_type_desc|is_tracked_by_cdc|is_memory_optimized|durability_desc|history_schema_name|history_table_name
+-----------|----------|---------|---------|-------------|------------------|-----------|----------------|-----------------|-------------------|---------------|-------------------|------------------
+dbo|customer|901578250|USER_TABLE|2|SYSTEM_VERSIONED_TEMPORAL_TABLE|0|NON_LEDGER_TABLE|0|0|SCHEMA_AND_DATA|dbo|customer_history
+dbo|customer_history|933578364|USER_TABLE|1|HISTORY_TABLE|0|NON_LEDGER_TABLE|0|0|SCHEMA_AND_DATA|NULL|NULL
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|generated_always_type_desc|is_hidden|encryption_type_desc|collation_name
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|--------------------------|---------|--------------------|--------------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|0|NULL|NULL
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|5|valid_from|datetime2|8|27|7|0|0|0|AS_ROW_START|0|NULL|NULL
+dbo|customer|6|valid_to|datetime2|8|27|7|0|0|0|AS_ROW_END|0|NULL|NULL
+dbo|customer_history|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|0|NULL|NULL
+dbo|customer_history|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|5|valid_from|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|0|NULL|NULL
+dbo|customer_history|6|valid_to|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|0|NULL|NULL
+(12 rows affected)
+schema_name|table_name|period_name|period_type_desc|period_start_column|period_end_column
+-----------|----------|-----------|----------------|-------------------|-----------------
+dbo|customer|SYSTEM_TIME|SYSTEM_TIME_PERIOD|valid_from|valid_to
+(1 rows affected)
+schema_name|table_name|index_name|type_desc|is_unique|is_primary_key|is_disabled|filter_definition|column_name|key_ordinal|is_included_column|is_descending_key
+-----------|----------|----------|---------|---------|--------------|-----------|-----------------|-----------|-----------|------------------|-----------------
+dbo|customer|PK__customer__CD65CB85A4ACD6EC|CLUSTERED|1|1|0|NULL|customer_id|1|0|0
+dbo|customer_history|ix_customer_history|CLUSTERED|0|0|0|NULL|valid_to|1|0|0
+dbo|customer_history|ix_customer_history|CLUSTERED|0|0|0|NULL|valid_from|2|0|0
+(3 rows affected)
+foreign_key_name|parent_schema|parent_table|parent_column|constraint_column_id|referenced_schema|referenced_table|referenced_column
+----------------|-------------|------------|-------------|--------------------|-----------------|----------------|-----------------
+(0 rows affected)
+schema_name|view_name|object_id|type_desc|is_schema_bound|definition
+-----------|---------|---------|---------|---------------|----------
+(0 rows affected)

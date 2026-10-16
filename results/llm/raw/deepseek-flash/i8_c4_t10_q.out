@@ -1,0 +1,54 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+(4 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+(1 rows affected)
+index_name|schema_name|table_name|type_desc|is_unique|filter_definition
+----------|-----------|----------|---------|---------|-----------------
+PK__customer__CD65CB85E787FACC|dbo|customer|CLUSTERED|1|NULL
+(1 rows affected)
+schema_name|table_name|column_name|default_definition
+-----------|----------|-----------|------------------
+(0 rows affected)
+schema_name|table_name|column_name|check_definition
+-----------|----------|-----------|----------------
+(0 rows affected)
+fk_name|parent_schema|parent_table|ref_schema|ref_table
+-------|-------------|------------|----------|---------
+(0 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+(1 rows affected)
+name|database_id|create_date|collation_name|compatibility_level|is_read_committed_snapshot_on|snapshot_isolation_state_desc
+----|-----------|-----------|--------------|-------------------|-----------------------------|-----------------------------
+llm_i8|32|2026-10-10 19:08:04.907|SQL_Latin1_General_CP1_CI_AS|160|0|OFF
+(1 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|email|nvarchar
+dbo|customer|full_name|nvarchar
+dbo|customer|phone|nvarchar
+(4 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|email|nvarchar
+dbo|customer|full_name|nvarchar
+dbo|customer|phone|nvarchar
+(3 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+name|type_desc|is_disabled|create_date|modify_date
+----|---------|-----------|-----------|-----------
+(0 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+(0 rows affected)

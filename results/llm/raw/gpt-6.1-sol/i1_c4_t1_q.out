@@ -1,0 +1,45 @@
+Changed database context to 'llm_i1'.
+name|state_desc|recovery_model_desc|snapshot_isolation_state_desc|is_read_committed_snapshot_on|is_cdc_enabled|is_encrypted|source_database_id|can_view_definition|can_select_database
+----|----------|-------------------|-----------------------------|-----------------------------|--------------|------------|------------------|-------------------|-------------------
+llm_i1|ONLINE|FULL|OFF|0|1|0|NULL|1|1
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|durability_desc|ledger_type_desc|is_dropped_ledger_table|is_external|change_tracking_columns|can_select_table
+-----------|----------|---------|------------------|--------------|-------------|-----------------|-------------------|---------------|----------------|-----------------------|-----------|-----------------------|----------------
+cdc|captured_columns|1077578877|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+cdc|change_tables|965578478|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+cdc|dbo_customer_CT|1285579618|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+cdc|ddl_history|1013578649|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+cdc|index_columns|1109578991|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+cdc|lsn_time_mapping|1045578763|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|1|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+dbo|systranschemas|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|NULL|1
+(8 rows affected)
+schema_name|object_name|object_type|column_id|column_name|type_schema|declared_type|underlying_type|max_length|precision|scale|collation_name|is_nullable|is_hidden|generated_always_type_desc|encryption_type_desc|computed_definition
+-----------|-----------|-----------|---------|-----------|-----------|-------------|---------------|----------|---------|-----|--------------|-----------|---------|--------------------------|--------------------|-------------------
+cdc|captured_columns|USER_TABLE|1|object_id|sys|int|int|4|10|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|2|column_name|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|3|column_id|sys|int|int|4|10|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|4|column_type|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|5|column_ordinal|sys|int|int|4|10|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|6|is_computed|sys|bit|bit|1|1|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|captured_columns|USER_TABLE|7|masking_function|sys|nvarchar|nvarchar|8000|0|0|Latin1_General_CI_AS_KS_WS|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|1|object_id|sys|int|int|4|10|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|2|version|sys|int|int|4|10|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|3|source_object_id|sys|int|int|4|10|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|4|capture_instance|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|5|start_lsn|sys|binary|binary|10|0|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|6|end_lsn|sys|binary|binary|10|0|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|7|supports_net_changes|sys|bit|bit|1|1|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|8|has_drop_pending|sys|bit|bit|1|1|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|9|role_name|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|10|index_name|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|11|filegroup_name|sys|sysname|nvarchar|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|12|create_date|sys|datetime|datetime|8|23|3|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|change_tables|USER_TABLE|13|partition_switch|sys|bit|bit|1|1|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|USER_TABLE|1|__$start_lsn|sys|binary|binary|10|0|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|USER_TABLE|2|__$end_lsn|sys|binary|binary|10|0|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|USER_TABLE|3|__$seqval|sys|binary|binary|10|0|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|USER_TABLE|4|__$operation|sys|int|int|4|10|0|NULL|0|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_customer_CT|USER_TABLE|5|__$update_mask|sys|varbinary|varbinary|128|0|0|NULL|1|0|NOT_APPLICABLE|NULL|NULL
+cdc|dbo_
+[output truncated]

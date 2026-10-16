@@ -1,0 +1,57 @@
+current_database|sql_version
+----------------|-----------
+llm_i6|16.0.4295.3
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|is_memory_optimized|is_filetable
+-----------|----------|---------|------------------|-------------------|------------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|0|0
+(1 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|is_column_set
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|-------------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0|0
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|0
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0|0
+(3 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+(2 rows affected)
+schema_name|table_name|column_name
+-----------|----------|-----------
+(0 rows affected)
+schema_name|table_name|check_constraint_name|definition
+-----------|----------|---------------------|----------
+(0 rows affected)
+schema_name|table_name|default_constraint_name|definition
+-----------|----------|-----------------------|----------
+(0 rows affected)
+schema_name|table_name|column_name|definition
+-----------|----------|-----------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)

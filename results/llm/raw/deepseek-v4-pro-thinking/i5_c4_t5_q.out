@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 26
+Invalid column name 'is_retention_enabled'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 32
+Invalid column name 'is_ledger'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 59
+Invalid column name 'masking_function'.

@@ -1,0 +1,28 @@
+WITH Customer_Current AS (
+    -- Check 1: The primary customer table (dbo.customer)
+    SELECT COUNT(T.customer_id) AS count_current
+    FROM dbo.customer T
+    WHERE T.customer_id = 42
+      AND T.full_name = 'Subject_0000042'
+      AND T.email = 'subject42@example.invalid'
+      AND T.phone = '+1-555-0000042'
+),
+Customer_History AS (
+    -- Check 2: The temporal history table (dbo.customer_history)
+    SELECT COUNT(T.customer_id) AS count_history
+    FROM dbo.customer_history T
+    WHERE T.customer_id = 42
+      AND T.full_name = 'Subject_0000042'
+      AND T.email = 'subject42@example.invalid'
+      AND T.phone = '+1-555-0000042'
+)
+-- Combine results into the required format: object_name and rows_found
+SELECT 
+    'dbo.customer' AS object_name, 
+    ISNULL(T1.count_current, 0) AS rows_found
+
+UNION ALL
+
+SELECT 
+    'dbo.customer_history' AS object_name, 
+    ISNULL(T2.count_history, 0) AS rows_found;

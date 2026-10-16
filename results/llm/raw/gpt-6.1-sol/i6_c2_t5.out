@@ -1,0 +1,5 @@
+Changed database context to 'llm_i6'.
+dbo.customer|0
+cdc.dbo_customer_CT|1
+
+(2 rows affected)

@@ -1,0 +1,24 @@
+schema_name|table_name|temporal_type_desc|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|computed_definition|collation_name
+-----------|----------|------------------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|-------------------|--------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|1|customer_id|int|4|10|0|0|0|0|NULL|NULL
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|2|full_name|nvarchar|200|0|0|0|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|3|email|nvarchar|400|0|0|0|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|4|phone|nvarchar|60|0|0|1|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|5|valid_from|datetime2|8|27|7|0|0|0|NULL|NULL
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|6|valid_to|datetime2|8|27|7|0|0|0|NULL|NULL
+dbo|customer_history|HISTORY_TABLE|1|customer_id|int|4|10|0|0|0|0|NULL|NULL
+dbo|customer_history|HISTORY_TABLE|2|full_name|nvarchar|200|0|0|0|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|HISTORY_TABLE|3|email|nvarchar|400|0|0|0|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|HISTORY_TABLE|4|phone|nvarchar|60|0|0|1|0|0|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer_history|HISTORY_TABLE|5|valid_from|datetime2|8|27|7|0|0|0|NULL|NULL
+dbo|customer_history|HISTORY_TABLE|6|valid_to|datetime2|8|27|7|0|0|0|NULL|NULL
+(12 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+dbo|customer_history|1
+(2 rows affected)
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name
+-----------|----------|------------------|-------------------|------------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history
+(1 rows affected)

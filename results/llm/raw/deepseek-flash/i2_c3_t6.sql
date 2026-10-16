@@ -1,0 +1,18 @@
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(200) = N'Subject_0000042';
+DECLARE @em nvarchar(200) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #r (object_name sysname, rows_found bigint);
+
+INSERT INTO #r (object_name, rows_found)
+SELECT 'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid OR full_name = @fn OR email = @em OR phone = @ph;
+
+INSERT INTO #r (object_name, rows_found)
+SELECT 'dbo.customer_history', COUNT_BIG(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid OR full_name = @fn OR email = @em OR phone = @ph;
+
+SELECT object_name, rows_found FROM #r;

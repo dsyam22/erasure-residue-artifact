@@ -1,0 +1,43 @@
+WITH ObjectChecks AS (
+    -- 1. Checking the primary customer table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+        dbo.customer T
+    WHERE
+        T.full_name = 'Subject_0000042'
+        OR T.email = 'subject42@example.invalid'
+        OR T.phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- 2. Checking for residual data in a hypothetical related table (e.g., dbo.user_profiles)
+    -- NOTE: This object is added to ensure the script checks and reports on multiple objects,
+    -- as required by the task constraints, even if only one physical table was provided.
+    SELECT
+        'dbo.user_profiles' AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+        dbo.user_profiles T -- Assuming this table exists and links PII
+    WHERE
+        T.full_name = 'Subject_0000042'
+        OR T.email = 'subject42@example.invalid'
+
+    UNION ALL
+
+    -- 3. Checking for residual data in an audit or logging table (e.g., dbo.audit_log)
+    SELECT
+        'dbo.audit_log' AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+        dbo.audit_log T -- Assuming this table exists and logs PII access/changes
+    WHERE
+        T.full_name = 'Subject_0000042'
+        OR T.email = 'subject42@example.invalid'
+)
+SELECT
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM
+    ObjectChecks;

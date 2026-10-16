@@ -1,0 +1,137 @@
+```sql
+/* ============================================================
+   Read-only verification: does erased personal data still exist?
+   Subject: customer_id 42, full_name 'Subject_0000042',
+            email 'subject42@example.invalid', phone '+1-555-0000042'
+   ============================================================ */
+
+SET NOCOUNT ON;
+
+DECLARE @cid   int          = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* ---- 1. Base table: dbo.customer ---- */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+/* ---- 2. CDC change table: cdc.dbo_customer_CT ---- */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+/* ---- 3. Temporal history table (if it exists) ---- */
+IF OBJECT_ID(N'dbo.customer_history', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_history',
+           COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @cid
+       OR full_name   = @name
+       OR email       = @email
+       OR phone       = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    VALUES (N'dbo.customer_history', 0);
+END
+
+/* ---- 4. Other CDC capture instances / change tables in the DB ---- */
+DECLARE @sql nvarchar(max) = N'';
+DECLARE @tbl sysname, @sch sysname;
+
+DECLARE ct CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE s.name = N'cdc'
+      AND t.name LIKE N'%_CT'
+      AND t.name <> N'dbo_customer_CT';
+
+OPEN ct;
+FETCH NEXT FROM ct INTO @sch, @tbl;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = @sql + N'
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N''' + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl) + N''',
+           COUNT(*)
+    FROM ' + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl) + N'
+    WHERE customer_id = @cid
+       OR full_name   = @name
+       OR email       = @email
+       OR phone       = @phone;';
+
+    FETCH NEXT FROM ct INTO @sch, @tbl;
+END
+CLOSE ct;
+DEALLOCATE ct;
+
+IF @sql <> N''
+    EXEC sp_executesql @sql,
+        N'@cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+        @cid, @name, @email, @phone;
+
+/* ---- 5. Any other table in the DB containing the subject's data ---- */
+SET @sql = N'';
+DECLARE @tbl2 sysname, @sch2 sysname;
+
+DECLARE ct2 CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.name NOT LIKE N'%_CT'
+      AND t.name <> N'customer'
+      AND t.name <> N'customer_history'
+      AND EXISTS (
+          SELECT 1
+          FROM sys.columns AS c
+          WHERE c.object_id = t.object_id
+            AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+      );
+
+OPEN ct2;
+FETCH NEXT FROM ct2 INTO @sch2, @tbl2;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = @sql + N'
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N''' + QUOTENAME(@sch2) + N'.' + QUOTENAME(@tbl2) + N''') AND name = N''customer_id'')
+    BEGIN
+        INSERT INTO @results (object_name, rows_found)
+        SELECT N''' + QUOTENAME(@sch2) + N'.' + QUOTENAME(@tbl2) + N''',
+               COUNT(*)
+        FROM ' + QUOTENAME(@sch2) + N'.' + QUOTENAME(@tbl2) + N'
+        WHERE (OBJECT_ID(N''' + QUOTENAME(@sch2) + N'.' + QUOTENAME(@tbl2) + N''') IS NOT NULL
+               AND customer_id = @cid);
+    END';
+
+    FETCH NEXT FROM ct2 INTO @sch2, @tbl2;
+END
+CLOSE ct2;
+DEALLOCATE ct2;
+
+IF @sql <> N''
+    EXEC sp_executesql @sql,
+        N'@cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+        @cid, @name, @email, @phone;
+
+/* ---- Final single result set ---- */
+SELECT object_name, rows_found
+FROM @results;
+```

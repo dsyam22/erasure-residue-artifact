@@ -1,0 +1,13 @@
+COLUMN_NAME
+-----------
+__$start_lsn
+__$end_lsn
+__$seqval
+__$operation
+__$update_mask
+customer_id
+full_name
+email
+phone
+__$command_id
+(10 rows affected)

@@ -1,0 +1,164 @@
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(4000) = N'Subject_0000042';
+DECLARE @email nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* dbo.customer */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* dbo.customer_history */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT_BIG(*)
+FROM dbo.customer_history
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* dbo.customer_archive (if present) */
+IF OBJECT_ID(N'dbo.customer_archive', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_archive', COUNT_BIG(*)
+    FROM dbo.customer_archive
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_archive', 0;
+END
+
+/* dbo.customer_audit (if present) */
+IF OBJECT_ID(N'dbo.customer_audit', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_audit', COUNT_BIG(*)
+    FROM dbo.customer_audit
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_audit', 0;
+END
+
+/* dbo.customer_backup (if present) */
+IF OBJECT_ID(N'dbo.customer_backup', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_backup', COUNT_BIG(*)
+    FROM dbo.customer_backup
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_backup', 0;
+END
+
+/* dbo.customer_staging (if present) */
+IF OBJECT_ID(N'dbo.customer_staging', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_staging', COUNT_BIG(*)
+    FROM dbo.customer_staging
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_staging', 0;
+END
+
+/* dbo.customer_legacy (if present) */
+IF OBJECT_ID(N'dbo.customer_legacy', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_legacy', COUNT_BIG(*)
+    FROM dbo.customer_legacy
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_legacy', 0;
+END
+
+/* dbo.customer_stage (if present) */
+IF OBJECT_ID(N'dbo.customer_stage', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_stage', COUNT_BIG(*)
+    FROM dbo.customer_stage
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_stage', 0;
+END
+
+/* dbo.customer_delta (if present) */
+IF OBJECT_ID(N'dbo.customer_delta', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_delta', COUNT_BIG(*)
+    FROM dbo.customer_delta
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_delta', 0;
+END
+
+/* dbo.customer_audit_trail (if present) */
+IF OBJECT_ID(N'dbo.customer_audit_trail', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_audit_trail', COUNT_BIG(*)
+    FROM dbo.customer_audit_trail
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer_audit_trail', 0;
+END
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

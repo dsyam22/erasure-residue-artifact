@@ -1,0 +1,31 @@
+WITH ObjectCounts AS (
+    -- Check 1: Primary Table (dbo.customer) - Should be empty after DELETE
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(1) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = 42
+
+    UNION ALL
+
+    -- Check 2: CDC Change Table (cdc.dbo_customer_CT) - Records of the deletion event
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(1) AS rows_found
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = 42
+
+    UNION ALL
+
+    -- Note: Since the table is non-temporal and no other downstream copies are specified, 
+    -- we only check the primary table and the CDC change log for data persistence.
+    -- If a dedicated history/audit table existed (e.g., dbo.customer_history), it would be added here.
+    SELECT
+        'N/A (No further objects checked)' AS object_name, -- Placeholder to ensure required structure if no other tables exist
+        0 AS rows_found
+)
+-- Select the final result set from all checks
+SELECT 
+    object_name, 
+    rows_found
+FROM ObjectCounts;

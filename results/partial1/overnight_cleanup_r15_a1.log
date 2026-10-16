@@ -1,0 +1,15 @@
+=== 2026-10-10T18:08:50Z m4_cleanup DB=m_c_r15_a1 RET=15 ACTIVITY=1 TRIAL=1 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r15_a1'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r15_a1_capture' started successfully.
+Job 'cdc.m_c_r15_a1_cleanup' started successfully.
+HResult 0x5606, Level 16, State 1
+SQLServerAgent Error: Request to run job cdc.m_c_r15_a1_cleanup (from User sa) refused because the job is already running from a request by User sa.
+14:14:08 cleanup_r15_a1: attempt 1 gave no complete result, retrying
+=== 2026-10-10T18:14:23Z m4_cleanup DB=m_c_r15_a1 RET=15 ACTIVITY=1 TRIAL=1 (attempt 2) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r15_a1'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r15_a1_capture' started successfully.
+Job 'cdc.m_c_r15_a1_cleanup' started successfully.

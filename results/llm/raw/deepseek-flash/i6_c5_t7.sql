@@ -1,0 +1,64 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* Check the customer table for the phone value in any column that currently exists.
+   Since the phone column was dropped, we scan the remaining columns (customer_id,
+   full_name, email) for any occurrence of the phone number. */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE full_name LIKE '%' + @phone + '%'
+   OR email LIKE '%' + @phone + '%'
+   OR CONVERT(nvarchar(100), customer_id) LIKE '%' + @phone + '%';
+
+/* Dynamically search every table and every column in the database for the
+   subject's phone number, so we can be sure it is not stored anywhere else. */
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA
+ AND t.TABLE_NAME = c.TABLE_NAME
+WHERE t.TABLE_TYPE = 'BASE TABLE'
+  AND c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext','xml')
+  AND c.COLUMN_NAME NOT IN ('full_name','email')
+  AND NOT (c.TABLE_SCHEMA = 'dbo' AND c.TABLE_NAME = 'customer');
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE CONVERT(nvarchar(max), ' + QUOTENAME(@column) + N') LIKE ''%'' + @p + ''%'';';
+
+    DECLARE @cnt int = 0;
+    EXEC sp_executesql @sql, N'@p nvarchar(100), @cnt int OUTPUT', @p = @phone, @cnt = @cnt OUTPUT;
+
+    IF @cnt > 0
+    BEGIN
+        IF EXISTS (SELECT 1 FROM @results WHERE object_name = @schema + N'.' + @table)
+            UPDATE @results SET rows_found = rows_found + @cnt
+            WHERE object_name = @schema + N'.' + @table;
+        ELSE
+            INSERT INTO @results (object_name, rows_found)
+            VALUES (@schema + N'.' + @table, @cnt);
+    END
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+/* Ensure every object we checked appears, even with 0 rows found. */
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

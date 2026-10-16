@@ -1,0 +1,72 @@
+DECLARE @TableName sysname;
+DECLARE @SQL NVARCHAR(MAX);
+DECLARE @ResultTable TABLE (object_name nvarchar(256), rows_found int);
+
+-- Cursor to iterate over all user-defined tables in the current database
+DECLARE TableCursor CURSOR FOR 
+SELECT name FROM sys.tables WHERE is_ms_shipped = 0 AND name <> 'sysdiagrams';
+
+OPEN TableCursor;
+SET IDENTITY_INSERT #CheckResults ON; -- Ensure temporary table handling if needed, although we use a full select later
+
+-- Initialize the results structure (we will update this iteratively)
+TRUNCATE TABLE #CheckResults;
+CREATE TABLE #CheckResults (object_name nvarchar(256), rows_found int);
+
+
+FETCH NEXT FROM TableCursor INTO @TableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'
+        INSERT INTO #CheckResults (object_name, rows_found)
+        SELECT 
+            ''[' + QUOTENAME(@TableName) + ']'',
+            COUNT(CASE WHEN T.'';customer_id'' IS NOT NULL AND CAST(T.customer_id AS NVARCHAR(50)) = ''42'' THEN 1 ELSE NULL END) + -- Check for ID match (assuming customer_id might exist or be identifiable by INT/VARCHAR)
+            COUNT(CASE WHEN T.[full_name] = ''Subject_0000042'' THEN 1 ELSE NULL END) +                                     -- Check for Name match
+            COUNT(CASE WHEN T.email = ''subject42@example.invalid'' THEN 1 ELSE NULL END) +                           -- Check for Email match
+            COUNT(CASE WHEN T.phone = ''+1-555-0000042'' THEN 1 ELSE NULL END)                                       -- Check for Phone match
+            -- Note: This simplified check only counts rows where *at least one* of the key PII fields matches exactly (UNION logic is complex in a single count). 
+            -- For simplicity and performance, we will count how many records contain ANY of the specified data points.
+        FROM [dbo].[' + @TableName + '] AS T;';
+
+    -- Execute the dynamic SQL to populate the results table for this specific object
+    BEGIN TRY
+        EXEC sp_executesql @SQL;
+    END TRY
+    BEGIN CATCH
+        -- If a table has incompatible columns, skip it gracefully without erroring out.
+        PRINT 'Skipping table [' + @TableName + '] due to execution error.';
+    END CATCH
+
+    FETCH NEXT FROM TableCursor INTO @TableName;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final step: Select the required result set structure.
+-- Because we are running multiple complex COUNTs within the dynamic SQL, 
+-- and the requirement is to return a single count per object, 
+-- we must determine if any of the individual checks found data in that row (i.e., total match > 0).
+
+SELECT 
+    T.object_name,
+    MAX(R.rows_found) AS rows_found -- Use MAX because the dynamic SQL might insert multiple records per table check if optimized differently; however, given the structure above, we rely on a single result set capture point.
+FROM (
+    -- Re-running logic slightly simplified to ensure one row per object and aggregating the count across all checks
+    SELECT 
+        QUOTENAME(name) AS [object_name],
+        CAST(COUNT(CASE WHEN T.[full_name] = 'Subject_0000042' THEN 1 END) + -- Name match
+             ISNULL(CAST(SUM(CASE WHEN EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('[dbo].' + name) AND name IN ('customer_id', 'email', 'phone')) AND CAST(T.[full_name] AS nvarchar) = 'Subject_0000042') THEN 1 ELSE 0 END), DEFAULT 0)
+             + ISNULL(CAST(SUM(CASE WHEN EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('[dbo].' + name) AND name IN ('customer_id', 'email', 'phone')) AND T.[email] = 'subject42@example.invalid') THEN 1 ELSE 0 END), DEFAULT 0)
+             + ISNULL(CAST(SUM(CASE WHEN EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('[dbo].' + name) AND name IN ('customer_id', 'email', 'phone')) AND T.[phone] = '+1-555-0000042') THEN 1 ELSE 0 END), DEFAULT 0)
+             AS INT)) AS TotalFoundCount
+    FROM sys.tables t
+    CROSS APPLY (
+        SELECT * FROM [dbo].' + name + ' WHERE 1=1 -- Placeholder for the actual table content check
+    ) T
+    GROUP BY QUOTENAME(name)
+
+) AS R ON 1=1
+WHERE EXISTS (SELECT 1 FROM sys.tables WHERE name = PARSENAME(R.object_name, 1)); -- Filter out potential errors from dynamic scope handling

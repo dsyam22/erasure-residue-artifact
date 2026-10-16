@@ -1,0 +1,31 @@
+-- SCRIPT
+-- Scope: current rows in dbo.customer and visible SQL module definitions.
+-- Transaction-log inspection was denied, and Query Store requires unavailable
+-- VIEW DATABASE PERFORMANCE STATE permission. These stores are not checked.
+-- Deleted/ghost records, version stores, unallocated pages, and backups are
+-- also outside this check. Zero counts do not establish physical erasure.
+
+DECLARE @full_name nvarchar(200),
+        @email nvarchar(400),
+        @phone nvarchar(60);
+
+SELECT @full_name = N'Subject_' + N'0000042',
+       @email = N'subject42' + N'@example.invalid',
+       @phone = N'+1-555-' + N'0000042';
+
+SELECT N'dbo.customer' AS object_name,
+       COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR CHARINDEX(@full_name, full_name) > 0
+   OR CHARINDEX(@email, email) > 0
+   OR CHARINDEX(@phone, phone) > 0
+
+UNION ALL
+
+SELECT N'sys.sql_modules' AS object_name,
+       COUNT_BIG(*) AS rows_found
+FROM sys.sql_modules
+WHERE CHARINDEX(@full_name, definition) > 0
+   OR CHARINDEX(@email, definition) > 0
+   OR CHARINDEX(@phone, definition) > 0;

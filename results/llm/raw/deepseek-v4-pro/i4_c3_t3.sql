@@ -1,0 +1,50 @@
+DECLARE @OriginalFullName NVARCHAR(255) = 'Subject_0000042';
+DECLARE @OriginalEmail NVARCHAR(255) = 'subject42@example.invalid';
+DECLARE @OriginalPhone NVARCHAR(255) = '+1-555-0000042';
+DECLARE @CustomerId INT = 42;
+DECLARE @MemberId INT = 42;
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @CustomerId
+  AND (full_name = @OriginalFullName OR email = @OriginalEmail OR phone = @OriginalPhone);
+
+-- Check dbo.member
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.member',
+    COUNT(*)
+FROM dbo.member
+WHERE member_id = @MemberId
+  AND (full_name = @OriginalFullName OR email = @OriginalEmail OR phone = @OriginalPhone);
+
+-- Check dbo.member_history (temporal history table)
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.member_history',
+    COUNT(*)
+FROM dbo.member_history
+WHERE member_id = @MemberId
+  AND (full_name = @OriginalFullName OR email = @OriginalEmail OR phone = @OriginalPhone);
+
+-- Check CDC change table for dbo.customer
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'cdc.dbo_customer_CT',
+    COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @CustomerId
+  AND (full_name = @OriginalFullName OR email = @OriginalEmail OR phone = @OriginalPhone);
+
+SELECT object_name, rows_found
+FROM @Results
+ORDER BY object_name;

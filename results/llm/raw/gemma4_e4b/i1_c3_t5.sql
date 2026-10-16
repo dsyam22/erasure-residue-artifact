@@ -1,0 +1,14 @@
+WITH SearchResults AS (
+    -- Check 1: The primary data table itself
+    SELECT 
+        'dbo.customer' AS object_name,
+        CAST(ISNULL((SELECT COUNT(1) FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'), 0) AS INT) AS rows_found
+    
+    UNION ALL
+    
+    -- Check 2: The CDC Change Table (metadata/history of changes)
+    SELECT 
+        'cdc.dbo_customer_CT' AS object_name,
+        CAST(ISNULL((SELECT COUNT(1) FROM cdc.dbo_customer_CT WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'), 0) AS INT)
+)
+SELECT object_name, rows_found FROM SearchResults;

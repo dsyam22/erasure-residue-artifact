@@ -1,0 +1,2 @@
+Msg 245, Level 16, State 1, Server 651334c31df8, Line 1
+Conversion failed when converting the varchar value 'NO' to data type bit.

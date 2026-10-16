@@ -1,0 +1,27 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 57
+Incorrect syntax near ') + N' LIKE ''' + REPLACE(REPLACE(@SubjectEmail, '''', ''''''), '%', '%') + N'%'' OR '; -- Check Email Pattern
+        SET @SQL ='.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 59
+Incorrect syntax near ') + N' LIKE N''' + REPLACE(REPLACE(@SubjectPhone, '''', ''''''), '%', '%') + N'%'' OR '; -- Check Phone Pattern
+        -- Checki'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 70
+Unclosed quotation mark after the character string ';
+
+    -- Execute the dynamic SQL
+    EXEC sp_executesql @SQL;
+
+    FETCH NEXT FROM table_cursor INTO @TableName;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Final selection of results in the required format
+SELECT 
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;
+'.

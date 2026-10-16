@@ -1,0 +1,5 @@
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|PK__customer__CD65CB85E787FACC|PRIMARY_KEY_CONSTRAINT
+(2 rows affected)

@@ -1,0 +1,46 @@
+server_name|current_db|llm_i1_database_id
+-----------|----------|------------------
+651334c31df8|llm_i1|25
+(1 rows affected)
+schema_name|table_name|object_id|create_date|modify_date|row_count
+-----------|----------|---------|-----------|-----------|---------
+dbo|customer|901578250|2026-10-10 19:08:05.070|2026-10-10 19:08:05.753|99
+(1 rows affected)
+schema_name|object_name|type_desc|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|computed_definition
+-----------|-----------|---------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|-------------------
+dbo|customer|USER_TABLE|1|customer_id|int|4|10|0|0|0|0|NULL
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|0|0|0|0|NULL
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|0|0|0|0|NULL
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|0|0|1|0|0|NULL
+(4 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+(2 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+parent_schema|parent_table|referenced_schema|referenced_table|foreign_key_name|is_disabled
+-------------|------------|-----------------|----------------|----------------|-----------
+(0 rows affected)

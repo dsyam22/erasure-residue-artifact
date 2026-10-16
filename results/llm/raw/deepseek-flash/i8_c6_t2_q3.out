@@ -1,0 +1,7 @@
+col_name|type_name|max_length
+--------|---------|----------
+customer_id|int|4
+full_name|nvarchar|200
+email|nvarchar|400
+phone|nvarchar|60
+(4 rows affected)

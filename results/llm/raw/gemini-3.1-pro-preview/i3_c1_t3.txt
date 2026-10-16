@@ -1,0 +1,50 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @Result TABLE (
+    object_name NVARCHAR(256),
+    rows_found INT
+);
+
+-- Check dbo.customer
+INSERT INTO @Result (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check dbo.member (checking for system-versioned temporal table)
+DECLARE @member_temporal_type INT = 0;
+SELECT @member_temporal_type = temporal_type 
+FROM sys.tables 
+WHERE object_id = OBJECT_ID('dbo.member');
+
+IF @member_temporal_type = 2
+BEGIN
+    EXEC sp_executesql N'
+        INSERT INTO @Result (object_name, rows_found)
+        SELECT ''dbo.member'', COUNT(*)
+        FROM dbo.member FOR SYSTEM_TIME ALL
+        WHERE member_id = 42 
+           OR full_name = ''Subject_0000042'' 
+           OR email = ''subject42@example.invalid'' 
+           OR phone = ''+1-555-0000042'';
+    ';
+END
+ELSE
+BEGIN
+    INSERT INTO @Result (object_name, rows_found)
+    SELECT 'dbo.member', COUNT(*)
+    FROM dbo.member
+    WHERE member_id = 42 
+       OR full_name = 'Subject_0000042' 
+       OR email = 'subject42@example.invalid' 
+       OR phone = '+1-555-0000042';
+END
+
+-- Return the exact result set requested
+SELECT object_name, rows_found
+FROM @Result;
+```

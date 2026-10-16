@@ -1,0 +1,20 @@
+WITH CheckResults AS (
+    -- Check 1: dbo.customer (The main table where the column was dropped)
+    -- Since the phone column was physically dropped, checking for data here is expected to yield 0 rows.
+    SELECT
+        CAST('dbo.customer' AS NVARCHAR(256)) AS object_name,
+        ISNULL((SELECT COUNT(*) FROM dbo.customer WHERE 1=0), 0) AS rows_found
+
+    UNION ALL
+
+    -- Check 2: cdc.dbo_customer_CT (The Change Tracking table which retains historical values)
+    -- We check the actual 'phone' column within this history table for a match to the subject's original data.
+    SELECT
+        CAST('cdc.dbo_customer_CT' AS NVARCHAR(256)),
+        ISNULL((
+            SELECT COUNT(*)
+            FROM cdc.dbo_customer_CT
+            WHERE phone = '+1-555-0000042'
+        ), 0)
+)
+SELECT object_name, rows_found FROM CheckResults;

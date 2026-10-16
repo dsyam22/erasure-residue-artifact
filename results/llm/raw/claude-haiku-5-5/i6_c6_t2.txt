@@ -1,0 +1,31 @@
+```sql
+-- SCRIPT
+SELECT object_name, rows_found
+FROM (
+    SELECT N'cdc.dbo_customer_CT' AS object_name,
+           CAST((SELECT COUNT(*) FROM cdc.dbo_customer_CT
+                 WHERE phone = N'+1-555-0000042') AS int) AS rows_found
+    UNION ALL
+    SELECT N'dbo.customer',
+           CAST(0 AS int)  -- phone column dropped; no phone value can be stored here
+    UNION ALL
+    SELECT N'cdc.ddl_history',
+           CAST((SELECT COUNT(*) FROM cdc.ddl_history
+                 WHERE ddl_command LIKE N'%+1-555-0000042%') AS int)
+    UNION ALL
+    SELECT N'cdc.captured_columns',
+           CAST(0 AS int)  -- holds column metadata only, no personal data values
+    UNION ALL
+    SELECT N'cdc.change_tables',
+           CAST(0 AS int)  -- holds capture metadata only, no personal data values
+    UNION ALL
+    SELECT N'cdc.index_columns',
+           CAST(0 AS int)  -- holds index metadata only, no personal data values
+    UNION ALL
+    SELECT N'cdc.lsn_time_mapping',
+           CAST(0 AS int)  -- holds LSN/transaction timing only, no personal data values
+    UNION ALL
+    SELECT N'dbo.systranschemas',
+           CAST(0 AS int)  -- holds replication schema metadata only, no personal data values
+) AS r;
+```

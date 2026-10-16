@@ -1,0 +1,37 @@
+name|is_cdc_enabled|snapshot_isolation_state_desc
+----|--------------|-----------------------------
+llm_i2|0|OFF
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|ledger_type_desc|is_dropped_ledger_table
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|---------------|----------------|-----------------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0
+(2 rows affected)
+schema_name|table_name|column_id|column_name|type_schema_name|data_type|max_length|precision|scale|is_nullable|is_hidden|generated_always_type_desc|encryption_type_desc|is_computed|computed_definition
+-----------|----------|---------|-----------|----------------|---------|----------|---------|-----|-----------|---------|--------------------------|--------------------|-----------|-------------------
+dbo|customer|1|customer_id|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer|2|full_name|sys|nvarchar|200|0|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer|3|email|sys|nvarchar|400|0|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer|4|phone|sys|nvarchar|60|0|0|1|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer|5|valid_from|sys|datetime2|8|27|7|0|0|AS_ROW_START|NULL|0|NULL
+dbo|customer|6|valid_to|sys|datetime2|8|27|7|0|0|AS_ROW_END|NULL|0|NULL
+dbo|customer_history|1|customer_id|sys|int|4|10|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer_history|2|full_name|sys|nvarchar|200|0|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer_history|3|email|sys|nvarchar|400|0|0|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer_history|4|phone|sys|nvarchar|60|0|0|1|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer_history|5|valid_from|sys|datetime2|8|27|7|0|0|NOT_APPLICABLE|NULL|0|NULL
+dbo|customer_history|6|valid_to|sys|datetime2|8|27|7|0|0|NOT_APPLICABLE|NULL|0|NULL
+(12 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|begin_version|cleanup_version|min_valid_version|is_track_columns_updated_on
+-----------|----------|-------------|---------------|-----------------|---------------------------
+(0 rows affected)
+database_user|is_sysadmin|can_view_definition|has_database_select|can_view_database_state
+-------------|-----------|-------------------|-------------------|-----------------------
+llm_reader|0|1|1|0
+(1 rows affected)

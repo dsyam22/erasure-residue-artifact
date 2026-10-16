@@ -1,0 +1,13 @@
+SELECT object_name, rows_found
+FROM (
+    SELECT 'dbo.customer' AS object_name,
+           COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND (
+            full_name LIKE N'%Subject_0000042%'
+         OR email LIKE N'%subject42@example.invalid%'
+         OR full_name LIKE N'%555-0000042%'
+         OR email LIKE N'%555-0000042%'
+      )
+) AS checks;

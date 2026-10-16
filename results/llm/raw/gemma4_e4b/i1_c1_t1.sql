@@ -1,0 +1,13 @@
+WITH DataCheck AS (
+    -- Check for remaining data in dbo.customer based on the provided PII fields
+    SELECT COUNT(*) AS found_count
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND full_name = 'Subject_0000042'
+      AND email = 'subject42@example.invalid'
+      AND phone = '+1-555-0000042'
+)
+SELECT
+    'dbo.customer' AS object_name,
+    D.found_count AS rows_found
+FROM DataCheck D;

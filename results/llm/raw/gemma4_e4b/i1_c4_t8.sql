@@ -1,0 +1,14 @@
+WITH ObjectChecks AS (
+    -- Check dbo.customer for any remaining records matching the subject's PII
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+        COUNT(1) AS rows_found
+    FROM 
+        dbo.customer
+    WHERE 
+        customer_id = 42 
+        AND full_name = 'Subject_0000042' 
+        AND email = 'subject42@example.invalid' 
+        AND phone = '+1-555-0000042'
+)
+SELECT object_name, rows_found FROM ObjectChecks;

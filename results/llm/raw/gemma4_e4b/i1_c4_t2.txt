@@ -1,0 +1,30 @@
+```sql
+WITH CheckResults AS (
+    -- Check dbo.customer for matching PII records
+    SELECT 
+        'dbo.customer' AS object_name, 
+        COUNT(1) AS rows_found
+    FROM 
+        dbo.customer
+    WHERE 
+        full_name = 'Subject_0000042' 
+        AND email = 'subject42@example.invalid' 
+        AND phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- Placeholder for other tables (e.g., audit logs, transactions) if they existed and needed checking.
+    -- Since only dbo.customer was visible in the provided schema output containing customer data, 
+    -- we include a placeholder row for completeness or assume no other user-data tables exist to check.
+    SELECT 
+        'N/A_Other_Tables' AS object_name, -- Use a descriptive name if checking assumed objects
+        0 AS rows_found -- Assuming zero findings unless specific related tables are known and checked
+)
+-- Select only the results for the actively checked user-data table(s).
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    CheckResults
+WHERE object_name <> 'N/A_Other_Tables';
+```

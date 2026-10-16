@@ -1,0 +1,79 @@
+DECLARE @TargetData TABLE (
+    KeyName NVARCHAR(50),
+    KeyValue1 NVARCHAR(255),
+    KeyValue2 NVARCHAR(255)
+);
+
+-- Populate known subject data
+INSERT INTO @TargetData (KeyName, KeyValue1, KeyValue2) VALUES 
+('full_name', 'Subject_0000042', NULL),
+('email', 'subject42@example.invalid', NULL),
+('phone', '+1-555-0000042', NULL);
+
+-- Temporary table to store results (Object Name and Count)
+CREATE TABLE #CheckResults (
+    ObjectName NVARCHAR(256),
+    RowsFound INT
+);
+
+-- List of potential tables/areas to check. 
+-- We must include the original table, even if deleted, to account for archival copies or related structures.
+DECLARE @TablesToScan TABLE (TableName NVARCHAR(256));
+INSERT INTO @TablesToScan (TableName) VALUES ('dbo.customer');
+
+-- Add any other tables potentially holding PII (e.g., orders, contacts, history logs). 
+-- Since we don't know the schema, we must assume these are potential targets.
+-- If actual related tables existed, they would be listed here.
+INSERT INTO @TablesToScan (TableName) VALUES ('dbo.customer_history');
+INSERT INTO @TablesToScan (TableName) VALUES ('dbo.user_logs');
+
+
+DECLARE @CurrentTable NVARCHAR(256);
+DECLARE @SQL NVARCHAR(MAX);
+
+-- Cursor to iterate through all potential tables and check for PII presence
+DECLARE TableCursor CURSOR FOR SELECT TableName FROM @TablesToScan;
+OPEN TableCursor;
+FETCH NEXT FROM TableCursor INTO @CurrentTable;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'
+        INSERT INTO #CheckResults (ObjectName, RowsFound)
+        SELECT TOP 1 COUNT(*) FROM ' + QUOTENAME(@CurrentTable) + N' AS T
+        WHERE EXISTS (
+            SELECT 1 
+            FROM (VALUES 
+                (T.full_name, '''Subject_0000042'''), 
+                (T.email, ''subject42@example.invalid''),
+                (T.phone, ''+1-555-0000042'')
+            ) AS DataCheck (ColName, TargetValue)
+            WHERE T.' + QUOTENAME('full_name') + N' = DataCheck.TargetValue OR 
+                  CAST(T.' + QUOTENAME('email') + N' AS NVARCHAR(MAX)) LIKE ''%subject42@example.invalid%'' OR
+                  CAST(T.' + QUOTENAME('phone') + N' AS NVARCHAR(MAX)) LIKE ''%555-000%'
+        );';
+
+    -- Execute the dynamic SQL and handle potential errors (e.g., table doesn't exist or column name mismatch)
+    BEGIN TRY
+        EXEC sp_executesql @SQL;
+    END TRY
+    BEGIN CATCH
+        -- If an error occurs (e.g., table was genuinely deleted, or column assumed does not exist), 
+        -- we still need to record the object name with a count of 0 to meet the requirement.
+        INSERT INTO #CheckResults (ObjectName, RowsFound) VALUES (@CurrentTable, 0);
+    END CATCH
+
+    FETCH NEXT FROM TableCursor INTO @CurrentTable;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final result set must contain one row per object checked.
+SELECT 
+    ObjectName AS [object_name], 
+    COALESCE(SUM(RowsFound), 0) AS [rows_found]
+FROM #CheckResults
+GROUP BY ObjectName;
+
+DROP TABLE #CheckResults;

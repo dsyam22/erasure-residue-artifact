@@ -1,0 +1,29 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @RowsFound INT;
+
+BEGIN TRY
+    EXEC sp_executesql 
+        N'SELECT @cnt = COUNT(*) 
+          FROM dbo.customer FOR SYSTEM_TIME ALL 
+          WHERE customer_id = 42 
+             OR full_name = ''Subject_0000042'' 
+             OR email = ''subject42@example.invalid'' 
+             OR phone = ''+1-555-0000042'';', 
+        N'@cnt INT OUTPUT', 
+        @cnt = @RowsFound OUTPUT;
+END TRY
+BEGIN CATCH
+    SELECT @RowsFound = COUNT(*) 
+    FROM dbo.customer 
+    WHERE customer_id = 42 
+       OR full_name = 'Subject_0000042' 
+       OR email = 'subject42@example.invalid' 
+       OR phone = '+1-555-0000042';
+END CATCH;
+
+SELECT 
+    'dbo.customer' AS object_name, 
+    ISNULL(@RowsFound, 0) AS rows_found;
+```

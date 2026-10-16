@@ -1,0 +1,28 @@
+DECLARE @CID INT = 42;
+DECLARE @FN NVARCHAR(100) = 'Subject_0000042';
+DECLARE @EML NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @PHN NVARCHAR(50) = '+1-555-0000042';
+
+-- Check the current state of the main customer table
+SELECT 
+    'dbo.customer' AS object_name, 
+    COUNT(customer_id) AS rows_found
+FROM dbo.customer
+WHERE 
+    customer_id = @CID AND 
+    full_name = @FN AND 
+    email = @EML AND 
+    phone = @PHN
+
+UNION ALL
+
+-- Check the Change Data Capture (CDC) table for historical records of this subject's data
+SELECT 
+    'cdc.dbo_customer_CT' AS object_name, 
+    COUNT(customer_id) AS rows_found
+FROM cdc.dbo_customer_CT
+WHERE 
+    customer_id = @CID AND 
+    full_name = @FN AND 
+    email = @EML AND 
+    phone = @PHN;

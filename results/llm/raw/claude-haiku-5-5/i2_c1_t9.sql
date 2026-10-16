@@ -1,0 +1,68 @@
+SET NOCOUNT ON;
+
+DECLARE @p1 nvarchar(200) = N'%Subject[_]0000042%';          -- full_name
+DECLARE @p2 nvarchar(200) = N'%subject42@example.invalid%';  -- email
+DECLARE @p3 nvarchar(200) = N'%+1-555-0000042%';             -- phone
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid    int,
+        @s      sysname,
+        @t      sysname,
+        @where  nvarchar(max),
+        @sql    nvarchar(max),
+        @cnt    bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @oid, @s, @t;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = NULL;
+
+    SELECT @where = STRING_AGG(CAST(
+        '(CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max)) LIKE @p1 ESCAPE ''\'' ' +
+        'OR CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max)) LIKE @p2 ESCAPE ''\'' ' +
+        'OR CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max)) LIKE @p3 ESCAPE ''\'')'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (167, 231, 175, 239, 35, 99); -- varchar, nvarchar, char, nchar, text, ntext
+
+    IF @where IS NULL SET @where = N'1 = 0';
+
+    SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM '
+             + QUOTENAME(@s) + N'.' + QUOTENAME(@t)
+             + N' WHERE ' + @where + N';';
+    SET @cnt = 0;
+
+    EXEC sp_executesql
+         @sql,
+         N'@p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200), @cnt bigint OUTPUT',
+         @p1 = @p1, @p2 = @p2, @p3 = @p3, @cnt = @cnt OUTPUT;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@s + N'.' + @t, @cnt);
+
+    FETCH NEXT FROM tbl INTO @oid, @s, @t;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

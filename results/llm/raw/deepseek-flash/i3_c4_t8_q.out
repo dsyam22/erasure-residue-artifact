@@ -1,0 +1,19 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|member|member_id|int|4|0
+dbo|member|full_name|nvarchar|200|0
+dbo|member|email|nvarchar|400|0
+dbo|member|phone|nvarchar|60|1
+dbo|member|valid_from|datetime2|8|0
+dbo|member|valid_to|datetime2|8|0
+dbo|member_history|member_id|int|4|0
+dbo|member_history|full_name|nvarchar|200|0
+dbo|member_history|email|nvarchar|400|0
+dbo|member_history|phone|nvarchar|60|1
+dbo|member_history|valid_from|datetime2|8|0
+dbo|member_history|valid_to|datetime2|8|0
+(16 rows affected)

@@ -1,0 +1,4 @@
+TableName|HistoryTableName
+---------|----------------
+customer|customer_history
+(1 rows affected)

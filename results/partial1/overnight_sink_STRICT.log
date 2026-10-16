@@ -1,0 +1,59 @@
+=== 2026-10-10T18:09:00Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=1 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,1,100,0,2.07,0,0,10,0,313,0
+=== 2026-10-10T18:11:27Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=2 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,2,100,0,2.07,0,0,10,0,313,0
+=== 2026-10-10T18:13:46Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=3 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,3,100,0,1.57,0,0,10,0,313,0
+=== 2026-10-10T18:15:39Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=4 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,4,100,0,2.07,0,0,10,0,313,0
+=== 2026-10-10T18:17:58Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=5 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,5,100,0,1.60,0,0,10,0,313,0
+=== 2026-10-10T18:19:46Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=6 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.

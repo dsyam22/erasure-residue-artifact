@@ -1,0 +1,129 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(500),
+    rows_found int
+);
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+-- Check base table dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check CDC change table
+IF EXISTS (SELECT 1 FROM sys.tables t
+           INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+           WHERE s.name = N'cdc' AND t.name = N'dbo_customer_CT')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END
+
+-- Check for any temporal history tables related to dbo.customer
+IF EXISTS (SELECT 1 FROM sys.tables t
+           INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+           WHERE t.name LIKE N'%customer%' AND t.temporal_type = 1)
+BEGIN
+    DECLARE @history_schema nvarchar(128), @history_table nvarchar(128);
+    DECLARE hist_cursor CURSOR FOR
+        SELECT s.name, t.name
+        FROM sys.tables t
+        INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.name LIKE N'%customer%' AND t.temporal_type = 1;
+
+    OPEN hist_cursor;
+    FETCH NEXT FROM hist_cursor INTO @history_schema, @history_table;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @sql nvarchar(max) = N'INSERT INTO #results (object_name, rows_found) SELECT @obj, COUNT(*) FROM ' + QUOTENAME(@history_schema) + N'.' + QUOTENAME(@history_table) + N' WHERE customer_id = @cid OR full_name = @fn OR email = @em OR phone = @ph';
+        DECLARE @obj nvarchar(500) = @history_schema + N'.' + @history_table;
+        EXEC sp_executesql @sql, N'@obj nvarchar(500), @cid int, @fn nvarchar(255), @em nvarchar(255), @ph nvarchar(255)', @obj, @customer_id, @full_name, @email, @phone;
+        FETCH NEXT FROM hist_cursor INTO @history_schema, @history_table;
+    END
+
+    CLOSE hist_cursor;
+    DEALLOCATE hist_cursor;
+END
+
+-- Check for any other tables that might contain customer data (downstream copies)
+-- Search for tables containing columns named like customer_id, full_name, email, phone
+IF EXISTS (SELECT 1 FROM sys.tables t
+           INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+           INNER JOIN sys.columns c ON c.object_id = t.object_id
+           WHERE c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+             AND NOT (s.name = N'dbo' AND t.name = N'customer'))
+BEGIN
+    DECLARE @schema_name nvarchar(128), @table_name nvarchar(128);
+    DECLARE table_cursor CURSOR FOR
+        SELECT DISTINCT s.name, t.name
+        FROM sys.tables t
+        INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+        INNER JOIN sys.columns c ON c.object_id = t.object_id
+        WHERE c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+          AND NOT (s.name = N'dbo' AND t.name = N'customer')
+          AND NOT (s.name = N'cdc' AND t.name = N'dbo_customer_CT')
+          AND NOT (t.temporal_type = 1 AND t.name LIKE N'%customer%');
+
+    OPEN table_cursor;
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @obj_name nvarchar(500) = @schema_name + N'.' + @table_name;
+        DECLARE @dynamic_sql nvarchar(max) = N'INSERT INTO #results (object_name, rows_found) SELECT @obj, COUNT(*) FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N' WHERE ';
+        
+        -- Build WHERE clause based on existing columns
+        DECLARE @where_clause nvarchar(max) = N'';
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@obj_name) AND name = N'customer_id')
+            SET @where_clause = @where_clause + N'customer_id = @cid OR ';
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@obj_name) AND name = N'full_name')
+            SET @where_clause = @where_clause + N'full_name = @fn OR ';
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@obj_name) AND name = N'email')
+            SET @where_clause = @where_clause + N'email = @em OR ';
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@obj_name) AND name = N'phone')
+            SET @where_clause = @where_clause + N'phone = @ph OR ';
+        
+        IF LEN(@where_clause) > 0
+        BEGIN
+            SET @where_clause = LEFT(@where_clause, LEN(@where_clause) - 3); -- Remove trailing ' OR '
+            SET @dynamic_sql = @dynamic_sql + @where_clause;
+            EXEC sp_executesql @dynamic_sql, N'@obj nvarchar(500), @cid int, @fn nvarchar(255), @em nvarchar(255), @ph nvarchar(255)', @obj_name, @customer_id, @full_name, @email, @phone;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found) VALUES (@obj_name, 0);
+        END
+
+        FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+    END
+
+    CLOSE table_cursor;
+    DEALLOCATE table_cursor;
+END
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

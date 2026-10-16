@@ -1,0 +1,33 @@
+DECLARE @TargetCustomerID INT = 42;
+DECLARE @TargetFullName NVARCHAR(100) = N'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(100) = N'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(50) = N'+1-555-0000042';
+
+-- Variables to hold the counts for each object
+DECLARE @CustomerCount INT;
+DECLARE @HistoryCount INT;
+
+-- 1. Check the current state of dbo.customer
+SELECT @CustomerCount = COUNT(1)
+FROM dbo.customer
+WHERE customer_id = @TargetCustomerID
+   OR full_name = @TargetFullName
+   OR email = @TargetEmail
+   OR phone = @TargetPhone;
+
+-- 2. Check the history table (dbo.customer_history)
+SELECT @HistoryCount = COUNT(1)
+FROM dbo.customer_history
+WHERE customer_id = @TargetCustomerID
+   OR full_name = @TargetFullName
+   OR email = @TargetEmail
+   OR phone = @TargetPhone;
+
+-- Return the required result set structure
+SELECT 
+    'dbo.customer' AS object_name, 
+    @CustomerCount AS rows_found
+UNION ALL
+SELECT 
+    'dbo.customer_history' AS object_name, 
+    @HistoryCount AS rows_found;

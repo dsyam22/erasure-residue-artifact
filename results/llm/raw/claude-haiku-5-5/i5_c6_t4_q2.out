@@ -1,0 +1,5 @@
+schema_name|table_name|temporal_type_desc|history_table_id|history_table_name
+-----------|----------|------------------|----------------|------------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|customer_history
+dbo|customer_history|HISTORY_TABLE|NULL|NULL
+(2 rows affected)

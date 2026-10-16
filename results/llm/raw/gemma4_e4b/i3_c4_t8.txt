@@ -1,0 +1,55 @@
+```sql
+WITH SourceData AS (
+    -- 1. Check dbo.customer
+    SELECT 
+        N'dbo.customer' AS object_name, 
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- 2. Check dbo.member
+    SELECT 
+        N'dbo.member' AS object_name, 
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END)
+    FROM dbo.member
+
+    UNION ALL
+
+    -- 3. Check dbo.member_history (Potential audit/historical table)
+    SELECT 
+        N'dbo.member_history' AS object_name, 
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END)
+    FROM dbo.member_history
+
+    UNION ALL
+
+    -- 4. Check cdc replication change table for customer (dbo_customer_CT)
+    SELECT 
+        N'cdc.dbo_customer_CT' AS object_name, 
+        COUNT(CASE WHEN full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042' THEN 1 END)
+    FROM cdc.dbo_customer_CT
+
+    UNION ALL
+
+    -- 5. Check generic change tables for name/email/phone (if applicable, using the observed structure)
+    SELECT 
+        N'cdc.change_tables' AS object_name, 
+        COUNT(CASE WHEN role_name = 'Subject_0000042' OR index_name = 'subject42@example.invalid' OR filegroup_name = '+1-555-0000042' THEN 1 END)
+    FROM cdc.change_tables
+
+    UNION ALL
+
+    -- 6. Check captured columns (metadata, unlikely to hold direct PII values for this specific query but included for completeness if structure allowed)
+    SELECT 
+        N'cdc.captured_columns' AS object_name, 
+        0 -- No direct PII value check possible here based on column schema
+);
+
+-- Final selection ensures that all checked objects are listed exactly once, using the calculated count (or 0 if no records were found in a specific source).
+SELECT 
+    object_name, 
+    COALESCE(SUM(rows_found), 0) AS rows_found
+FROM SourceData
+GROUP BY object_name;
+```

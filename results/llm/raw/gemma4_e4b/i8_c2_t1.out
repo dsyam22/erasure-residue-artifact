@@ -1,0 +1,4 @@
+Warning: Null value is eliminated by an aggregate or other SET operation.
+dbo.customer|0
+
+(1 rows affected)

@@ -1,0 +1,64 @@
+```sql
+WITH Check_CDC AS (
+    -- Checking the CDC change table for retained records of customer 42
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        cdc.dbo_customer_CT
+    WHERE
+        -- Search by key identifiers present in the captured columns
+        CAST(t.customer_id AS NVARCHAR(50)) = '42' OR
+        t.full_name LIKE '%Subject_0000042%' OR
+        t.email LIKE '%subject42@example.invalid%' OR
+        t.phone LIKE '%+1-555-0000042%'
+),
+Check_MemberHistory AS (
+    -- Checking the system versioned temporal history table for member 42
+    SELECT
+        'dbo.member_history' AS object_name,
+        COUNT(DISTINCT h.*) AS rows_found -- Counting distinct records found
+    FROM
+        dbo.member_history h
+    WHERE
+        -- Search by key identifiers across all relevant columns in the history table
+        CAST(h.member_id AS NVARCHAR(50)) = '42' OR
+        h.full_name LIKE '%Subject_0000042%' OR
+        h.email LIKE '%subject42@example.invalid%' OR
+        h.phone LIKE '%+1-555-0000042%'
+),
+Check_Customer AS (
+    -- Checking the primary customer table (Should be 0 if deletion succeeded)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        customer_id = 42 OR
+        full_name LIKE '%Subject_0000042%' OR
+        email LIKE '%subject42@example.invalid%' OR
+        phone LIKE '%+1-555-0000042%'
+),
+Check_Member AS (
+    -- Checking the primary member table (Should be 0 if deletion succeeded)
+    SELECT
+        'dbo.member' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        dbo.member
+    WHERE
+        member_id = 42 OR
+        full_name LIKE '%Subject_0000042%' OR
+        email LIKE '%subject42@example.invalid%' OR
+        phone LIKE '%+1-555-0000042%'
+)
+-- Combine all checks into the required single result set
+SELECT object_name, rows_found FROM Check_CDC
+UNION ALL
+SELECT object_name, rows_found FROM Check_MemberHistory
+UNION ALL
+SELECT object_name, rows_found FROM Check_Customer
+UNION ALL
+SELECT object_name, rows_found FROM Check_Member;
+```

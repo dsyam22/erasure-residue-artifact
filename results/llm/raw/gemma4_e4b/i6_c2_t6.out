@@ -1,0 +1,4 @@
+Msg 4145, Level 15, State 1, Server 651334c31df8, Line 10
+An expression of non-boolean type specified in a context where a condition is expected, near '('.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 21
+Incorrect syntax near ')'.

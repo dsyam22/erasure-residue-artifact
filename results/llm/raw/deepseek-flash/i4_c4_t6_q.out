@@ -1,0 +1,61 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+cdc|dbo_customer_CT|customer_id|int|4|1
+cdc|dbo_customer_CT|full_name|nvarchar|200|1
+cdc|dbo_customer_CT|email|nvarchar|400|1
+cdc|dbo_customer_CT|phone|nvarchar|60|1
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|member|member_id|int|4|0
+dbo|member|full_name|nvarchar|200|0
+dbo|member|email|nvarchar|400|0
+dbo|member|phone|nvarchar|60|1
+dbo|member_history|member_id|int|4|0
+dbo|member_history|full_name|nvarchar|200|0
+dbo|member_history|email|nvarchar|400|0
+dbo|member_history|phone|nvarchar|60|1
+(16 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_batchinsert_1333579789]
+	(
+	 @rowcount int,
+	  @__$start_lsn_1 binary(10), @__$seqval_1 binary(10), @__$operation_1 int, @__$update_mask_1 varbinary(128), @c6_1 int, @c7_1 nvarchar(100), @c8_1 nvarchar(200), @c9_1 nvarchar(3
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_insdel_1333579789]
+	(	@__$start_lsn binary(10),
+		@__$seqval binary(10),
+		@__$operation int,
+		@__$update_mask varbinary(128) , @c6 int, @c7 nvarchar(100), @c8 nvarchar(200), @c9 nvarchar(30),
+		@__$command_id int = null
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_upd_1333579789]
+	(	@__$start_lsn binary(10),
+		@__$seqval binary(10),
+		@__$update_mask varbinary(128) , @c6_old int, @c7_old nvarchar(100), @c8_old nvarchar(200), @c9_old nvarchar(30), @c6_new int, @c7_new nvarchar(100), @c
+(5 rows affected)

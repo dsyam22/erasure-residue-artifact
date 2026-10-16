@@ -1,0 +1,62 @@
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CAST(
+            N'SELECT N''' +
+            REPLACE(QUOTENAME(s.name) + N'.' + QUOTENAME(o.name), N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            N'[llm_i6].' + QUOTENAME(s.name) + N'.' + QUOTENAME(o.name) +
+            N' WHERE ' + COALESCE(p.predicate, N'1 = 0')
+            AS nvarchar(max)
+        ),
+        N' UNION ALL '
+    )
+FROM [llm_i6].sys.objects AS o
+JOIN [llm_i6].sys.schemas AS s
+    ON s.schema_id = o.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CAST(
+            CASE
+                WHEN c.system_type_id IN (34, 165, 173)
+                THEN
+                    N'(CHARINDEX(' +
+                    N'''2B312D3535352D30303030303432'', ' +
+                    N'CONVERT(varchar(max), CONVERT(varbinary(max), ' +
+                    QUOTENAME(c.name) + N'), 2)) > 0 OR CHARINDEX(' +
+                    N'''2B0031002D003500350035002D003000300030003000300034003200'', ' +
+                    N'CONVERT(varchar(max), CONVERT(varbinary(max), ' +
+                    QUOTENAME(c.name) + N'), 2)) > 0)'
+                ELSE
+                    N'CHARINDEX(N''+1-555-0000042'', ' +
+                    N'CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0'
+            END AS nvarchar(max)
+        ),
+        N' OR '
+    ) AS predicate
+    FROM [llm_i6].sys.columns AS c
+    WHERE c.object_id = o.object_id
+      AND c.system_type_id IN
+          (
+              35, 99,             -- text, ntext
+              167, 175, 231, 239,  -- varchar, char, nvarchar, nchar
+              241, 98,            -- xml, sql_variant
+              34, 165, 173        -- image, varbinary, binary
+          )
+) AS p
+WHERE o.type IN ('U', 'V', 'ET')
+  AND o.is_ms_shipped = 0;
+
+SELECT @sql =
+    CASE
+        WHEN @sql IS NULL
+        THEN N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                      CAST(NULL AS bigint) AS rows_found WHERE 1 = 0;'
+        ELSE N'SELECT object_name, rows_found FROM (' + @sql +
+             N') AS results ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql @sql;

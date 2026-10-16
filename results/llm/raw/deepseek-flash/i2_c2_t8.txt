@@ -1,0 +1,34 @@
+```sql
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+;WITH checks AS
+(
+    SELECT
+        object_name = 'dbo.customer',
+        rows_found = (
+            SELECT COUNT(*)
+            FROM dbo.customer
+            WHERE customer_id = @customer_id
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone
+        )
+    UNION ALL
+    SELECT
+        object_name = 'dbo.customer_history',
+        rows_found = (
+            SELECT COUNT(*)
+            FROM dbo.customer_history
+            WHERE customer_id = @customer_id
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone
+        )
+)
+SELECT object_name, rows_found
+FROM checks
+ORDER BY object_name;
+```

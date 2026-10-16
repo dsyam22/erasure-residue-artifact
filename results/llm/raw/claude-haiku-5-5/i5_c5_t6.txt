@@ -1,0 +1,8 @@
+The `valid_from`/`valid_to` columns suggest a system-versioned temporal table, which would keep a history table that may still hold the deleted rows. I'll check the catalog before writing the script.
+
+-- QUERY
+SELECT s.name AS schema_name, t.name AS table_name, t.temporal_type_desc, h.name AS history_table
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+LEFT JOIN sys.tables h ON h.object_id = t.history_object_id
+ORDER BY s.name, t.name;

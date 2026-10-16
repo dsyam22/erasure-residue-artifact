@@ -1,0 +1,9 @@
+cdc.change_tables|1
+cdc.dbo_customer_CT|0
+cdc.dbo_customer_CT|0
+dbo.customer|1
+INFORMATION_SCHEMA.COLUMNS|1
+sys.columns|0
+sys.columns (cdc)|1
+sys.sql_modules|5
+sys.tables (temporal)|0

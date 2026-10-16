@@ -1,0 +1,7 @@
+table_name|has_customer_id|has_member_id|has_full_name|has_email|has_phone
+----------|---------------|-------------|-------------|---------|---------
+customer|1|0|1|1|1
+dbo_customer_CT|1|0|1|1|1
+member|0|1|1|1|1
+member_history|0|1|1|1|1
+(4 rows affected)

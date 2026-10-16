@@ -1,0 +1,56 @@
+DECLARE @needle_phone nvarchar(100) = N'+1-555-0000042';
+DECLARE @needle_phone_core nvarchar(100) = N'5550000042';
+
+CREATE TABLE #results (object_name nvarchar(256), rows_found int);
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES
+        (CONVERT(nvarchar(max), full_name)),
+        (CONVERT(nvarchar(max), email))
+    ) AS v(col)
+    WHERE v.col LIKE N'%' + @needle_phone + N'%'
+       OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(v.col, N'-', N''), N' ', N''), N'(', N''), N')', N''), N'+', N'') LIKE N'%' + @needle_phone_core + N'%'
+);
+
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max), @cnt int;
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME
+WHERE t.TABLE_TYPE = 'BASE TABLE'
+  AND c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext')
+  AND NOT (c.TABLE_SCHEMA = N'dbo' AND c.TABLE_NAME = N'customer');
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE EXISTS (SELECT 1 FROM (VALUES (CONVERT(nvarchar(max), ' + QUOTENAME(@column) + N'))) AS v(col)'
+             + N' WHERE v.col LIKE N''%'' + @needle_phone + N''%'''
+             + N' OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(v.col, N''-'', N''''), N'' '', N''''), N''('', N''''), N'')'', N''''), N''+'', N'''') LIKE N''%'' + @needle_phone_core + N''%'')';
+
+    EXEC sp_executesql @sql,
+        N'@cnt int OUTPUT, @needle_phone nvarchar(100), @needle_phone_core nvarchar(100)',
+        @cnt = @cnt OUTPUT, @needle_phone = @needle_phone, @needle_phone_core = @needle_phone_core;
+
+    IF @cnt > 0
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'.' + QUOTENAME(@column), @cnt);
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+SELECT object_name, rows_found FROM #results ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,116 @@
+-- Declare a table variable to store the results for the final output
+DECLARE @AuditResults TABLE (
+    object_name NVARCHAR(257),
+    rows_found INT
+);
+
+-- Define the target values for comparison
+DECLARE @TargetID INT = 42;
+DECLARE @TargetName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Cursor to iterate over all user tables in the database
+DECLARE TableCursor CURSOR FOR
+SELECT 
+    QUOTENAME(s.name) + '.' + QUOTENAME(t.name) AS ObjectName, 
+    OBJECT_ID(QUOTENAME(s.name) + '.' + QUOTENAME(t.name)) AS TableObjectID
+FROM 
+    sys.tables t
+JOIN 
+    sys.schemas s ON t.schema_id = s.schema_id
+WHERE 
+    s.name NOT IN ('sys', 'information_schema') -- Exclude system schemas
+ORDER BY 
+    ObjectName;
+
+DECLARE @CurrentObject NVARCHAR(257);
+DECLARE @ObjectID INT;
+DECLARE @SQL NVARCHAR(MAX);
+
+-- Open the cursor
+OPEN TableCursor;
+
+-- Fetch the first row
+FETCH NEXT FROM TableCursor INTO @CurrentObject, @ObjectID;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'';
+    SET @SQL = @SQL + N'SELECT COUNT(*) FROM ' + QUOTENAME(@CurrentObject) + N' WHERE ';
+
+    -- Build the complex WHERE clause: Check if ANY column in this table matches any of the known PII values.
+    -- This section dynamically checks every string and numeric column for a match against the subject data.
+    SET @SQL = @SQL + N'(';
+    
+    DECLARE ColumnCursor CURSOR FOR
+    SELECT 
+        c.name, 
+        ty.name, 
+        CAST(c.max_length AS NVARCHAR(MAX)) -- Used just for type determination in the WHERE clause
+    FROM 
+        sys.columns c
+    JOIN 
+        sys.types ty ON c.system_type_id = ty.system_type_id AND c.user_type_id = ty.user_type_id
+    WHERE 
+        c.object_id = @ObjectID;
+
+    DECLARE @ColumnName NVARCHAR(128);
+    DECLARE @DataTypeName NVARCHAR(128);
+
+    OPEN ColumnCursor;
+    FETCH NEXT FROM ColumnCursor INTO @ColumnName, @DataTypeName;
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @SQL = @SQL + N'(';
+        
+        -- Logic for checking different data types against the PII values
+        IF @DataTypeName IN ('char', 'varchar', 'nvarchar')
+        BEGIN
+            SET @SQL = @SQL + N'LOWER(CAST([' + QUOTENAME(@ColumnName) + N' AS NVARCHAR(MAX))) LIKE ''%' + REPLACE(REPLACE(REPLACE(N''Subject_0000042'', '''', ''''''), '', '%%') , '%', ''%') + n'%'' OR'; -- Name Check
+            SET @SQL = @SQL + N'LOWER(CAST([' + QUOTENAME(@ColumnName) + N' AS NVARCHAR(MAX))) LIKE ''%' + REPLACE(REPLACE(REPLACE(N''subject42@example.invalid'', '''', ''''''), '', '%%') , '%', ''%') + n'%'' OR'; -- Email Check
+            SET @SQL = @SQL + N'LOWER(CAST([' + QUOTENAME(@ColumnName) + N' AS NVARCHAR(MAX))) LIKE ''%' + REPLACE(REPLACE(REPLACE(N''+1-555-0000042'', '''', ''''''), '', '%%') , '%', ''%') + n'%')'; -- Phone Check
+        END
+        ELSE IF @DataTypeName IN ('int', 'bigint', 'smallint')
+        BEGIN
+            SET @SQL = @SQL + N'CAST([' + QUOTENAME(@ColumnName) + N'] AS NVARCHAR(MAX)) LIKE ''%' + CAST(@TargetID AS NVARCHAR(10)) + n'%'' OR'; -- ID Check
+        END
+        ELSE 
+        BEGIN
+             -- Fallback check for other types (e.g., date/money can be cast to string for generic search)
+            SET @SQL = @SQL + N'CAST([' + QUOTENAME(@ColumnName) + N'] AS NVARCHAR(MAX)) LIKE ''%' + CAST(@TargetID AS NVARCHAR(10)) + n'%'' OR';
+        END
+
+        FETCH NEXT FROM ColumnCursor INTO @ColumnName, @DataTypeName;
+    END
+
+    CLOSE ColumnCursor;
+    DEALLOCATE ColumnCursor;
+
+    -- Remove the trailing 'OR' and close the parenthesis group
+    IF LEN(@SQL) > 10 AND RIGHT(@SQL, 3) = N' OR)'
+    BEGIN
+        SET @SQL = STUFF(@SQL, LEN(@SQL) - 2, 3, N')');
+    END
+
+    -- Execute the constructed dynamic SQL query and store the result count
+    INSERT INTO @AuditResults (object_name, rows_found)
+    EXEC sp_executesql @SQL;
+
+
+    FETCH NEXT FROM TableCursor INTO @CurrentObject, @ObjectID;
+END
+
+-- Close and deallocate the cursor
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final required result set output
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    @AuditResults
+ORDER BY 
+    object_name;

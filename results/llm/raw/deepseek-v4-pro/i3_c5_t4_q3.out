@@ -1,0 +1,7 @@
+schema_name|table_name
+-----------|----------
+cdc|dbo_customer_CT
+dbo|customer
+dbo|member
+dbo|member_history
+(4 rows affected)

@@ -1,0 +1,7 @@
+schema_name|table_name|is_ms_shipped|temporal_type_desc|is_tracked_by_cdc|lob_data_space_id|row_count|column_name|data_type|max_length|is_nullable
+-----------|----------|-------------|------------------|-----------------|-----------------|---------|-----------|---------|----------|-----------
+dbo|customer|0|NON_TEMPORAL_TABLE|1|0|99|customer_id|int|4|0
+dbo|customer|0|NON_TEMPORAL_TABLE|1|0|99|email|nvarchar|400|0
+dbo|customer|0|NON_TEMPORAL_TABLE|1|0|99|full_name|nvarchar|200|0
+dbo|customer|0|NON_TEMPORAL_TABLE|1|0|99|phone|nvarchar|60|1
+(4 rows affected)

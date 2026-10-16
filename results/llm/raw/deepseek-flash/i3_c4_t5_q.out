@@ -1,0 +1,39 @@
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+dbo|customer|4|phone|nvarchar|60|1
+dbo|member|1|member_id|int|4|0
+dbo|member|2|full_name|nvarchar|200|0
+dbo|member|3|email|nvarchar|400|0
+dbo|member|4|phone|nvarchar|60|1
+dbo|member|5|valid_from|datetime2|8|0
+dbo|member|6|valid_to|datetime2|8|0
+(10 rows affected)
+schema_name|object_name|type_desc|create_date|modify_date
+-----------|-----------|---------|-----------|-----------
+cdc|captured_columns|USER_TABLE|2026-10-10 19:08:10.520|2026-10-10 19:08:10.527
+cdc|change_tables|USER_TABLE|2026-10-10 19:08:10.520|2026-10-10 19:08:10.533
+cdc|dbo_customer_CT|USER_TABLE|2026-10-10 19:08:10.880|2026-10-10 19:08:10.897
+cdc|ddl_history|USER_TABLE|2026-10-10 19:08:10.520|2026-10-10 19:08:10.527
+cdc|fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.527|2026-10-10 19:08:10.533
+cdc|fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.527|2026-10-10 19:08:10.533
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.930|2026-10-10 19:08:10.930
+cdc|fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.530|2026-10-10 19:08:10.537
+cdc|fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.527|2026-10-10 19:08:10.533
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:10.933|2026-10-10 19:08:10.933
+cdc|index_columns|USER_TABLE|2026-10-10 19:08:10.523|2026-10-10 19:08:10.530
+cdc|lsn_time_mapping|USER_TABLE|2026-10-10 19:08:10.520|2026-10-10 19:08:10.530
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE|2026-10-10 19:08:11.003|2026-10-10 19:08:11.027
+cdc|sp_batchinsert_lsn_time_mapping|SQL_STORED_PROCEDURE|2026-10-10 19:08:10.590|2026-10-10 19:08:10.613
+cdc|sp_ins_dummy_lsn_time_mapping |SQL_STORED_PROCEDURE|2026-10-10 19:08:10.610|2026-10-10 19:08:10.617
+cdc|sp_ins_instance_enabling_lsn_time_mapping |SQL_STORED_PROCEDURE|2026-10-10 19:08:10.610|2026-10-10 19:08:10.617
+cdc|sp_ins_lsn_time_mapping|SQL_STORED_PROCEDURE|2026-10-10 19:08:10.530|2026-10-10 19:08:10.537
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE|2026-10-10 19:08:10.953|2026-10-10 19:08:10.960
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE|2026-10-10 19:08:10.957|2026-10-10 19:08:10.963
+dbo|customer|USER_TABLE|2026-10-10 19:08:10.397|2026-10-10 19:08:11.103
+dbo|member|USER_TABLE|2026-10-10 19:08:10.400|2026-10-10 19:08:10.400
+dbo|member_history|USER_TABLE|2026-10-10 19:08:10.400|2026-10-10 19:08:10.407
+dbo|systranschemas|USER_TABLE|2026-10-10 19:08:10.493|2026-10-10 19:08:10.523
+(23 rows affected)

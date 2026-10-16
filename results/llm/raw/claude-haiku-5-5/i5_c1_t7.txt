@@ -1,0 +1,75 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @p_name  nvarchar(200) = N'Subject_0000042';
+DECLARE @p_email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @p_phone nvarchar(200) = N'+1-555-0000042';
+DECLARE @p_id    int           = 42;
+
+-- One row per user table with the predicate that identifies the subject's data in that table.
+-- String columns are matched against the original name, email and phone.
+-- Integer customer_id columns are matched against 42 (the subject's key).
+-- Tables with no matchable columns get predicate 1=0, so they report 0.
+CREATE TABLE #scan_targets
+(
+    sch  sysname       NOT NULL,
+    tbl  sysname       NOT NULL,
+    pred nvarchar(max) NOT NULL
+);
+
+INSERT INTO #scan_targets (sch, tbl, pred)
+SELECT
+    s.name,
+    t.name,
+    ISNULL
+    (
+        (
+            SELECT STRING_AGG
+                   (
+                       CAST(
+                           CASE
+                               WHEN c.system_type_id = 56
+                                   THEN QUOTENAME(c.name) + N' = @p_id'
+                               ELSE QUOTENAME(c.name) + N' IN (@p_name, @p_email, @p_phone)'
+                           END
+                       AS nvarchar(max)),
+                       N' OR '
+                   )
+            FROM sys.columns AS c
+            WHERE c.object_id = t.object_id
+              AND (
+                    c.system_type_id IN (231, 239, 167, 175)   -- nvarchar, nchar, varchar, char
+                 OR (c.name = N'customer_id' AND c.system_type_id = 56)
+              )
+        ),
+        N'1 = 0'
+    )
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0;
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql = STRING_AGG
+(
+    CAST(
+        N'SELECT N''' + sch + N'.' + tbl + N''' AS object_name, '
+      + N'(SELECT COUNT(*) FROM ' + QUOTENAME(sch) + N'.' + QUOTENAME(tbl)
+      + N' WHERE ' + pred + N') AS rows_found'
+    AS nvarchar(max)),
+    N' UNION ALL '
+)
+FROM #scan_targets;
+
+SET @sql = N'SELECT object_name, rows_found FROM ('
+         + @sql
+         + N') AS result ORDER BY object_name;';
+
+EXEC sp_executesql
+    @sql,
+    N'@p_name nvarchar(200), @p_email nvarchar(200), @p_phone nvarchar(200), @p_id int',
+    @p_name = @p_name,
+    @p_email = @p_email,
+    @p_phone = @p_phone,
+    @p_id = @p_id;
+```

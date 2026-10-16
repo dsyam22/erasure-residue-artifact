@@ -1,0 +1,45 @@
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current customer table (no phone column exists, so 0 rows can contain phone)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.customer', 0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('dbo.customer')
+      AND c.name = 'phone'
+);
+
+-- Check CDC change table for the subject's phone number
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @customer_id
+  AND phone = @phone;
+
+-- Check for any other tables that might contain the phone number
+-- (excluding the CDC table and the original customer table)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 
+    s.name + '.' + t.name,
+    COUNT(*)
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+INNER JOIN sys.columns c ON c.object_id = t.object_id
+WHERE c.name = 'phone'
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')
+  AND NOT (s.name = 'cdc' AND t.name = 'dbo_customer_CT')
+GROUP BY s.name, t.name;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;

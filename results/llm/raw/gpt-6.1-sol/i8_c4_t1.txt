@@ -1,0 +1,33 @@
+```sql
+/*
+Checks the only user table found during inspection. Each matching row is
+counted once, including rows retaining any original value in another column.
+
+A zero count establishes logical absence from this table, not physical erasure.
+DELETE can leave recoverable data in transaction-log records, ghost records,
+and deallocated pages. Those locations cannot be exhaustively verified with
+the available permissions and a SELECT-only script. Backups are not checked.
+*/
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM [llm_i8].[dbo].[customer] AS c
+WHERE c.customer_id = 42
+   OR EXISTS
+   (
+       SELECT 1
+       FROM (VALUES (c.full_name), (c.email), (c.phone)) AS v(original_value)
+       WHERE CHARINDEX(
+                 N'Subject_0000042',
+                 v.original_value COLLATE Latin1_General_100_BIN2
+             ) > 0
+          OR CHARINDEX(
+                 N'subject42@example.invalid',
+                 v.original_value COLLATE Latin1_General_100_BIN2
+             ) > 0
+          OR CHARINDEX(
+                 N'+1-555-0000042',
+                 v.original_value COLLATE Latin1_General_100_BIN2
+             ) > 0
+   );
+```

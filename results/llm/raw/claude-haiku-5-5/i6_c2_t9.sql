@@ -1,0 +1,48 @@
+SET NOCOUNT ON;
+
+DECLARE @p nvarchar(100) = N'%+1-555-0000042%';
+
+CREATE TABLE #r (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @oid int, @obj nvarchar(300), @name sysname, @where nvarchar(max), @s nvarchar(max);
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+           s.name + N'.' + t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @oid, @obj, @name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = (
+        SELECT STRING_AGG(CAST(QUOTENAME(c.name) + N' LIKE @p' AS nvarchar(max)), N' OR ')
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+    );
+
+    IF @where IS NULL
+        INSERT #r (object_name, rows_found) VALUES (@name, 0);
+    ELSE
+    BEGIN
+        SET @s = N'INSERT #r (object_name, rows_found) SELECT N'''
+               + REPLACE(@name, N'''', N'''''')
+               + N''', COUNT_BIG(*) FROM ' + @obj
+               + N' WHERE ' + @where + N';';
+        EXEC sp_executesql @s, N'@p nvarchar(100)', @p = @p;
+    END
+
+    FETCH NEXT FROM tbl INTO @oid, @obj, @name;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;

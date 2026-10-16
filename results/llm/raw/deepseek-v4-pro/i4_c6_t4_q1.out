@@ -1,0 +1,12 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|member|full_name|nvarchar
+dbo|member|email|nvarchar
+dbo|member|phone|nvarchar
+dbo|member_history|full_name|nvarchar
+dbo|member_history|email|nvarchar
+dbo|member_history|phone|nvarchar
+(9 rows affected)

@@ -1,0 +1,41 @@
+database_name|is_cdc_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on
+-------------|--------------|-----------------------------|-----------------------------
+llm_i2|0|OFF|0
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|is_external|is_filetable|ledger_type_desc|is_dropped_ledger_table
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|-----------|------------|----------------|-----------------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|0|0|NON_LEDGER_TABLE|0
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|0|0|0|0|NON_LEDGER_TABLE|0
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable|is_computed|is_hidden|generated_always_type_desc|encryption_type_desc
+-----------|----------|---------|-----------|---------|----------|-----------|-----------|---------|--------------------------|--------------------
+dbo|customer|1|customer_id|int|4|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|2|full_name|nvarchar|200|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|3|email|nvarchar|400|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|4|phone|nvarchar|60|1|0|0|NOT_APPLICABLE|NULL
+dbo|customer|5|valid_from|datetime2|8|0|0|0|AS_ROW_START|NULL
+dbo|customer|6|valid_to|datetime2|8|0|0|0|AS_ROW_END|NULL
+dbo|customer_history|1|customer_id|int|4|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|2|full_name|nvarchar|200|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|3|email|nvarchar|400|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|4|phone|nvarchar|60|1|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|5|valid_from|datetime2|8|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|6|valid_to|datetime2|8|0|0|0|NOT_APPLICABLE|NULL
+(12 rows affected)
+schema_name|table_name|period_name|period_start_column|period_end_column
+-----------|----------|-----------|-------------------|-----------------
+dbo|customer|SYSTEM_TIME|valid_from|valid_to
+(1 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|is_track_columns_updated_on|begin_version|cleanup_version|min_valid_version
+-----------|----------|---------------------------|-------------|---------------|-----------------
+(0 rows affected)
+can_view_definition|can_select_database|can_view_database_state
+-------------------|-------------------|-----------------------
+1|1|0
+(1 rows affected)

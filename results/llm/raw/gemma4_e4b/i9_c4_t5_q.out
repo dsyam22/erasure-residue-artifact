@@ -1,0 +1,8 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 41
+Invalid column name 'trigger_schema_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 42
+Invalid column name 'trigger_object_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 37
+Invalid column name 'trigger_object_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 39
+Invalid column name 'trigger_object_id'.

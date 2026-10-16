@@ -1,0 +1,36 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @member_id   int = 42;
+DECLARE @full_name   nvarchar(4000) = N'Subject_0000042';
+DECLARE @email       nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @phone       nvarchar(4000) = N'+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM (
+    SELECT
+        N'dbo.customer' AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE (customer_id = @customer_id OR customer_id IS NULL)
+      AND (
+            full_name = @full_name
+         OR email     = @email
+         OR phone     = @phone
+      )
+
+    UNION ALL
+
+    SELECT
+        N'dbo.member' AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.member
+    WHERE (member_id = @member_id OR member_id IS NULL)
+      AND (
+            full_name = @full_name
+         OR email     = @email
+         OR phone     = @phone
+      )
+) AS checks
+ORDER BY object_name;

@@ -1,0 +1,18 @@
+schema_name|object_name|column_name
+-----------|-----------|-----------
+cdc|captured_columns|column_name
+cdc|captured_columns|column_type
+cdc|captured_columns|masking_function
+cdc|change_tables|capture_instance
+cdc|change_tables|role_name
+cdc|change_tables|index_name
+cdc|change_tables|filegroup_name
+cdc|dbo_customer_CT|full_name
+cdc|dbo_customer_CT|email
+cdc|dbo_customer_CT|phone
+cdc|ddl_history|ddl_command
+cdc|index_columns|column_name
+dbo|customer|full_name
+dbo|customer|email
+dbo|customer|phone
+(15 rows affected)

@@ -1,0 +1,18 @@
+The `valid_from`/`valid_to` columns suggest a system-versioned temporal table, which would keep deleted rows in a history table. I'll check the schema for that and for any other objects that might hold the subject's data.
+
+-- QUERY
+SELECT s.name AS schema_name,
+       t.name AS table_name,
+       t.temporal_type_desc,
+       t.history_table_id,
+       OBJECT_SCHEMA_NAME(t.history_table_id) AS history_schema,
+       OBJECT_NAME(t.history_table_id) AS history_table,
+       c.name AS column_name,
+       ty.name AS data_type,
+       c.max_length
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+JOIN sys.columns AS c ON c.object_id = t.object_id
+JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+WHERE t.is_ms_shipped = 0
+ORDER BY s.name, t.name, c.column_id;

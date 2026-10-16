@@ -1,0 +1,63 @@
+/* Read-only verification: does the erased subject's original PII still exist anywhere? */
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* 1. Live base table */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* 2. CDC change table for dbo.customer (dbo_customer_CT) */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT_BIG(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* 3. Temporal history table, if one exists for dbo.customer */
+IF EXISTS (SELECT 1 FROM sys.tables t
+           JOIN sys.schemas s ON s.schema_id = t.schema_id
+           WHERE t.temporal_type = 1
+             AND s.name = 'dbo'
+             AND t.name = 'customer')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_history', COUNT_BIG(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @cid
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_history (not present)', 0;
+END
+
+/* 4. Any other CDC capture instances that might mirror this data */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.' + ct.capture_instance,
+       CASE WHEN EXISTS (SELECT 1 FROM sys.columns c
+                         WHERE c.object_id = OBJECT_ID('cdc.' + ct.capture_instance)
+                           AND c.name IN ('customer_id','full_name','email','phone'))
+            THEN 1 ELSE 0 END
+FROM cdc.change_tables ct
+WHERE ct.capture_instance <> 'dbo_customer';
+
+/* Final single result set */
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

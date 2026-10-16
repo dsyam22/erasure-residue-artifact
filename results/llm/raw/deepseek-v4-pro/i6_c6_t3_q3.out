@@ -1,0 +1,6 @@
+object_name
+-----------
+cdc.dbo_customer_CT
+cdc.fn_cdc_get_all_changes_dbo_customer
+cdc.fn_cdc_get_net_changes_dbo_customer
+(3 rows affected)

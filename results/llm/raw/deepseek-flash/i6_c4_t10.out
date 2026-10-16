@@ -1,0 +1,4 @@
+dbo.customer|1
+cdc.dbo_customer_CT|1
+
+(2 rows affected)

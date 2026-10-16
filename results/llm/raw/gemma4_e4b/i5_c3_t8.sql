@@ -1,0 +1,19 @@
+SELECT
+    'dbo.customer' AS object_name,
+    CAST(COUNT(c.customer_id) AS INT) AS rows_found
+FROM
+    dbo.customer c
+WHERE
+    -- Checking the primary key is sufficient evidence of existence in the active table
+    c.customer_id = 42
+
+UNION ALL
+
+SELECT
+    'dbo.customer_history' AS object_name,
+    CAST(COUNT(h.customer_id) AS INT) AS rows_found
+FROM
+    dbo.customer_history h
+WHERE
+    -- Checking the primary key is sufficient evidence of existence in the history table
+    h.customer_id = 42;

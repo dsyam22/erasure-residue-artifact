@@ -1,0 +1,15 @@
+WITH ObjectChecks AS (
+    -- Check 1: Current table state (dbo.customer)
+    -- Since the column 'phone' was dropped, we expect no stored values here.
+    SELECT
+        'dbo.customer' AS object_name,
+        (SELECT ISNULL(COUNT(*), 0) FROM dbo.customer WHERE customer_id = 42 AND 1=0) AS rows_found -- Using WHERE 1=0 to simulate checking a non-existent column/value safely
+    UNION ALL
+
+    -- Check 2: Change Data Capture (CDC) Table (cdc.dbo_customer_CT)
+    -- This is the most likely place for historical storage of the dropped column value.
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        (SELECT ISNULL(COUNT(*), 0) FROM cdc.dbo_customer_CT WHERE customer_id = 42 AND phone = '+1-555-0000042')
+)
+SELECT object_name, rows_found FROM ObjectChecks;

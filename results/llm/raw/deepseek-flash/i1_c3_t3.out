@@ -1,0 +1,4 @@
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 58
+Ambiguous column name 'history_table_id'.
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 59
+Ambiguous column name 'history_table_id'.

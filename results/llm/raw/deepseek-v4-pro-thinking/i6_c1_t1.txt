@@ -1,0 +1,29 @@
+```sql
+DECLARE @phone nvarchar(50) = N'%+1-555-0000042%';
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = STRING_AGG(
+    N'SELECT ' +
+    QUOTENAME(s.name + N'.' + t.name, NCHAR(39)) +
+    N' AS object_name, COUNT(*) AS rows_found FROM ' +
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+    N' WHERE ' + COALESCE(c.condition, N'1=0'),
+    N' UNION ALL '
+) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON t.schema_id = s.schema_id
+OUTER APPLY (
+    SELECT STRING_AGG(
+        N'CAST(' + QUOTENAME(col.name) + N' AS nvarchar(max)) LIKE @phone',
+        N' OR '
+    ) AS condition
+    FROM sys.columns AS col
+    WHERE col.object_id = t.object_id
+      AND (col.collation_name IS NOT NULL OR col.system_type_id = 241)
+) AS c;
+
+EXEC sys.sp_executesql
+    N'SELECT object_name, rows_found FROM (' + @sql + N') AS all_checks ORDER BY object_name;',
+    N'@phone nvarchar(50)',
+    @phone = @phone;
+```

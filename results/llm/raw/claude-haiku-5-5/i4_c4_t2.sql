@@ -1,0 +1,63 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(400) NOT NULL,
+    rows_found  int           NOT NULL
+);
+
+DECLARE @oid       int,
+        @qname     nvarchar(400),
+        @name      nvarchar(400),
+        @cols      nvarchar(max),
+        @cnt       int,
+        @sql       nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name),
+           SCHEMA_NAME(t.schema_id) + N'.' + t.name
+    FROM sys.tables t
+    WHERE t.is_ms_shipped = 0
+    ORDER BY SCHEMA_NAME(t.schema_id), t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @oid, @qname, @name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @cols = NULL;
+
+    -- Build a predicate that tests every character column for any of the three
+    -- original personal-data literals of data subject 42.
+    SELECT @cols = STRING_AGG(CAST(
+            N'CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(c.name) + N') > 0'
+          + N' OR CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(c.name) + N') > 0'
+          + N' OR CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(c.name) + N') > 0'
+          AS nvarchar(max)), N' OR ')
+    FROM sys.columns c
+    JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN ('char', 'varchar', 'nchar', 'nvarchar');
+
+    SET @cnt = 0;
+
+    IF @cols IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + @qname + N' WHERE ' + @cols + N';';
+        EXEC sys.sp_executesql @sql, N'@n int OUTPUT', @n = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@name, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @oid, @qname, @name;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

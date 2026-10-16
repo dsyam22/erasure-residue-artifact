@@ -1,0 +1,43 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #hits
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @s nvarchar(max);
+
+-- Build one counting statement per user table. Each table is compared on every
+-- character column (char, nchar, varchar, nvarchar) against the subject's original
+-- full_name, email and phone. Tables with no character columns get 0 via WHERE 1=0.
+SELECT @s = STRING_AGG(
+    CAST(
+        N'INSERT INTO #hits (object_name, rows_found) '
+      + N'SELECT N''' + REPLACE(s.name, N'''', N'''''') + N'.' + REPLACE(t.name, N'''', N'''''') + N''', COUNT_BIG(*) '
+      + N'FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' WHERE '
+      + ISNULL(
+            (
+                SELECT STRING_AGG(
+                           CAST(QUOTENAME(c.name) + N' IN (N''Subject_0000042'', N''subject42@example.invalid'', N''+1-555-0000042'')' AS nvarchar(max)),
+                           N' OR ')
+                FROM sys.columns AS c
+                WHERE c.object_id = t.object_id
+                  AND c.system_type_id IN (167, 175, 231, 239) -- varchar, char, nvarchar, nchar
+            ),
+            N'1=0')
+      + N';'
+    AS nvarchar(max)),
+    N' ')
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0;
+
+IF @s IS NOT NULL
+    EXEC sys.sp_executesql @s;
+
+SELECT object_name, rows_found
+FROM #hits
+ORDER BY object_name;
+
+DROP TABLE #hits;

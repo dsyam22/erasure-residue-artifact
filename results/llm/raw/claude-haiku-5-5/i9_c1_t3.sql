@@ -1,0 +1,68 @@
+SET NOCOUNT ON;
+
+DECLARE @v1 nvarchar(200) = N'Subject_0000042',
+        @v2 nvarchar(200) = N'subject42@example.invalid',
+        @v3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.TABLE_SCHEMA, t.TABLE_NAME
+    FROM INFORMATION_SCHEMA.TABLES AS t
+    WHERE t.TABLE_TYPE = 'BASE TABLE'
+    ORDER BY t.TABLE_SCHEMA, t.TABLE_NAME;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(
+               CAST(N'(CHARINDEX(@v1, ' + QUOTENAME(c.COLUMN_NAME)
+                  + N') > 0 OR CHARINDEX(@v2, ' + QUOTENAME(c.COLUMN_NAME)
+                  + N') > 0 OR CHARINDEX(@v3, ' + QUOTENAME(c.COLUMN_NAME)
+                  + N') > 0)' AS nvarchar(max)), N' OR ')
+    FROM INFORMATION_SCHEMA.COLUMNS AS c
+    WHERE c.TABLE_SCHEMA = @schema
+      AND c.TABLE_NAME   = @table
+      AND c.DATA_TYPE IN ('char', 'varchar', 'nchar', 'nvarchar');
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (CONCAT(@schema, N'.', @table), 0);
+    END
+    ELSE
+    BEGIN
+        SET @cnt = 0;
+        SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@v1 nvarchar(200), @v2 nvarchar(200), @v3 nvarchar(200), @cnt bigint OUTPUT',
+             @v1 = @v1, @v2 = @v2, @v3 = @v3, @cnt = @cnt OUTPUT;
+
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (CONCAT(@schema, N'.', @table), @cnt);
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT r.object_name, r.rows_found
+FROM #results AS r
+ORDER BY r.object_name;
+
+DROP TABLE #results;

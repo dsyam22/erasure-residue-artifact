@@ -1,0 +1,27 @@
+Msg 1035, Level 15, State 10, Server 651334c31df8, Line 19
+Incorrect syntax near 'CAST', expected 'AS'.
+Msg 137, Level 15, State 1, Server 651334c31df8, Line 41
+Must declare the scalar variable "@n_out".
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 41
+Incorrect syntax near ' + @obj_quoted +
+                   N'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 44
+Unclosed quotation mark after the character string ',
+                               @n_out = @n OUTPUT;
+    END
+
+    INSERT INTO #residual_check (object_name, rows_found)
+    VALUES (@obj_name, @n);
+
+    FETCH NEXT FROM obj_cur INTO @obj_name, @obj_quoted, @cond;
+END
+
+CLOSE obj_cur;
+DEALLOCATE obj_cur;
+
+SELECT object_name, rows_found
+FROM #residual_check
+ORDER BY object_name;
+
+DROP TABLE #residual_check;
+'.

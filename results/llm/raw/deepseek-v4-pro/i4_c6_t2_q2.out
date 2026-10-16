@@ -1,0 +1,5 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME
+------------|----------|-----------
+dbo|systranschemas|startlsn
+dbo|systranschemas|endlsn
+(2 rows affected)

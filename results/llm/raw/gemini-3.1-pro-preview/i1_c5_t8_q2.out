@@ -1,0 +1,5 @@
+table_name|temporal_type_desc|history_table_name
+----------|------------------|------------------
+customer|NON_TEMPORAL_TABLE|NULL
+systranschemas|NON_TEMPORAL_TABLE|NULL
+(2 rows affected)

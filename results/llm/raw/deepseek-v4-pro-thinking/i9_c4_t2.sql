@@ -1,0 +1,58 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(500) NOT NULL,
+    rows_found int NOT NULL
+);
+
+DECLARE @object_id int;
+DECLARE @object_name nvarchar(500);
+DECLARE @fullname nvarchar(500);
+DECLARE @where nvarchar(max);
+DECLARE @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT t.object_id, s.name + N'.' + t.name, QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @object_id, @object_name, @fullname;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = N' WHERE 1=0';
+
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = @object_id AND name = N'customer_id')
+        SET @where += N' OR TRY_CAST([customer_id] AS nvarchar(max)) = @val_customer_id';
+
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = @object_id AND name = N'full_name')
+        SET @where += N' OR TRY_CAST([full_name] AS nvarchar(max)) = @val_full_name';
+
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = @object_id AND name = N'email')
+        SET @where += N' OR TRY_CAST([email] AS nvarchar(max)) = @val_email';
+
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = @object_id AND name = N'phone')
+        SET @where += N' OR TRY_CAST([phone] AS nvarchar(max)) = @val_phone';
+
+    SET @sql = N'INSERT INTO #results(object_name, rows_found) SELECT @objname, COUNT(*) FROM ' + @fullname + @where + N';';
+
+    EXEC sp_executesql
+        @sql,
+        N'@objname nvarchar(500), @val_customer_id nvarchar(50), @val_full_name nvarchar(500), @val_email nvarchar(500), @val_phone nvarchar(100)',
+        @objname = @object_name,
+        @val_customer_id = N'42',
+        @val_full_name = N'Subject_0000042',
+        @val_email = N'subject42@example.invalid',
+        @val_phone = N'+1-555-0000042';
+
+    FETCH NEXT FROM table_cursor INTO @object_id, @object_name, @fullname;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found FROM #results ORDER BY object_name;

@@ -1,0 +1,40 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+DECLARE @cnt INT;
+
+-- Check main table
+SELECT @cnt = COUNT(*) 
+FROM dbo.customer 
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+INSERT INTO @results (object_name, rows_found) 
+VALUES ('dbo.customer', @cnt);
+
+-- Check history table if it is a system-versioned temporal table
+DECLARE @history_table_id INT;
+SELECT @history_table_id = history_table_id 
+FROM sys.tables 
+WHERE object_id = OBJECT_ID('dbo.customer');
+
+IF ISNULL(@history_table_id, 0) > 0
+BEGIN
+    DECLARE @hist_schema NVARCHAR(128) = OBJECT_SCHEMA_NAME(@history_table_id);
+    DECLARE @hist_table NVARCHAR(128) = OBJECT_NAME(@history_table_id);
+    DECLARE @sql NVARCHAR(MAX) = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@hist_schema) + N'.' + QUOTENAME(@hist_table) + N' WHERE customer_id = 42 OR full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042'';';
+    
+    EXEC sp_executesql @sql, N'@cnt INT OUTPUT', @cnt OUTPUT;
+    
+    INSERT INTO @results (object_name, rows_found) 
+    VALUES (@hist_schema + '.' + @hist_table, @cnt);
+END
+
+SELECT object_name, rows_found 
+FROM @results;

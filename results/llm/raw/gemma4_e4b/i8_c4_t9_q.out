@@ -1,0 +1,14 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 7
+Invalid column name 'constraint_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 43
+Invalid column name 'parent_object_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 45
+Invalid column name 'trigger_object_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 37
+Invalid column name 'trigger_object_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 39
+Invalid column name 'trigger_object_id'.
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 5
+Ambiguous column name 'is_nullable'.
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 38
+Ambiguous column name 'name'.

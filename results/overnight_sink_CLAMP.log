@@ -1,0 +1,109 @@
+=== 2026-10-10T18:21:33Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=1 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,1,100,0,2.08,0,0,10,1,0,0
+=== 2026-10-10T18:24:17Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=2 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,2,100,0,2.10,0,0,10,1,0,0
+=== 2026-10-10T18:26:42Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=3 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,3,100,0,1.67,0,0,10,1,0,0
+=== 2026-10-10T18:28:35Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=4 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,4,100,0,2.08,0,0,10,1,0,0
+=== 2026-10-10T18:30:58Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=5 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,5,100,0,2.07,0,0,10,1,0,0
+=== 2026-10-10T18:33:20Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=6 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,6,100,0,2.10,0,0,10,1,0,0
+=== 2026-10-10T18:35:39Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=7 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,7,100,0,2.10,0,0,10,1,0,0
+=== 2026-10-10T18:37:58Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=8 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,8,100,0,1.57,0,0,10,1,0,0
+=== 2026-10-10T18:39:49Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=9 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,9,100,0,1.65,0,0,10,1,0,0
+=== 2026-10-10T18:41:41Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=10 (attempt 1) ===
+Changed database context to 'master'.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 0%.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 100%.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,10,100,0,2.18,0,0,10,1,0,0

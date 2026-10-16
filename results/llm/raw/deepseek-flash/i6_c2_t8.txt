@@ -1,0 +1,117 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @cust_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @phone_digits nvarchar(50) =
+    REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@phone, N'+', N''), N'-', N''), N'(', N''), N')', N''), N' ', N'');
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* 1. dbo.customer - current table (phone column dropped; check no phone-like data remains in text columns) */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cust_id
+  AND (
+        full_name = @full_name
+     OR email = @email
+     OR full_name LIKE N'%' + @phone + N'%'
+     OR email LIKE N'%' + @phone + N'%'
+     OR full_name LIKE N'%' + @phone_digits + N'%'
+     OR email LIKE N'%' + @phone_digits + N'%'
+      );
+
+/* 2. cdc.dbo_customer_CT - CDC change table (captured_columns includes phone) */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE (
+        customer_id = @cust_id
+     OR full_name = @full_name
+     OR email = @email
+      )
+  AND (
+        full_name LIKE N'%' + @phone + N'%'
+     OR email LIKE N'%' + @phone + N'%'
+     OR full_name LIKE N'%' + @phone_digits + N'%'
+     OR email LIKE N'%' + @phone_digits + N'%'
+      );
+
+/* 3. cdc.dbo_customer_CT - scan all captured columns dynamically for the phone value */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @cust_id
+  AND (
+        full_name LIKE N'%' + @phone + N'%'
+     OR email LIKE N'%' + @phone + N'%'
+     OR full_name LIKE N'%' + @phone_digits + N'%'
+     OR email LIKE N'%' + @phone_digits + N'%'
+      );
+
+/* 4. cdc.lsn_time_mapping / cdc.change_tables - metadata check (no personal data expected) */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.change_tables',
+       COUNT(*)
+FROM cdc.change_tables
+WHERE capture_instance = N'dbo_customer'
+  AND source_object_id = OBJECT_ID(N'dbo.customer');
+
+/* 5. sys.columns - verify phone column no longer exists on dbo.customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'sys.columns',
+       COUNT(*)
+FROM sys.columns c
+JOIN sys.objects o ON o.object_id = c.object_id
+JOIN sys.schemas s ON s.schema_id = o.schema_id
+WHERE s.name = N'dbo'
+  AND o.name = N'customer'
+  AND c.name = N'phone';
+
+/* 6. sys.columns - verify phone column still exists on CDC capture table */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'sys.columns (cdc)',
+       COUNT(*)
+FROM sys.columns c
+JOIN sys.objects o ON o.object_id = c.object_id
+JOIN sys.schemas s ON s.schema_id = o.schema_id
+WHERE s.name = N'cdc'
+  AND o.name = N'dbo_customer_CT'
+  AND c.name = N'phone';
+
+/* 7. sys.sql_expression_dependencies / sys.sql_modules - check for phone references in code */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'sys.sql_modules',
+       COUNT(*)
+FROM sys.sql_modules m
+JOIN sys.objects o ON o.object_id = m.object_id
+WHERE m.definition LIKE N'%phone%'
+  AND o.type IN (N'P', N'FN', N'IF', N'TF', N'TR', N'V');
+
+/* 8. INFORMATION_SCHEMA.COLUMNS - any column named phone in database */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'INFORMATION_SCHEMA.COLUMNS',
+       COUNT(*)
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE COLUMN_NAME = N'phone';
+
+/* 9. sys.tables - check for temporal tables */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'sys.tables (temporal)',
+       COUNT(*)
+FROM sys.tables
+WHERE temporal_type = 1;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

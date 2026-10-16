@@ -1,0 +1,22 @@
+```sql
+WITH CheckResults AS (
+    -- Checking dbo.customer for any remaining instances of the personal data
+    SELECT
+        'dbo.customer' AS ObjectName,
+        COUNT(T1.customer_id) AS RowsFound
+    FROM
+        dbo.customer T1
+    WHERE
+        -- We check if any primary identifying field matches the subject's original data
+        full_name = 'Subject_0000042' OR
+        email = 'subject42@example.invalid' OR
+        phone = '+1-555-0000042'
+    GROUP BY 1 -- Grouping ensures the count is done once per object check
+)
+-- Select the final results into the required format
+SELECT
+    ObjectName AS object_name,
+    RowsFound AS rows_found
+FROM
+    CheckResults;
+```

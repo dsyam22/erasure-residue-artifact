@@ -1,0 +1,32 @@
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 4
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i9'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 4
+The user does not have permission to perform this action.
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|customer_history|full_name|nvarchar|200|0
+dbo|customer_history|email|nvarchar|400|0
+dbo|customer_history|phone|nvarchar|60|1
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|customer_history|customer_id|int
+dbo|customer_history|full_name|nvarchar
+dbo|customer_history|email|nvarchar
+dbo|customer_history|phone|nvarchar
+fk_name|child_table|parent_table
+-------|-----------|------------
+type_desc|schema_name|object_name
+---------|-----------|-----------
+schema_name|table_name
+-----------|----------
+dbo|customer_history
+remaining_rows_for_customer_42
+------------------------------
+0

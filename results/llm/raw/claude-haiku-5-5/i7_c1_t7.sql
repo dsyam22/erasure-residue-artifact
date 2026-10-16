@@ -1,0 +1,55 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (
+    object_name nvarchar(300) NOT NULL PRIMARY KEY,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @objname nvarchar(300);
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+DECLARE @n nvarchar(200)  = N'Subject_0000042',
+        @e nvarchar(200)  = N'subject42@example.invalid',
+        @ph nvarchar(200) = N'+1-555-0000042';
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @objname = CONVERT(nvarchar(300), QUOTENAME(@schema) + N'.' + QUOTENAME(@table));
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Character-type columns only (varchar, nvarchar, char, nchar)
+    SELECT @pred = STRING_AGG(CAST(QUOTENAME(c.name) + N' IN (@n, @e, @ph)' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@objname)
+      AND c.system_type_id IN (167, 231, 175, 239);
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + @objname + N' WHERE ' + @pred + N';';
+        EXEC sp_executesql
+            @sql,
+            N'@n nvarchar(200), @e nvarchar(200), @ph nvarchar(200), @c bigint OUTPUT',
+            @n = @n, @e = @e, @ph = @ph, @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO @results (object_name, rows_found) VALUES (@objname, @cnt);
+
+    FETCH NEXT FROM tbl INTO @schema, @table;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

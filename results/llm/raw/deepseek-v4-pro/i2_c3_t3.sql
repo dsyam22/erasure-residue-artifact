@@ -1,0 +1,83 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255) NOT NULL,
+    rows_found INT NOT NULL
+);
+
+-- Check the current table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check the history table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer_history',
+    COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check for CDC change tables (if any exist for dbo.customer)
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = 'customer' AND s.name = 'cdc'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 
+        N'cdc.customer',
+        COUNT(*)
+    FROM cdc.customer
+    WHERE customer_id = 42
+       OR full_name = N'Subject_0000042'
+       OR email = N'subject42@example.invalid'
+       OR phone = N'+1-555-0000042';
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.customer', 0;
+END;
+
+-- Check for CDC change tables with the naming pattern cdc.dbo_customer_CT
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = 'dbo_customer_CT' AND s.name = 'cdc'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 
+        N'cdc.dbo_customer_CT',
+        COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = 42
+       OR full_name = N'Subject_0000042'
+       OR email = N'subject42@example.invalid'
+       OR phone = N'+1-555-0000042';
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END;
+
+-- Return the results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

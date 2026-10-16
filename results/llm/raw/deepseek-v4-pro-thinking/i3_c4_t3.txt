@@ -1,0 +1,104 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (
+    object_name nvarchar(257),
+    rows_found int
+);
+
+DECLARE @SchemaName sysname,
+        @TableName  sysname,
+        @ObjectId   int;
+
+DECLARE @Where      nvarchar(max);
+DECLARE @Sql        nvarchar(max);
+DECLARE @ObjectName nvarchar(257);
+
+DECLARE candidate_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE EXISTS (
+        SELECT 1
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = t.object_id
+          AND (
+                (c.name LIKE '%name%'        AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%email%'       AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%phone%'       AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%customer_id%' AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit'))
+             OR (c.name LIKE '%member_id%'   AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit'))
+          )
+    )
+    ORDER BY s.name, t.name;
+
+OPEN candidate_cursor;
+FETCH NEXT FROM candidate_cursor INTO @SchemaName, @TableName, @ObjectId;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @ObjectName = @SchemaName + N'.' + @TableName;
+    SET @Where = NULL;
+
+    SELECT @Where = STRING_AGG(condition, ' OR ')
+    FROM (
+        SELECT
+            CASE
+                WHEN c.name LIKE '%name%'
+                 AND ty.name IN ('nvarchar','varchar','nchar','char','sysname')
+                    THEN QUOTENAME(c.name) + N' = N''Subject_0000042'''
+                WHEN c.name LIKE '%email%'
+                 AND ty.name IN ('nvarchar','varchar','nchar','char','sysname')
+                    THEN QUOTENAME(c.name) + N' = N''subject42@example.invalid'''
+                WHEN c.name LIKE '%phone%'
+                 AND ty.name IN ('nvarchar','varchar','nchar','char','sysname')
+                    THEN QUOTENAME(c.name) + N' = N''+1-555-0000042'''
+                WHEN c.name LIKE '%customer_id%'
+                 AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit')
+                    THEN QUOTENAME(c.name) + N' = 42'
+                WHEN c.name LIKE '%member_id%'
+                 AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit')
+                    THEN QUOTENAME(c.name) + N' = 42'
+                ELSE NULL
+            END AS condition
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @ObjectId
+          AND (
+                (c.name LIKE '%name%'        AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%email%'       AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%phone%'       AND ty.name IN ('nvarchar','varchar','nchar','char','sysname'))
+             OR (c.name LIKE '%customer_id%' AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit'))
+             OR (c.name LIKE '%member_id%'   AND ty.name IN ('int','bigint','smallint','tinyint','decimal','numeric','bit'))
+          )
+    ) AS conditions
+    WHERE condition IS NOT NULL;
+
+    IF @Where IS NOT NULL AND LEN(@Where) > 0
+    BEGIN
+        SET @Sql = N'SELECT @ObjectName, COUNT(*) FROM '
+                 + QUOTENAME(@SchemaName) + N'.' + QUOTENAME(@TableName)
+                 + N' WHERE ' + @Where + N';';
+
+        INSERT INTO @Results (object_name, rows_found)
+        EXEC sp_executesql @Sql,
+                           N'@ObjectName nvarchar(257)',
+                           @ObjectName = @ObjectName;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO @Results (object_name, rows_found)
+        VALUES (@ObjectName, 0);
+    END
+
+    FETCH NEXT FROM candidate_cursor INTO @SchemaName, @TableName, @ObjectId;
+END
+
+CLOSE candidate_cursor;
+DEALLOCATE candidate_cursor;
+
+SELECT object_name, rows_found
+FROM @Results
+ORDER BY object_name;
+```

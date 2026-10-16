@@ -1,0 +1,232 @@
+```sql
+DECLARE @original_customer_id INT = 42;
+DECLARE @original_full_name NVARCHAR(255) = N'Subject_0000042';
+DECLARE @original_email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @original_phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @original_customer_id
+   OR full_name = @original_full_name
+   OR email = @original_email
+   OR phone = @original_phone;
+
+-- Check temporal history table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer_history',
+    COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @original_customer_id
+   OR full_name = @original_full_name
+   OR email = @original_email
+   OR phone = @original_phone;
+
+-- Check change data capture tables (if any exist)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE '%cdc%' OR is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_table_name NVARCHAR(255);
+    DECLARE cdc_cursor CURSOR FOR
+        SELECT t.name
+        FROM sys.tables t
+        WHERE t.is_tracked_by_cdc = 1;
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @cdc_schema_name NVARCHAR(255) = N'cdc';
+        DECLARE @full_cdc_name NVARCHAR(255) = @cdc_schema_name + N'.' + @cdc_table_name;
+        DECLARE @sql NVARCHAR(MAX);
+
+        -- Check if the CDC table has relevant columns
+        IF EXISTS (
+            SELECT 1 
+            FROM sys.columns c
+            JOIN sys.tables t ON c.object_id = t.object_id
+            JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE s.name = N'cdc' 
+              AND t.name = @cdc_table_name
+              AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+        )
+        BEGIN
+            SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT @full_name, COUNT(*) FROM ' + QUOTENAME(@cdc_schema_name) + N'.' + QUOTENAME(@cdc_table_name) + N' WHERE ';
+            
+            DECLARE @conditions NVARCHAR(MAX) = N'';
+            
+            IF EXISTS (
+                SELECT 1 
+                FROM sys.columns c
+                JOIN sys.tables t ON c.object_id = t.object_id
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = N'cdc' 
+                  AND t.name = @cdc_table_name
+                  AND c.name = 'customer_id'
+            )
+                SET @conditions = @conditions + N'customer_id = @original_customer_id OR ';
+                
+            IF EXISTS (
+                SELECT 1 
+                FROM sys.columns c
+                JOIN sys.tables t ON c.object_id = t.object_id
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = N'cdc' 
+                  AND t.name = @cdc_table_name
+                  AND c.name = 'full_name'
+            )
+                SET @conditions = @conditions + N'full_name = @original_full_name OR ';
+                
+            IF EXISTS (
+                SELECT 1 
+                FROM sys.columns c
+                JOIN sys.tables t ON c.object_id = t.object_id
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = N'cdc' 
+                  AND t.name = @cdc_table_name
+                  AND c.name = 'email'
+            )
+                SET @conditions = @conditions + N'email = @original_email OR ';
+                
+            IF EXISTS (
+                SELECT 1 
+                FROM sys.columns c
+                JOIN sys.tables t ON c.object_id = t.object_id
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = N'cdc' 
+                  AND t.name = @cdc_table_name
+                  AND c.name = 'phone'
+            )
+                SET @conditions = @conditions + N'phone = @original_phone OR ';
+            
+            IF LEN(@conditions) > 0
+            BEGIN
+                SET @conditions = LEFT(@conditions, LEN(@conditions) - 3); -- Remove trailing ' OR '
+                SET @sql = @sql + @conditions;
+                
+                EXEC sp_executesql @sql, 
+                    N'@full_name NVARCHAR(255), @original_customer_id INT, @original_full_name NVARCHAR(255), @original_email NVARCHAR(255), @original_phone NVARCHAR(255)',
+                    @full_name = @full_cdc_name,
+                    @original_customer_id = @original_customer_id,
+                    @original_full_name = @original_full_name,
+                    @original_email = @original_email,
+                    @original_phone = @original_phone;
+            END
+            ELSE
+            BEGIN
+                INSERT INTO #results (object_name, rows_found)
+                VALUES (@full_cdc_name, 0);
+            END
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #results (object_name, rows_found)
+            VALUES (@full_cdc_name, 0);
+        END
+
+        FETCH NEXT FROM cdc_cursor INTO @cdc_table_name;
+    END
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+-- Check for any other tables that might contain customer data (downstream copies)
+-- Look for tables with similar column names
+DECLARE @table_name NVARCHAR(255);
+DECLARE @schema_name NVARCHAR(255);
+DECLARE table_cursor CURSOR FOR
+    SELECT DISTINCT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name NOT IN ('customer', 'customer_history')
+      AND t.is_ms_shipped = 0
+      AND EXISTS (
+          SELECT 1 
+          FROM sys.columns c 
+          WHERE c.object_id = t.object_id 
+            AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+      );
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @full_table_name NVARCHAR(255) = @schema_name + N'.' + @table_name;
+    DECLARE @check_sql NVARCHAR(MAX) = N'INSERT INTO #results (object_name, rows_found) SELECT @full_table_name, COUNT(*) FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N' WHERE ';
+    DECLARE @check_conditions NVARCHAR(MAX) = N'';
+    
+    IF EXISTS (
+        SELECT 1 
+        FROM sys.columns c 
+        WHERE c.object_id = OBJECT_ID(@full_table_name) 
+          AND c.name = 'customer_id'
+    )
+        SET @check_conditions = @check_conditions + N'customer_id = @original_customer_id OR ';
+        
+    IF EXISTS (
+        SELECT 1 
+        FROM sys.columns c 
+        WHERE c.object_id = OBJECT_ID(@full_table_name) 
+          AND c.name = 'full_name'
+    )
+        SET @check_conditions = @check_conditions + N'full_name = @original_full_name OR ';
+        
+    IF EXISTS (
+        SELECT 1 
+        FROM sys.columns c 
+        WHERE c.object_id = OBJECT_ID(@full_table_name) 
+          AND c.name = 'email'
+    )
+        SET @check_conditions = @check_conditions + N'email = @original_email OR ';
+        
+    IF EXISTS (
+        SELECT 1 
+        FROM sys.columns c 
+        WHERE c.object_id = OBJECT_ID(@full_table_name) 
+          AND c.name = 'phone'
+    )
+        SET @check_conditions = @check_conditions + N'phone = @original_phone OR ';
+    
+    IF LEN(@check_conditions) > 0
+    BEGIN
+        SET @check_conditions = LEFT(@check_conditions, LEN(@check_conditions) - 3);
+        SET @check_sql = @check_sql + @check_conditions;
+        
+        EXEC sp_executesql @check_sql,
+            N'@full_table_name NVARCHAR(255), @original_customer_id INT, @original_full_name NVARCHAR(255), @original_email NVARCHAR(255), @original_phone NVARCHAR(255)',
+            @full_table_name = @full_table_name,
+            @original_customer_id = @original_customer_id,
+            @original_full_name = @original_full_name,
+            @original_email = @original_email,
+            @original_phone = @original_phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@full_table_name, 0);
+    END
+
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

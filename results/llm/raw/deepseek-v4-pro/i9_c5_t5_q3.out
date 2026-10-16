@@ -1,0 +1,11 @@
+table_name|column_name
+----------|-----------
+customer|customer_id
+customer|email
+customer|full_name
+customer|phone
+customer_history|customer_id
+customer_history|email
+customer_history|full_name
+customer_history|phone
+(8 rows affected)

@@ -1,0 +1,31 @@
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 12
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 20
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 28
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 36
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 44
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 52
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 60
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 68
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 76
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 84
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 92
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 100
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 134, Level 15, State 1, Server 651334c31df8, Line 108
+The variable name '@cnt' has already been declared. Variable names must be unique within a query batch or stored procedure.
+
+(1 rows affected)
+dbo.customer|0
+
+(1 rows affected)

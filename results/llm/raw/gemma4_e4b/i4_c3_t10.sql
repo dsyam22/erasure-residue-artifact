@@ -1,0 +1,24 @@
+SELECT object_name, rows_found FROM (
+    -- Check dbo.customer (Live data)
+    SELECT 'dbo.customer' AS object_name,
+           CAST((SELECT COUNT(*) FROM dbo.customer WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS INT) AS rows_found
+
+    UNION ALL
+
+    -- Check cdc.dbo_customer_CT (Change Tracking Table)
+    SELECT 'cdc.dbo_customer_CT',
+           CAST((SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS INT)
+
+    UNION ALL
+
+    -- Check dbo.member (Current state in the temporal table)
+    SELECT 'dbo.member',
+           CAST((SELECT COUNT(*) FROM dbo.member WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS INT)
+
+    UNION ALL
+
+    -- Check dbo.member_history (Temporal History Table)
+    SELECT 'dbo.member_history',
+           CAST((SELECT COUNT(*) FROM dbo.member_history WHERE full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS INT)
+
+) AS Results;

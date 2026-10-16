@@ -1,0 +1,14 @@
+DECLARE @subject_phone nvarchar(100) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE phone = @subject_phone;
+
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

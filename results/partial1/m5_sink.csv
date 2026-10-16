@@ -1,0 +1,10 @@
+consumer,trial,sink_rows_initial,partA_erased_left_in_sink,minutes_until_stream_cleared,change_rows_left_for_erased,partB_erased_left_in_source,partB_erased_left_in_sink,window_clamped,error_number,deletes_applied
+CLAMP,1,100,0,2.08,0,0,10,1,0,0
+STRICT,1,100,0,2.07,0,0,10,0,313,0
+CLAMP,2,100,0,2.07,0,0,10,1,0,0
+STRICT,2,100,0,2.07,0,0,10,0,313,0
+STRICT,3,100,0,1.57,0,0,10,0,313,0
+CLAMP,3,100,0,2.10,0,0,10,1,0,0
+STRICT,4,100,0,2.07,0,0,10,0,313,0
+CLAMP,4,100,0,2.07,0,0,10,1,0,0
+STRICT,5,100,0,1.60,0,0,10,0,313,0

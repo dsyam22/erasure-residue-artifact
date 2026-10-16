@@ -1,0 +1,35 @@
+/* Verify erasure of the subject's phone number across the database.
+   Read-only. Returns one result set: object_name, rows_found. */
+
+DECLARE @phone nvarchar(400) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* 1) Base table dbo.customer - phone column dropped, so check any
+      remaining column that could hold the value (defensive). */
+IF COL_LENGTH('dbo.customer','phone') IS NOT NULL
+BEGIN
+    INSERT INTO #results
+    EXEC (N'SELECT ''dbo.customer'' AS object_name, COUNT(*) FROM dbo.customer WHERE phone = @p');
+END
+ELSE
+BEGIN
+    INSERT INTO #results VALUES ('dbo.customer', 0);
+END
+
+/* 2) CDC change table cdc.dbo_customer_CT - captured_columns still
+      include phone, so historical rows may retain the value. */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+   AND COL_LENGTH('cdc.dbo_customer_CT','phone') IS NOT NULL
+BEGIN
+    INSERT INTO #results
+    EXEC (N'SELECT ''cdc.dbo_customer_CT'' AS object_name, COUNT(*) FROM cdc.dbo_customer_CT WHERE phone = @p');
+END
+ELSE
+BEGIN
+    INSERT INTO #results VALUES ('cdc.dbo_customer_CT', 0);
+END
+
+SELECT object_name, rows_found FROM #results;
+
+DROP TABLE #results;

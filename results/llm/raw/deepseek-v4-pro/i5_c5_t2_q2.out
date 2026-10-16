@@ -1,0 +1,5 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer_history|customer_id|int
+(2 rows affected)

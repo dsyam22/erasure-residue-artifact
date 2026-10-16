@@ -1,0 +1,6 @@
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@found".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@found".
+cdc.dbo_customer_CT|1
+dbo.customer|0

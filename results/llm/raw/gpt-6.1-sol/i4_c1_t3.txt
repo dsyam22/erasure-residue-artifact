@@ -1,0 +1,80 @@
+```sql
+DECLARE @sql nvarchar(max);
+
+-- Scan every table, including temporal history and CDC change tables.
+-- Match the original personal values, not the retained identifier 42.
+-- Only SELECT statements are executed against database objects.
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found
+              FROM [llm_i4].' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' AS d WHERE ' + COALESCE(p.predicate, N'1 = 0')
+        ),
+        NCHAR(13) + NCHAR(10) + N'UNION ALL' + NCHAR(13) + NCHAR(10)
+    )
+FROM [llm_i4].sys.tables AS t
+JOIN [llm_i4].sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'(' +
+            N'CHARINDEX(N''Subject_0000042'', ' + v.expression +
+                N' COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(N''subject42@example.invalid'', ' + v.expression +
+                N' COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(N''+1-555-0000042'', ' + v.expression +
+                N' COLLATE Latin1_General_100_BIN2) > 0' +
+            CASE
+                WHEN c.system_type_id IN (34, 165, 173)
+                THEN
+                    N' OR CHARINDEX(N''Subject_0000042'', ' +
+                    b.expression + N' COLLATE Latin1_General_100_BIN2) > 0' +
+                    N' OR CHARINDEX(N''subject42@example.invalid'', ' +
+                    b.expression + N' COLLATE Latin1_General_100_BIN2) > 0' +
+                    N' OR CHARINDEX(N''+1-555-0000042'', ' +
+                    b.expression + N' COLLATE Latin1_General_100_BIN2) > 0'
+                ELSE N''
+            END +
+            N')'
+        ),
+        N' OR '
+    ) AS predicate
+    FROM [llm_i4].sys.columns AS c
+    CROSS APPLY
+    (
+        SELECT N'TRY_CONVERT(nvarchar(max), d.' +
+               QUOTENAME(c.name) + N')' AS expression
+    ) AS v
+    CROSS APPLY
+    (
+        SELECT N'TRY_CONVERT(nvarchar(max), TRY_CONVERT(varchar(max), d.' +
+               QUOTENAME(c.name) + N'))' AS expression
+    ) AS b
+    WHERE c.object_id = t.object_id
+      AND c.system_type_id IN
+          (
+              35, 99,             -- text, ntext
+              167, 175, 231, 239,  -- varchar, char, nvarchar, nchar
+              241, 98,            -- xml, sql_variant
+              34, 165, 173        -- image, varbinary, binary
+          )
+) AS p;
+
+SELECT @sql =
+    CASE
+        WHEN @sql IS NULL
+        THEN N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                      CAST(NULL AS bigint) AS rows_found
+               WHERE 1 = 0;'
+        ELSE N'SELECT object_name, rows_found
+               FROM (' + @sql + N') AS findings
+               ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql @sql;
+```

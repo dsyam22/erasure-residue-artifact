@@ -1,0 +1,30 @@
+schema_name|table_name|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|is_ms_shipped
+-----------|----------|------------------|--------------|-------------|-----------------|-------------------|-------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|0|0|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|0|0|0
+(2 rows affected)
+schema_name|table_name|column_name|type_name|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|customer_history|customer_id|int|4|0
+dbo|customer_history|full_name|nvarchar|200|0
+dbo|customer_history|email|nvarchar|400|0
+dbo|customer_history|phone|nvarchar|60|1
+(8 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+dbo|customer_history|1
+(2 rows affected)
+fk_name|child_schema|child_table|parent_schema|parent_table|delete_referential_action_desc
+-------|------------|-----------|-------------|------------|------------------------------
+(0 rows affected)
+schema_name|table_name|trigger_name|is_disabled|trigger_definition
+-----------|----------|------------|-----------|------------------
+(0 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+(0 rows affected)

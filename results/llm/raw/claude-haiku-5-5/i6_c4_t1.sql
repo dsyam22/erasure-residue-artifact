@@ -1,0 +1,35 @@
+SELECT
+    v.object_name,
+    v.rows_found
+FROM (
+    SELECT
+        CAST('dbo.customer' AS nvarchar(256)) AS object_name,
+        CAST((
+            SELECT COUNT(*)
+            FROM dbo.customer AS c
+            WHERE c.full_name LIKE N'%+1-555-0000042%'
+               OR c.email LIKE N'%+1-555-0000042%'
+        ) AS int) AS rows_found
+
+    UNION ALL
+
+    SELECT
+        CAST('cdc.dbo_customer_CT' AS nvarchar(256)),
+        CAST((
+            SELECT COUNT(*)
+            FROM cdc.dbo_customer_CT AS ct
+            WHERE ct.phone = N'+1-555-0000042'
+               OR (ct.customer_id = 42 AND ct.phone LIKE N'%0000042%')
+        ) AS int)
+
+    UNION ALL
+
+    SELECT
+        CAST('cdc.ddl_history' AS nvarchar(256)),
+        CAST((
+            SELECT COUNT(*)
+            FROM cdc.ddl_history AS dh
+            WHERE dh.ddl_command LIKE N'%+1-555-0000042%'
+        ) AS int)
+) AS v
+ORDER BY v.object_name;

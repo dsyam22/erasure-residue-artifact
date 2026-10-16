@@ -1,0 +1,166 @@
+--- mariadb scale=1000 method=DELETE trial=1 (13:03:07)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--- mariadb scale=1000 method=UPDATE trial=1 (13:03:10)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--- mariadb scale=1000 method=DELETE trial=1 (13:10:41)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=UPDATE trial=1 (13:10:44)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=DELETE trial=1 (13:11:22)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=DELETE trial=2 (13:11:26)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=DELETE trial=3 (13:11:29)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=UPDATE trial=1 (13:11:34)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=UPDATE trial=2 (13:11:36)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=1000 method=UPDATE trial=3 (13:11:39)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=DELETE trial=1 (13:11:44)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=DELETE trial=2 (13:11:47)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=DELETE trial=3 (13:11:52)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=UPDATE trial=1 (13:11:58)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=UPDATE trial=2 (13:12:03)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1
+--- mariadb scale=100000 method=UPDATE trial=3 (13:12:09)
+--------------
+DELETE FROM md_lab.customer FOR SYSTEM_TIME ALL WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SYSTEM_TIME ALL WHERE id = 10' at line 1
+--------------
+DELETE HISTORY FROM md_lab.customer WHERE id = 10
+--------------
+
+ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE id = 10' at line 1

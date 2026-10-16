@@ -1,0 +1,13 @@
+column_name|table_name|type_name
+-----------|----------|---------
+customer_id|customer|int
+full_name|customer|nvarchar
+email|customer|nvarchar
+phone|customer|nvarchar
+member_id|member|int
+full_name|member|nvarchar
+email|member|nvarchar
+phone|member|nvarchar
+valid_from|member|datetime2
+valid_to|member|datetime2
+(10 rows affected)

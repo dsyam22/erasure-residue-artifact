@@ -1,0 +1,25 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 30
+Incorrect syntax near ']'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 36
+Unclosed quotation mark after the character string ';
+
+    -- Execute the count and insert results into the temporary table
+    INSERT INTO #SearchResults (object_name, rows_found)
+    EXEC sp_executesql @SQL;
+
+    FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName;
+END
+
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final cleanup and presentation of the required single result set
+SELECT 
+    object_name,
+    rows_found
+FROM #SearchResults
+ORDER BY object_name;
+
+-- Clean up temporary table
+DROP TABLE #SearchResults;
+'.

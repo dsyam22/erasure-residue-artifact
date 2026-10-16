@@ -1,0 +1,21 @@
+WITH CheckResults AS (
+    -- 1. Check the current production table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN c.customer_id = 42 AND c.full_name = 'Subject_0000042' AND c.email = 'subject42@example.invalid' AND c.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer c
+
+    UNION ALL
+
+    -- 2. Check the Temporal History table (dbo.customer_history)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(CASE WHEN ch.customer_id = 42 AND ch.full_name = 'Subject_0000042' AND ch.email = 'subject42@example.invalid' AND ch.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer_history ch
+
+    -- NOTE: Since CDC is disabled, no other change tracking tables need to be checked.
+)
+SELECT
+    object_name,
+    rows_found
+FROM CheckResults;

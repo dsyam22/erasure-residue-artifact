@@ -1,0 +1,32 @@
+SELECT 
+    T1.object_name, 
+    T1.rows_found
+FROM (
+    -- Check 1: dbo.customer (Current)
+    SELECT 
+        'dbo.customer' AS object_name, 
+        (
+            SELECT COUNT(*) FROM dbo.customer WHERE full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+        ) AS rows_found
+    UNION ALL
+    -- Check 2: cdc.dbo_customer_CT (CDC History)
+    SELECT 
+        'cdc.dbo_customer_CT' AS object_name, 
+        (
+            SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+        )
+    UNION ALL
+    -- Check 3: dbo.member (Current)
+    SELECT 
+        'dbo.member' AS object_name, 
+        (
+            SELECT COUNT(*) FROM dbo.member WHERE full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+        )
+    UNION ALL
+    -- Check 4: dbo.member_history (Temporal History)
+    SELECT 
+        'dbo.member_history' AS object_name, 
+        (
+            SELECT COUNT(*) FROM dbo.member_history WHERE full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+        )
+) AS T1;

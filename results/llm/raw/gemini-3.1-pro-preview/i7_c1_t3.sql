@@ -1,0 +1,36 @@
+SET NOCOUNT ON;
+
+DECLARE @VerificationResults TABLE (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+INSERT INTO @VerificationResults (object_name, rows_found)
+SELECT 
+    'dbo.customer', 
+    COUNT(*)
+FROM 
+    dbo.customer
+WHERE 
+    customer_id = 42 
+    OR full_name = 'Subject_0000042' 
+    OR email = 'subject42@example.invalid' 
+    OR phone = '+1-555-0000042';
+
+INSERT INTO @VerificationResults (object_name, rows_found)
+SELECT 
+    'reporting.customer_replica', 
+    COUNT(*)
+FROM 
+    reporting.customer_replica
+WHERE 
+    customer_id = 42 
+    OR full_name = 'Subject_0000042' 
+    OR email = 'subject42@example.invalid' 
+    OR phone = '+1-555-0000042';
+
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    @VerificationResults;

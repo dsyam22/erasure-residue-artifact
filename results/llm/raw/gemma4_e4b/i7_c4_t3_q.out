@@ -1,0 +1,14 @@
+table_name|column_name|data_type|is_nullable
+----------|-----------|---------|-----------
+customer|customer_id|int|NO
+customer|full_name|nvarchar|NO
+customer|email|nvarchar|NO
+customer|phone|nvarchar|YES
+customer_replica|customer_id|int|NO
+customer_replica|full_name|nvarchar|NO
+customer_replica|email|nvarchar|NO
+customer_replica|phone|nvarchar|YES
+(8 rows affected)
+table_name|column_name|data_type
+----------|-----------|---------
+(0 rows affected)

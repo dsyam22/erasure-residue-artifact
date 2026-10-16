@@ -1,0 +1,11 @@
+schema_name|table_name|column_name|temporal_type_desc|history_table_name
+-----------|----------|-----------|------------------|------------------
+cdc|dbo_customer_CT|customer_id|NON_TEMPORAL_TABLE|NULL
+cdc|dbo_customer_CT|full_name|NON_TEMPORAL_TABLE|NULL
+cdc|dbo_customer_CT|email|NON_TEMPORAL_TABLE|NULL
+cdc|dbo_customer_CT|phone|NON_TEMPORAL_TABLE|NULL
+dbo|customer|customer_id|NON_TEMPORAL_TABLE|NULL
+dbo|customer|full_name|NON_TEMPORAL_TABLE|NULL
+dbo|customer|email|NON_TEMPORAL_TABLE|NULL
+dbo|customer|phone|NON_TEMPORAL_TABLE|NULL
+(8 rows affected)

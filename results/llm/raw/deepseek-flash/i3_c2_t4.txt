@@ -1,0 +1,62 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @cdc_instance sysname = N'dbo_customer';
+DECLARE @cdc_capture_ts binary(10);
+
+SELECT @cdc_capture_ts = capture_instance
+FROM cdc.change_tables
+WHERE capture_instance = @cdc_instance;
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results;
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member', COUNT_BIG(*)
+FROM dbo.member
+WHERE member_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member_history', COUNT_BIG(*)
+FROM dbo.member_history
+WHERE member_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT_BIG(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

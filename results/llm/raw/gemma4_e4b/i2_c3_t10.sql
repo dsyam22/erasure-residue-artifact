@@ -1,0 +1,24 @@
+WITH ObjectChecks AS (
+    -- Check the current live table state
+    SELECT
+        CAST('dbo.customer' AS nvarchar) AS object_name,
+        (SELECT COUNT(*) FROM dbo.customer WHERE 
+            customer_id = 42 AND 
+            full_name = 'Subject_0000042' AND 
+            email = 'subject42@example.invalid' AND 
+            phone = '+1-555-0000042') AS rows_found
+),
+HistoryChecks AS (
+    -- Check the temporal history table
+    SELECT
+        CAST('dbo.customer_history' AS nvarchar) AS object_name,
+        (SELECT COUNT(*) FROM dbo.customer_history WHERE 
+            customer_id = 42 AND 
+            full_name = 'Subject_0000042' AND 
+            email = 'subject42@example.invalid' AND 
+            phone = '+1-555-0000042') AS rows_found
+)
+-- Combine the results into a single result set
+SELECT object_name, rows_found FROM ObjectChecks
+UNION ALL
+SELECT object_name, rows_found FROM HistoryChecks;

@@ -1,0 +1,43 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #r (
+    object_name sysname NOT NULL,
+    rows_found  int     NOT NULL
+);
+
+-- Build one COUNT query per user table (including cdc.* change tables).
+-- Each query counts rows where any character column holds the erased phone value.
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql += N'INSERT INTO #r (object_name, rows_found) '
+    + N'SELECT N''' + REPLACE(s.name + N'.' + t.name, N'''', N'''''') + N''', COUNT(*) '
+    + N'FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    + N' WHERE '
+    + ISNULL((
+        SELECT STRING_AGG(CAST(
+                 QUOTENAME(c.name) + N' = @p OR '
+               + QUOTENAME(c.name) + N' LIKE N''%5550000042%'''
+               AS nvarchar(max)), N' OR ')
+        FROM sys.columns AS c
+        WHERE c.object_id = t.object_id
+          AND c.system_type_id IN (167, 175, 231, 239)   -- varchar, char, nvarchar, nchar
+      ), N'1=0')
+    + N';' + NCHAR(13) + NCHAR(10)
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0;
+
+-- Tables with no matching columns are still recorded (rows_found = 0 via 1=0 predicate).
+IF @sql <> N''
+    EXEC sp_executesql
+         @sql,
+         N'@p nvarchar(50)',
+         @p = N'+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;
+
+DROP TABLE #r;
+```

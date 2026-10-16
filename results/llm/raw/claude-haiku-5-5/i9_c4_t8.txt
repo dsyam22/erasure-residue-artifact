@@ -1,0 +1,60 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #res (
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj nvarchar(400),
+        @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = @schema + N'.' + @table;
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    SELECT @pred = STRING_AGG(CAST(
+        N'ISNULL(CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(c.name) + N'), 0) > 0'
+      + N' OR ISNULL(CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(c.name) + N'), 0) > 0'
+      + N' OR ISNULL(CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(c.name) + N'), 0) > 0'
+      AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = OBJECT_ID(@obj)
+      AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char');
+
+    IF @pred IS NULL
+        SET @pred = N'1 = 0';
+
+    SET @sql = N'SELECT @c = COUNT_BIG(*) FROM '
+             + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE ' + @pred + N';';
+
+    EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+
+    INSERT INTO #res (object_name, rows_found)
+    VALUES (@obj, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tcur INTO @schema, @table;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;
+
+DROP TABLE #res;
+```

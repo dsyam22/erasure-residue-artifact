@@ -1,0 +1,10 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 46
+Ambiguous column name 'object_name'.

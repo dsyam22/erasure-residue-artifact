@@ -1,0 +1,119 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(776) NOT NULL,
+    rows_found bigint NOT NULL
+);
+
+DECLARE @schema_name sysname;
+DECLARE @table_name sysname;
+DECLARE @object_id int;
+DECLARE @sql_object_name nvarchar(776);
+DECLARE @display_object_name nvarchar(776);
+DECLARE @sql nvarchar(max);
+DECLARE @predicates nvarchar(max);
+DECLARE @rows bigint;
+DECLARE @col_name sysname;
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT
+    s.name,
+    t.name,
+    t.object_id,
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+    s.name + N'.' + t.name
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON t.schema_id = s.schema_id
+WHERE t.type = N'U'
+  AND t.is_ms_shipped = 0
+ORDER BY s.name, t.name;
+
+DECLARE column_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.name
+FROM sys.columns AS c
+JOIN sys.types AS ty
+    ON ty.user_type_id = c.system_type_id
+WHERE c.object_id = @object_id
+  AND c.is_computed = 0
+  AND ty.name IN (
+        N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext',
+        N'tinyint', N'smallint', N'int', N'bigint',
+        N'decimal', N'numeric', N'money', N'smallmoney',
+        N'real', N'float', N'bit',
+        N'date', N'datetime', N'datetime2', N'smalldatetime', N'time', N'datetimeoffset',
+        N'uniqueidentifier', N'sql_variant'
+  )
+ORDER BY c.column_id;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor
+INTO @schema_name, @table_name, @object_id, @sql_object_name, @display_object_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @predicates = N'';
+
+    OPEN column_cursor;
+    FETCH NEXT FROM column_cursor INTO @col_name;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @predicates = @predicates + 
+            CASE WHEN @predicates = N'' THEN N'' ELSE N' OR ' END +
+            N'(RTRIM(LTRIM(TRY_CONVERT(nvarchar(max), ' + QUOTENAME(@col_name) + N'))) LIKE @p1 OR ' +
+            N'RTRIM(LTRIM(TRY_CONVERT(nvarchar(max), ' + QUOTENAME(@col_name) + N'))) LIKE @p2 OR ' +
+            N'RTRIM(LTRIM(TRY_CONVERT(nvarchar(max), ' + QUOTENAME(@col_name) + N'))) LIKE @p3)';
+
+        IF UPPER(@col_name) = N'CUSTOMER_ID'
+            SET @predicates = @predicates + 
+                N' OR (RTRIM(LTRIM(TRY_CONVERT(nvarchar(max), ' + QUOTENAME(@col_name) + N'))) = @p4)';
+
+        FETCH NEXT FROM column_cursor INTO @col_name;
+    END;
+
+    CLOSE column_cursor;
+
+    IF @predicates = N''
+    BEGIN
+        SET @rows = 0;
+    END;
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @rows = COUNT_BIG(*) FROM ' + @sql_object_name + 
+                   N' WHERE ' + @predicates + N';';
+
+        SET @rows = 0;
+
+        BEGIN TRY
+            EXEC sp_executesql @sql,
+                N'@p1 nvarchar(100), @p2 nvarchar(100), @p3 nvarchar(50), @p4 nvarchar(20), @rows bigint OUTPUT',
+                @p1 = N'%Subject_0000042%',
+                @p2 = N'%subject42@example.invalid%',
+                @p3 = N'%+1-555-0000042%',
+                @p4 = N'42',
+                @rows = @rows OUTPUT;
+        END TRY
+        BEGIN CATCH
+            SET @rows = 0;
+        END CATCH;
+    END;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@display_object_name, @rows);
+
+    FETCH NEXT FROM table_cursor
+    INTO @schema_name, @table_name, @object_id, @sql_object_name, @display_object_name;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+DEALLOCATE column_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

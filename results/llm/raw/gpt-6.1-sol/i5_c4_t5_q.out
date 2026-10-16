@@ -1,0 +1,40 @@
+database_name|compatibility_level|is_cdc_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on|can_view_definition|can_select_database
+-------------|-------------------|--------------|-----------------------------|-----------------------------|-------------------|-------------------
+llm_i5|160|0|OFF|0|1|1
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|history_retention_period|history_retention_period_unit_desc|is_tracked_by_cdc|is_memory_optimized|durability_desc|ledger_type_desc|is_dropped_ledger_table|is_external|can_select
+-----------|----------|---------|------------------|-------------------|------------------|------------------------|----------------------------------|-----------------|-------------------|---------------|----------------|-----------------------|-----------|----------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|1|DAY|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|1
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|1
+(2 rows affected)
+schema_name|table_name|column_id|column_name|type_schema_name|declared_type_name|system_type_name|max_length|precision|scale|collation_name|is_nullable|is_computed|computed_definition|is_hidden|generated_always_type_desc|encryption_type_desc|is_masked
+-----------|----------|---------|-----------|----------------|------------------|----------------|----------|---------|-----|--------------|-----------|-----------|-------------------|---------|--------------------------|--------------------|---------
+dbo|customer|1|customer_id|sys|int|int|4|10|0|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|2|full_name|sys|nvarchar|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|3|email|sys|nvarchar|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|4|phone|sys|nvarchar|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|5|valid_from|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|AS_ROW_START|NULL|0
+dbo|customer|6|valid_to|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|AS_ROW_END|NULL|0
+dbo|customer_history|1|customer_id|sys|int|int|4|10|0|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|2|full_name|sys|nvarchar|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|3|email|sys|nvarchar|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|4|phone|sys|nvarchar|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|5|valid_from|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|6|valid_to|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+(12 rows affected)
+schema_name|table_name|period_name|period_start_column|period_end_column
+-----------|----------|-----------|-------------------|-----------------
+dbo|customer|SYSTEM_TIME|valid_from|valid_to
+(1 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|is_track_columns_updated_on|begin_version|min_valid_version
+-----------|----------|---------------------------|-------------|-----------------
+(0 rows affected)
+schema_name|security_policy_name|is_enabled|predicate_type_desc|operation_desc|target_schema_name|target_object_name|predicate_definition
+-----------|--------------------|----------|-------------------|--------------|------------------|------------------|--------------------
+(0 rows affected)

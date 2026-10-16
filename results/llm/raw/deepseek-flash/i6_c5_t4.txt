@@ -1,0 +1,48 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME
+WHERE t.TABLE_TYPE = 'BASE TABLE'
+  AND c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext','xml')
+  AND OBJECTPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), 'IsMSShipped') = 0;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT_BIG(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE CONVERT(nvarchar(max), ' + QUOTENAME(@column) + N') LIKE N''%'' + @n + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @n nvarchar(4000)',
+        @obj = @schema + N'.' + @table,
+        @n = @needle;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

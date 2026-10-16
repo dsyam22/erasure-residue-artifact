@@ -1,0 +1,65 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @fn nvarchar(200) = N'Subject_0000042';
+DECLARE @em nvarchar(400) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(60)  = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @targets TABLE (obj sysname NOT NULL);
+INSERT INTO @targets (obj)
+VALUES (N'dbo.customer'),
+       (N'dbo.member'),
+       (N'dbo.member_history'),
+       (N'cdc.dbo_customer_CT');
+
+DECLARE @obj sysname, @sql nvarchar(max), @cnt bigint;
+
+DECLARE target_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT obj FROM @targets ORDER BY obj;
+
+OPEN target_cursor;
+FETCH NEXT FROM target_cursor INTO @obj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    IF OBJECT_ID(@obj, N'U') IS NULL
+    BEGIN
+        -- Object not present in this database: nothing can be found there
+        INSERT INTO #results (object_name, rows_found) VALUES (@obj, 0);
+    END
+    ELSE
+    BEGIN
+        SET @cnt = 0;
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM '
+                 + QUOTENAME(PARSENAME(@obj, 2)) + N'.' + QUOTENAME(PARSENAME(@obj, 1))
+                 + N' WHERE full_name = @fn OR email = @em OR phone = @ph;';
+
+        EXEC sp_executesql
+            @sql,
+            N'@c bigint OUTPUT, @fn nvarchar(200), @em nvarchar(400), @ph nvarchar(60)',
+            @c  = @cnt OUTPUT,
+            @fn = @fn,
+            @em = @em,
+            @ph = @ph;
+
+        INSERT INTO #results (object_name, rows_found) VALUES (@obj, @cnt);
+    END
+
+    FETCH NEXT FROM target_cursor INTO @obj;
+END
+
+CLOSE target_cursor;
+DEALLOC_CURSOR_PLACEHOLDER:
+DEALLOCATE target_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

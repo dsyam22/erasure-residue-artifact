@@ -1,0 +1,61 @@
+database_name|sql_version
+-------------|-----------
+llm_i3|Microsoft SQL Server 2022 (RTM-CU27) (KB5104824) - 16.0.4295.3 (X64)
+	Aug 26 2026 11:02:22
+	Copyright (C) 2022 Microsoft Corporation
+	Developer Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+(1 rows affected)
+schema_name|table_name|object_id|type_desc|is_ms_shipped|is_external|temporal_type|temporal_type_desc|history_table_id|history_schema_name|history_table_name
+-----------|----------|---------|---------|-------------|-----------|-------------|------------------|----------------|-------------------|------------------
+cdc|captured_columns|1125579048|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+cdc|change_tables|1013578649|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+cdc|dbo_customer_CT|1333579789|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+cdc|ddl_history|1061578820|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+cdc|index_columns|1157579162|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+cdc|lsn_time_mapping|1093578934|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+dbo|customer|901578250|USER_TABLE|0|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+dbo|member|933578364|USER_TABLE|0|0|2|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|dbo|member_history
+dbo|member_history|965578478|USER_TABLE|0|0|1|HISTORY_TABLE|NULL|NULL|NULL
+dbo|systranschemas|981578535|USER_TABLE|1|0|0|NON_TEMPORAL_TABLE|NULL|NULL|NULL
+(10 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|collation_name|is_nullable|is_identity|is_computed|generated_always_type|generated_always_type_desc|is_hidden
+-----------|----------|---------|-----------|---------|----------|---------|-----|--------------|-----------|-----------|-----------|---------------------|--------------------------|---------
+cdc|captured_columns|1|object_id|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|2|column_name|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|3|column_id|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|4|column_type|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|5|column_ordinal|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|6|is_computed|bit|1|1|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|captured_columns|7|masking_function|nvarchar|8000|0|0|Latin1_General_CI_AS_KS_WS|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|1|object_id|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|2|version|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|3|source_object_id|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|4|capture_instance|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|5|start_lsn|binary|10|0|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|6|end_lsn|binary|10|0|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|7|supports_net_changes|bit|1|1|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|8|has_drop_pending|bit|1|1|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|9|role_name|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|10|index_name|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|11|filegroup_name|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|12|create_date|datetime|8|23|3|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|change_tables|13|partition_switch|bit|1|1|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|1|__$start_lsn|binary|10|0|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|2|__$end_lsn|binary|10|0|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|3|__$seqval|binary|10|0|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|4|__$operation|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|5|__$update_mask|varbinary|128|0|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|6|customer_id|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|7|full_name|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|8|email|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|9|phone|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|dbo_customer_CT|10|__$command_id|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|1|source_object_id|int|4|10|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|2|object_id|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|3|required_column_update|bit|1|1|0|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|4|ddl_command|nvarchar|-1|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|5|ddl_lsn|binary|10|0|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|ddl_history|6|ddl_time|datetime|8|23|3|NULL|1|0|0|0|NOT_APPLICABLE|0
+cdc|index_columns|1|object_id|int|4|10|0|NULL|0|0|0|0|NOT_APPLICABLE|0
+cdc|index_columns|2|column_name|sysname|256|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|0|NOT_AP
+[output truncated]

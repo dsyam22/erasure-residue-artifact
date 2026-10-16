@@ -1,0 +1,11 @@
+Database: llm_i9 on Microsoft SQL Server 2022.
+
+The data subject's original personal data: customer_id 42, full_name 'Subject_0000042', email 'subject42@example.invalid', phone '+1-555-0000042'.
+
+Erasure that was performed: The rows for this person were deleted with DELETE statements from dbo.customer.
+
+Tables (schema.table and columns):
+dbo.customer (customer_id int, full_name nvarchar, email nvarchar, phone nvarchar, valid_from datetime2, valid_to datetime2)
+
+You will be asked to write a T-SQL script that verifies whether the erased personal data is still stored anywhere in this database. Before that, you may inspect the database once.
+Reply with one read-only T-SQL batch (SELECT statements only) that returns whatever you want to know about this database, for example from its catalog views. Its output will be given back to you. Reply with the query only, inside one ```sql code block.

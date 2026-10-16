@@ -1,0 +1,56 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #scan_results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @oid int;
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Build a predicate over every character column of the table:
+    -- row matches if any column contains any of the subject's original values.
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(CAST(
+        N'(CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(c.name) + N' COLLATE Latin1_General_CI_AS) > 0'
+      + N' OR CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(c.name) + N' COLLATE Latin1_General_CI_AS) > 0'
+      + N' OR CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(c.name) + N' COLLATE Latin1_General_CI_AS) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (167, 175, 231, 239);  -- varchar, char, nvarchar, nchar
+
+    IF @pred IS NULL
+        SET @pred = N'1 = 0';
+
+    SET @sql = N'SELECT @n = COUNT_BIG(*) FROM '
+             + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE ' + @pred + N';';
+    SET @n = 0;
+
+    EXEC sp_executesql @sql, N'@n bigint OUTPUT', @n = @n OUTPUT;
+
+    INSERT INTO #scan_results (object_name, rows_found)
+    VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table), ISNULL(@n, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;

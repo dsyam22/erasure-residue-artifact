@@ -1,0 +1,37 @@
+checked_at_utc
+--------------
+2026-10-10 16:06:07.0891232
+
+(1 rows affected)
+name step_id run_date run_time run_duration run_status message
+---- ------- -------- -------- ------------ ---------- -------
+cdc.erasure_lab_cleanup 1 20261008 14648 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261008 14648 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+cdc.erasure_lab_cleanup 1 20261008 20001 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261008 20001 0 1 The job succeeded.  The Job was invoked by Schedule 9 (CDC cleanup agent schedule.).  The last step to run was step 1 (Change Data Capture Cleanup Age
+cdc.erasure_lab_cleanup 1 20261008 20413 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261008 20413 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+cdc.erasure_lab_cleanup 1 20261008 20443 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261008 20443 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+cdc.erasure_lab_cleanup 1 20261009 20006 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261009 20005 1 1 The job succeeded.  The Job was invoked by Schedule 9 (CDC cleanup agent schedule.).  The last step to run was step 1 (Change Data Capture Cleanup Age
+cdc.erasure_lab_cleanup 1 20261010 20000 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261010 20000 0 1 The job succeeded.  The Job was invoked by Schedule 9 (CDC cleanup agent schedule.).  The last step to run was step 1 (Change Data Capture Cleanup Age
+cdc.backup_lab_cleanup 1 20261010 154816 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.backup_lab_cleanup 0 20261010 154816 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+cdc.backup_lab_r2_cleanup 1 20261010 155640 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.backup_lab_r2_cleanup 0 20261010 155640 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+cdc.erasure_lab_cleanup 1 20261010 160149 0 1 Executed as user: NT AUTHORITY\NETWORK SERVICE. The step succeeded.
+cdc.erasure_lab_cleanup 0 20261010 160149 0 1 The job succeeded.  The Job was invoked by User sa.  The last step to run was step 1 (Change Data Capture Cleanup Agent).
+
+(18 rows affected)
+r2_change_rows r2_rows_subject_42
+-------------- ------------------
+102 1
+
+(1 rows affected)
+subscriber_change_rows
+----------------------
+102
+
+(1 rows affected)

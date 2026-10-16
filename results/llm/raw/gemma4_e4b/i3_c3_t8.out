@@ -1,0 +1,16 @@
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 3
+The multi-part identifier "c.full_name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 3
+The multi-part identifier "c.email" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 7
+The multi-part identifier "ct.customer_id" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 7
+The multi-part identifier "ct.full_name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 11
+The multi-part identifier "m.full_name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 11
+The multi-part identifier "m.email" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 15
+The multi-part identifier "mhi.full_name" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 15
+The multi-part identifier "mhi.email" could not be bound.

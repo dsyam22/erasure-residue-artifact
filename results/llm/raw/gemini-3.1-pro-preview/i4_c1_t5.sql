@@ -1,0 +1,42 @@
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(128),
+    rows_found INT
+);
+
+-- Check dbo.customer
+INSERT INTO @Results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check dbo.member 
+-- The presence of valid_from/valid_to suggests it might be a system-versioned temporal table.
+-- An UPDATE on a temporal table preserves the original data in the history table.
+IF EXISTS (SELECT 1 FROM sys.tables WHERE object_id = OBJECT_ID('dbo.member') AND temporal_type = 2)
+BEGIN
+    EXEC sp_executesql N'
+        INSERT INTO @Results (object_name, rows_found)
+        SELECT ''dbo.member'', COUNT(*)
+        FROM dbo.member FOR SYSTEM_TIME ALL
+        WHERE full_name = ''Subject_0000042'' 
+           OR email = ''subject42@example.invalid'' 
+           OR phone = ''+1-555-0000042'';
+    ';
+END
+ELSE
+BEGIN
+    INSERT INTO @Results (object_name, rows_found)
+    SELECT 'dbo.member', COUNT(*)
+    FROM dbo.member
+    WHERE full_name = 'Subject_0000042' 
+       OR email = 'subject42@example.invalid' 
+       OR phone = '+1-555-0000042';
+END
+
+-- Return exactly one result set
+SELECT object_name, rows_found
+FROM @Results;

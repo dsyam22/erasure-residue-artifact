@@ -1,0 +1,152 @@
+/* Read-only verification: does any residual copy of the erased subject's
+   original personal data still exist anywhere in this database?
+   Returns exactly one result set: object_name, rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @cid      int           = 42;
+DECLARE @fullname nvarchar(200) = N'Subject_0000042';
+DECLARE @email    nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone    nvarchar(50)  = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* ---- 1) Live base table: dbo.customer -------------------------------- */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @fullname
+   OR email       = @email
+   OR phone       = @phone;
+
+/* ---- 2) CDC change tables (if CDC is/was enabled) -------------------- */
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @cdc_obj sysname, @cdc_owner sysname, @cdc_sql nvarchar(max);
+
+    DECLARE cdc_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT QUOTENAME(OBJECT_SCHEMA_NAME(source_object_id)) + N'.' + QUOTENAME(OBJECT_NAME(source_object_id))
+        FROM cdc.change_tables;
+
+    OPEN cdc_cur;
+    FETCH NEXT FROM cdc_cur INTO @cdc_obj;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @cdc_sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''cdc.'' + OBJECT_NAME(c.object_id),
+                   COUNT(*)
+            FROM ' + @cdc_obj + N' AS c
+            WHERE c.customer_id = @cid
+               OR c.full_name   = @fullname
+               OR c.email       = @email
+               OR c.phone       = @phone;';
+
+        BEGIN TRY
+            EXEC sp_executesql @cdc_sql,
+                 N'@cid int, @fullname nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+                 @cid = @cid, @fullname = @fullname, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #results (object_name, rows_found)
+            VALUES (N'cdc.' + OBJECT_NAME(OBJECT_ID(@cdc_obj)), 0);
+        END CATCH;
+
+        FETCH NEXT FROM cdc_cur INTO @cdc_obj;
+    END
+    CLOSE cdc_cur;
+    DEALLOCATE cdc_cur;
+END
+
+/* ---- 3) Temporal history tables (if any temporal tables exist) ------- */
+IF OBJECT_ID(N'sys.tables') IS NOT NULL
+BEGIN
+    DECLARE @hist_obj sysname, @hist_sql nvarchar(max);
+
+    DECLARE hist_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT QUOTENAME(OBJECT_SCHEMA_NAME(history_table_id)) + N'.' + QUOTENAME(OBJECT_NAME(history_table_id))
+        FROM sys.tables
+        WHERE temporal_type = 2;   /* 2 = history table */
+
+    OPEN hist_cur;
+    FETCH NEXT FROM hist_cur INTO @hist_obj;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @hist_sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @hist_obj + N''', COUNT(*)
+            FROM ' + @hist_obj + N'
+            WHERE customer_id = @cid
+               OR full_name   = @fullname
+               OR email       = @email
+               OR phone       = @phone;';
+
+        BEGIN TRY
+            EXEC sp_executesql @hist_sql,
+                 N'@cid int, @fullname nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+                 @cid = @cid, @fullname = @fullname, @email = @email, @phone = @phone;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO #results (object_name, rows_found)
+            VALUES (@hist_obj, 0);
+        END CATCH;
+
+        FETCH NEXT FROM hist_cur INTO @hist_obj;
+    END
+    CLOSE hist_cur;
+    DEALLOCATE hist_cur;
+END
+
+/* ---- 4) Downstream / other tables holding the same columns ----------- */
+DECLARE @tbl_obj sysname, @tbl_sql nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(OBJECT_SCHEMA_NAME(t.object_id)) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    WHERE t.name <> N'customer'
+      AND t.temporal_type <> 2
+      AND EXISTS (SELECT 1 FROM sys.columns AS c
+                  WHERE c.object_id = t.object_id AND c.name = N'customer_id')
+      AND EXISTS (SELECT 1 FROM sys.columns AS c
+                  WHERE c.object_id = t.object_id AND c.name = N'full_name')
+      AND EXISTS (SELECT 1 FROM sys.columns AS c
+                  WHERE c.object_id = t.object_id AND c.name = N'email')
+      AND EXISTS (SELECT 1 FROM sys.columns AS c
+                  WHERE c.object_id = t.object_id AND c.name = N'phone');
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @tbl_obj;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @tbl_sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N''' + @tbl_obj + N''', COUNT(*)
+        FROM ' + @tbl_obj + N'
+        WHERE customer_id = @cid
+           OR full_name   = @fullname
+           OR email       = @email
+           OR phone       = @phone;';
+
+    BEGIN TRY
+        EXEC sp_executesql @tbl_sql,
+             N'@cid int, @fullname nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+             @cid = @cid, @fullname = @fullname, @email = @email, @phone = @phone;
+    END TRY
+    BEGIN CATCH
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@tbl_obj, 0);
+    END CATCH;
+
+    FETCH NEXT FROM tbl_cur INTO @tbl_obj;
+END
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+/* ---- Single result set ---------------------------------------------- */
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

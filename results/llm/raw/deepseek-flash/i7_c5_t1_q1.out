@@ -1,0 +1,12 @@
+customer_id|full_name|email|phone
+-----------|---------|-----|-----
+(0 rows affected)
+customer_id|full_name|email|phone
+-----------|---------|-----|-----
+42|Subject_0000042|subject42@example.invalid|+1-555-0000042
+(1 rows affected)
+name|type_desc
+----|---------
+customer|USER_TABLE
+customer_replica|USER_TABLE
+(2 rows affected)

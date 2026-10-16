@@ -1,0 +1,2 @@
+Msg 245, Level 16, State 1, Server 651334c31df8, Line 4
+Conversion failed when converting the nvarchar value 'INFINITE' to data type int.

@@ -1,0 +1,60 @@
+/* Read-only verification: is the erased phone number still stored anywhere?
+   Scope: phone number only -> '+1-555-0000042'
+   Enumerates every string column in the database and counts matching rows. */
+
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #checks
+(
+    object_name sysname      NOT NULL,
+    column_name sysname      NOT NULL,
+    rows_found  bigint       NOT NULL
+);
+
+DECLARE @sql    nvarchar(max) = N'',
+        @schema sysname,
+        @table  sysname,
+        @column sysname;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, c.name
+    FROM sys.columns AS c
+    JOIN sys.tables  AS t ON t.object_id = c.object_id
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+    WHERE t.is_ms_shipped = 0
+      AND c.is_computed = 0
+      AND ty.name IN ('char','varchar','nchar','nvarchar','text','ntext')
+    ORDER BY s.name, t.name, c.name;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = @sql + N'
+INSERT INTO #checks (object_name, column_name, rows_found)
+SELECT N''' + REPLACE(QUOTENAME(@schema) + N'.' + QUOTENAME(@table), N'''', N'''''') + N''',
+       N''' + REPLACE(@column, N'''', N'''''') + N''',
+       COUNT_BIG(*)
+FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+WHERE ' + QUOTENAME(@column) + N' LIKE N''%'' + @needle + N''%'';';
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+EXEC sp_executesql @sql, N'@needle nvarchar(4000)', @needle = @needle;
+
+/* Aggregate to one row per object (schema.table): sum of matches across its columns */
+SELECT object_name,
+       SUM(rows_found) AS rows_found
+FROM #checks
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #checks;

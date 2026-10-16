@@ -1,0 +1,78 @@
+Changed database context to 'master'.
+Changed database context to 'backup_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.backup_lab_capture' started successfully.
+Job 'cdc.backup_lab_cleanup' started successfully.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-10 15:48:35.7802406
+=== Step 2: FULL BACKUP (before erasure) ===
+Processed 784 pages for database 'backup_lab', file 'backup_lab' on file 1.
+Processed 2 pages for database 'backup_lab', file 'backup_lab_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.049 seconds (125.239 MB/sec).
+=== Step 3: time mark ===
+mark_name mark_time
+--------- ---------
+before_erasure 2026-10-10 15:48:38.980
+=== Step 4: erase subject 42 from both tables ===
+--- Source database after erasure ---
+customer_rows_42 member_rows_42
+---------------- --------------
+0 0
+=== Step 5: LOG BACKUP (covers the erasure) ===
+Processed 9 pages for database 'backup_lab', file 'backup_lab_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.009 seconds (7.812 MB/sec).
+Changed database context to 'master'.
+=== R1: restore full backup, default options ===
+Processed 784 pages for database 'backup_lab_r1', file 'backup_lab' on file 1.
+Processed 2 pages for database 'backup_lab_r1', file 'backup_lab_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.021 seconds (292.224 MB/sec).
+=== R2: restore full backup WITH KEEP_CDC ===
+Processed 784 pages for database 'backup_lab_r2', file 'backup_lab' on file 1.
+Processed 2 pages for database 'backup_lab_r2', file 'backup_lab_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+=== R3: point-in-time restore to the mark (before erasure) ===
+Processed 784 pages for database 'backup_lab_r3', file 'backup_lab' on file 1.
+Processed 2 pages for database 'backup_lab_r3', file 'backup_lab_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.015 seconds (409.114 MB/sec).
+Processed 0 pages for database 'backup_lab_r3', file 'backup_lab' on file 1.
+Processed 9 pages for database 'backup_lab_r3', file 'backup_lab_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+=== RESULTS ===
+--- Q3 and Q4: database-level flags ---
+name is_cdc_enabled is_temporal_history_retention_enabled recovery_model_desc
+---- -------------- ------------------------------------- -------------------
+backup_lab 1 1 FULL
+backup_lab_r1 0 0 FULL
+backup_lab_r2 1 0 FULL
+backup_lab_r3 0 1 FULL
+--- Q3: CDC jobs registered per database ---
+job_name
+--------
+cdc.backup_lab_capture
+cdc.backup_lab_cleanup
+--- Q1: is subject 42 present? (source rows) ---
+db customer_rows_42 member_rows_42
+-- ---------------- --------------
+backup_lab (source, erased) 0 0
+backup_lab_r1 1 1
+backup_lab_r2 1 1
+backup_lab_r3 1 1
+--- Q2: does the CDC change table exist in each database? (NULL = no) ---
+db change_table_object_id
+-- ----------------------
+backup_lab 1365579903
+backup_lab_r1 NULL
+backup_lab_r2 1365579903
+backup_lab_r3 NULL
+--- Q2: change table rows for subject 42 in R2 (an error here means the table is absent) ---
+operation customer_id full_name email
+--------- ----------- --------- -----
+2 42 Subject_000042 subject42@example.invalid

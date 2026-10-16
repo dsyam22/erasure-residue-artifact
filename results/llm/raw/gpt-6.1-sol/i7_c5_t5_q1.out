@@ -1,0 +1,11 @@
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name|column_name|data_type|is_tracked_by_cdc|is_memory_optimized
+-----------|----------|------------------|-------------------|------------------|-----------|---------|-----------------|-------------------
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|customer_id|int|0|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|full_name|nvarchar|0|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|email|nvarchar|0|0
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|phone|nvarchar|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|NULL|NULL|customer_id|int|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|NULL|NULL|full_name|nvarchar|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|NULL|NULL|email|nvarchar|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|NULL|NULL|phone|nvarchar|0|0
+(8 rows affected)

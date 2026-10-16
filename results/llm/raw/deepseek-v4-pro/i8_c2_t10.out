@@ -1,0 +1,18 @@
+Msg 300, Level 14, State 1, Server 651334c31df8, Line 28
+VIEW SERVER PERFORMANCE STATE permission was denied on object 'server', database 'master'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 28
+The user does not have permission to perform this action.
+Msg 300, Level 14, State 1, Server 651334c31df8, Line 39
+VIEW SERVER PERFORMANCE STATE permission was denied on object 'server', database 'master'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 39
+The user does not have permission to perform this action.
+Msg 300, Level 14, State 1, Server 651334c31df8, Line 50
+VIEW SERVER PERFORMANCE STATE permission was denied on object 'server', database 'master'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 50
+The user does not have permission to perform this action.
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 69
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i8'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 69
+The user does not have permission to perform this action.
+dbo.customer|0
+sys.dm_exec_sessions|0

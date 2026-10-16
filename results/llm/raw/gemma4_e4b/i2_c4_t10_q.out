@@ -1,0 +1,30 @@
+TableName|ColumnName|DataType|Nullability|ObjectDefinitionSnippet
+---------|----------|--------|-----------|-----------------------
+customer|customer_id|int|NOT Nullable|NULL
+customer|email|nvarchar|NOT Nullable|NULL
+customer|full_name|nvarchar|NOT Nullable|NULL
+customer|phone|nvarchar|Nullable|NULL
+customer|valid_from|datetime2|NOT Nullable|NULL
+customer|valid_to|datetime2|NOT Nullable|NULL
+customer_history|customer_id|int|NOT Nullable|NULL
+customer_history|email|nvarchar|NOT Nullable|NULL
+customer_history|full_name|nvarchar|NOT Nullable|NULL
+customer_history|phone|nvarchar|Nullable|NULL
+customer_history|valid_from|datetime2|NOT Nullable|NULL
+customer_history|valid_to|datetime2|NOT Nullable|NULL
+(12 rows affected)
+SchemaName|ObjectName|ObjectType
+----------|----------|----------
+dbo|PK__customer__CD65CB85CC564D83|PRIMARY_KEY_CONSTRAINT
+dbo|customer_history|USER_TABLE
+dbo|customer|USER_TABLE
+(3 rows affected)
+TableName|PotentialPIIColumn
+---------|------------------
+customer_history|customer_id
+customer_history|email
+customer_history|full_name
+customer_history|phone
+customer_history|valid_from
+customer_history|valid_to
+(6 rows affected)

@@ -1,0 +1,63 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #r (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @sch sysname, @tbl sysname, @full nvarchar(400), @objname nvarchar(400);
+DECLARE @cond nvarchar(max), @sql nvarchar(max);
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @sch, @tbl;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @full    = QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl);
+    SET @objname = @sch + N'.' + @tbl;
+    SET @cond    = NULL;
+
+    -- Build OR-ed LIKE predicates over all character columns of this table.
+    -- Patterns: original full_name, email, phone (with '_' escaped for LIKE).
+    SELECT @cond = STRING_AGG(
+               CAST(QUOTENAME(c.name) + N' LIKE ' + p.lit + N' ESCAPE ''\''' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty
+        ON ty.user_type_id = c.user_type_id
+       AND ty.name IN ('char', 'varchar', 'nchar', 'nvarchar')
+    CROSS JOIN (VALUES
+        ('''%Subject\_0000042%'''),
+        ('''%subject42@example.invalid%'''),
+        ('''%+1-555-0000042%''')
+    ) AS p(lit)
+    WHERE c.object_id = OBJECT_ID(@full);
+
+    IF @cond IS NULL
+    BEGIN
+        INSERT INTO #r (object_name, rows_found) VALUES (@objname, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #r (object_name, rows_found) '
+                 + N'SELECT @o, COUNT_BIG(*) FROM ' + @full
+                 + N' WHERE ' + @cond + N';';
+        EXEC sys.sp_executesql @sql, N'@o sysname', @o = @objname;
+    END
+
+    FETCH NEXT FROM tcur INTO @sch, @tbl;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;

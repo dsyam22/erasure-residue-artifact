@@ -1,0 +1,20 @@
+SELECT object_name, rows_found FROM (
+    -- Check 1: The live table (dbo.customer)
+    SELECT 'dbo.customer' AS object_name, COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND full_name = N'Subject_0000042'
+      AND email = N'subject42@example.invalid'
+      AND phone = N'+1-555-0000042'
+
+    UNION ALL
+
+    -- Check 2: The Temporal History Table (dbo.customer_history)
+    SELECT 'dbo.customer_history', COUNT(*) AS rows_found
+    FROM dbo.customer_history
+    WHERE customer_id = 42
+      AND full_name = N'Subject_0000042'
+      AND email = N'subject42@example.invalid'
+      AND phone = N'+1-555-0000042'
+
+) AS CheckResults;

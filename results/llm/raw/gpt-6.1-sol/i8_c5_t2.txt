@@ -1,0 +1,17 @@
+```sql
+-- SCRIPT
+-- Checks the only table exposed by database metadata during inspection.
+-- A zero count verifies absence from its queryable rows, not complete physical
+-- erasure: deleted-page remnants, transaction logs, and backups are not checked.
+-- Transaction-log inspection was denied by the current permissions.
+USE [llm_i8];
+
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name LIKE N'%Subject[_]0000042%'
+   OR email LIKE N'%subject42@example.invalid%'
+   OR phone LIKE N'%+1-555-0000042%';
+```

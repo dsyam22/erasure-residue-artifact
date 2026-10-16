@@ -1,0 +1,14 @@
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(400) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(60) = N'+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM (
+    SELECT 'dbo.customer' AS object_name,
+           (SELECT COUNT(*) FROM dbo.customer
+            WHERE customer_id = @cid
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone) AS rows_found
+) AS checks;

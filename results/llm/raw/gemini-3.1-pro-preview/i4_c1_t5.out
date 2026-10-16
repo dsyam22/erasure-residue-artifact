@@ -1,0 +1,3 @@
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 2
+Must declare the table variable "@Results".
+dbo.customer|0

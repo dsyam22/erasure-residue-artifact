@@ -1,0 +1,101 @@
+/* Read-only verification of residual personal data for customer_id 42. */
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @nm  nvarchar(200) = N'Subject_0000042';
+DECLARE @em  nvarchar(200) = N'subject42@example.invalid';
+DECLARE @ph  nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #res (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* 1. Current table */
+INSERT INTO #res (object_name, rows_found)
+SELECT N'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @nm
+   OR email = @em
+   OR phone = @ph;
+
+/* 2. Temporal history table */
+INSERT INTO #res (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT_BIG(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @nm
+   OR email = @em
+   OR phone = @ph;
+
+/* 3. Any other user table in the database containing a column that could hold the values.
+      Scan string/int columns for the subject's identifiers. */
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql + N'
+INSERT INTO #res (object_name, rows_found)
+SELECT N''' + REPLACE(QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), N'''', N'''''') + N''', COUNT_BIG(*)
+FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' AS x
+WHERE ' + STUFF((
+        SELECT N' OR ' + 'TRY_CONVERT(nvarchar(4000), x.' + QUOTENAME(c.name) + N') IN (N''' + REPLACE(@nm, N'''', N'''''') + N''', N''' + REPLACE(@em, N'''', N'''''') + N''', N''' + REPLACE(@ph, N'''', N'''''') + N''')'
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = t.object_id
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext', N'sysname', N'int', N'bigint', N'smallint', N'tinyint', N'numeric', N'decimal', N'float', N'real', N'money', N'smallmoney', N'uniqueidentifier', N'xml')
+        FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 4, N'') + N';'
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
+  AND t.name NOT IN (N'customer', N'customer_history')
+  AND t.temporal_type <> 1 /* skip history tables already covered */
+  AND EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id);
+
+IF @sql <> N''
+    EXEC sp_executesql @sql;
+
+/* 4. CDC change tables (if CDC were enabled) */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE is_ms_shipped = 0 AND name LIKE N'cdc.%' ESCAPE N'\')
+BEGIN
+    DECLARE @cdcsql nvarchar(max) = N'';
+    SELECT @cdcsql = @cdcsql + N'
+INSERT INTO #res (object_name, rows_found)
+SELECT N''' + REPLACE(QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), N'''', N'''''') + N''', COUNT_BIG(*)
+FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' AS x
+WHERE ' + STUFF((
+        SELECT N' OR ' + 'TRY_CONVERT(nvarchar(4000), x.' + QUOTENAME(c.name) + N') IN (N''' + REPLACE(@nm, N'''', N'''''') + N''', N''' + REPLACE(@em, N'''', N'''''') + N''', N''' + REPLACE(@ph, N'''', N'''''') + N''')'
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = t.object_id
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext', N'sysname', N'int', N'bigint', N'smallint', N'tinyint', N'numeric', N'decimal', N'float', N'real', N'money', N'smallmoney', N'uniqueidentifier', N'xml')
+        FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 4, N'') + N';'
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND s.name = N'cdc';
+
+    IF @cdcsql <> N''
+        EXEC sp_executesql @cdcsql;
+END
+ELSE
+BEGIN
+    INSERT INTO #res (object_name, rows_found) VALUES (N'cdc.change_tables', 0);
+END
+
+/* 5. Change tracking side table (if enabled) */
+IF EXISTS (SELECT 1 FROM sys.change_tracking_tables)
+BEGIN
+    INSERT INTO #res (object_name, rows_found)
+    SELECT N'sys.change_tracking_tables', COUNT_BIG(*)
+    FROM sys.change_tracking_tables ct
+    JOIN sys.tables t ON t.object_id = ct.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE s.name = N'dbo' AND t.name = N'customer';
+END
+ELSE
+BEGIN
+    INSERT INTO #res (object_name, rows_found) VALUES (N'sys.change_tracking_tables', 0);
+END
+
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;
+
+DROP TABLE #res;

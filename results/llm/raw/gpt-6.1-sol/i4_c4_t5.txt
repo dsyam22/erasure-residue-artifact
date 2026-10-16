@@ -1,0 +1,54 @@
+```sql
+USE [llm_i4];
+
+-- Checks persisted table rows, including temporal history and CDC change tables.
+-- A row matches if any textual column contains any original personal-data value.
+-- Retained identifier 42 alone is not treated as retained original personal data.
+-- This does not certify erasure from transaction logs, backups, or deallocated pages.
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' AS src WHERE ' + COALESCE(p.predicate_sql, N'1 = 0')
+        ),
+        N' UNION ALL '
+    ) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'(' +
+            N'CHARINDEX(N''Subject_0000042'', CONVERT(nvarchar(max), src.' +
+            QUOTENAME(c.name) +
+            N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(N''subject42@example.invalid'', CONVERT(nvarchar(max), src.' +
+            QUOTENAME(c.name) +
+            N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(N''+1-555-0000042'', CONVERT(nvarchar(max), src.' +
+            QUOTENAME(c.name) +
+            N') COLLATE Latin1_General_100_BIN2) > 0)'
+        ),
+        N' OR '
+    ) AS predicate_sql
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND c.system_type_id IN
+          (35, 99, 167, 175, 231, 239, 241, 98)
+          -- text, ntext, varchar, char, nvarchar, nchar, xml, sql_variant
+) AS p;
+
+SELECT @sql =
+    N'SELECT object_name, rows_found FROM (' + @sql +
+    N') AS findings ORDER BY object_name;';
+
+EXEC sys.sp_executesql @sql;
+```

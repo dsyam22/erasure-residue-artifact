@@ -1,0 +1,36 @@
+schema_name|table_name|table_type|temporal_type|is_tracked_by_cdc|is_filetable|is_memory_optimized|ledger_type_desc
+-----------|----------|----------|-------------|-----------------|------------|-------------------|----------------
+dbo|customer|USER_TABLE|SYSTEM_VERSIONED_TEMPORAL_TABLE|0|0|0|NON_LEDGER_TABLE
+dbo|customer_history|USER_TABLE|HISTORY_TABLE|0|0|0|NON_LEDGER_TABLE
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|generated_always_type_desc|is_hidden
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|--------------------------|---------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|0
+dbo|customer|5|valid_from|datetime2|8|27|7|0|0|0|AS_ROW_START|0
+dbo|customer|6|valid_to|datetime2|8|27|7|0|0|0|AS_ROW_END|0
+dbo|customer_history|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer_history|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer_history|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|0
+dbo|customer_history|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|0
+dbo|customer_history|5|valid_from|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|0
+dbo|customer_history|6|valid_to|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|0
+(12 rows affected)
+schema_name|table_name|temporal_type|history_schema|history_table
+-----------|----------|-------------|--------------|-------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history
+dbo|customer_history|HISTORY_TABLE|NULL|NULL
+(2 rows affected)
+schema_name|table_name|partition_number|rows
+-----------|----------|----------------|----
+dbo|customer|1|99
+dbo|customer_history|1|1
+(2 rows affected)
+foreign_key_name|parent_schema|parent_table|parent_column|referenced_schema|referenced_table|referenced_column
+----------------|-------------|------------|-------------|-----------------|----------------|-----------------
+(0 rows affected)
+trigger_name|schema_name|table_name|is_disabled|is_instead_of_trigger
+------------|-----------|----------|-----------|---------------------
+(0 rows affected)

@@ -1,0 +1,34 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @CustomerId int = 42;
+DECLARE @FullName nvarchar(200) = N'Subject_0000042';
+DECLARE @Email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @Phone nvarchar(50) = N'+1-555-0000042';
+
+DECLARE @Results TABLE (object_name sysname, rows_found bigint);
+
+INSERT INTO @Results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @CustomerId
+  AND (
+        full_name = @FullName
+     OR email = @Email
+     OR phone = @Phone
+  );
+
+INSERT INTO @Results (object_name, rows_found)
+SELECT N'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = @CustomerId
+  AND (
+        full_name = @FullName
+     OR email = @Email
+     OR phone = @Phone
+  );
+
+SELECT object_name, rows_found
+FROM @Results;
+```

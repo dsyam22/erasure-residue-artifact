@@ -1,0 +1,34 @@
+WITH TableChecks AS (
+    -- Check dbo.customer table
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(T1.*) AS rows_found
+    FROM 
+        dbo.customer T1
+    WHERE 
+        T1.full_name = 'Subject_0000042' OR 
+        T1.email = 'subject42@example.invalid' OR 
+        T1.phone = '+1-555-0000042'
+    GROUP BY 1 -- Grouping is safe here but ensures the count logic works across potential nulls/empty sets if structure changes
+),
+HistoryChecks AS (
+    -- Check dbo.customer_history table
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(T2.*) AS rows_found
+    FROM 
+        dbo.customer_history T2
+    WHERE 
+        T2.full_name = 'Subject_0000042' OR 
+        T2.email = 'subject42@example.invalid' OR 
+        T2.phone = '+1-555-0000042'
+)
+-- Combine results, ensuring all checked objects are represented and using COALESCE/ISNULL logic implicitly by selecting the calculated counts.
+SELECT
+    object_name,
+    rows_found
+FROM (
+    SELECT object_name, rows_found FROM TableChecks
+    UNION ALL
+    SELECT object_name, rows_found FROM HistoryChecks
+) AS CombinedResults;

@@ -1,0 +1,48 @@
+WITH Checks AS (
+    -- 1. Check Change Data Capture (CDC) for dbo.customer
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        CAST(COUNT(1) AS INT) AS rows_found
+    FROM
+        cdc.dbo_customer_CT
+    WHERE
+        customer_id = 42
+
+    UNION ALL
+
+    -- 2. Check the history table for dbo.member (Temporal Persistence)
+    SELECT
+        'dbo.member_history' AS object_name,
+        CAST(COUNT(1) AS INT) AS rows_found
+    FROM
+        dbo.member_history
+    WHERE
+        member_id = 42
+
+    UNION ALL
+
+    -- 3. Check the current state of dbo.customer (Should ideally be 0 if deletion was successful)
+    SELECT
+        'dbo.customer' AS object_name,
+        CAST(COUNT(1) AS INT) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        customer_id = 42
+
+    UNION ALL
+
+    -- 4. Check the current state of dbo.member (Should ideally be 0 if deletion was successful)
+    SELECT
+        'dbo.member' AS object_name,
+        CAST(COUNT(1) AS INT) AS rows_found
+    FROM
+        dbo.member
+    WHERE
+        member_id = 42
+)
+SELECT
+    object_name,
+    rows_found
+FROM
+    Checks;

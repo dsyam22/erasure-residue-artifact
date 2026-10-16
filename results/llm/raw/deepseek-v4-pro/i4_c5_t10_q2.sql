@@ -1,0 +1,7 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo'
+  AND DATA_TYPE IN ('nvarchar','varchar','char','nchar','text','ntext')
+  AND TABLE_NAME IN ('customer','member','member_history')
+ORDER BY TABLE_NAME, ORDINAL_POSITION;

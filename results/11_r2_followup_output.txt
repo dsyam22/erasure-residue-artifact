@@ -1,0 +1,46 @@
+Changed database context to 'backup_lab_r2'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-10 15:55:44.2055101
+=== PART A: state after the KEEP_CDC restore ===
+name is_cdc_enabled
+---- --------------
+backup_lab_r2 1
+--- CDC jobs registered for this database (no rows = none) ---
+job_type retention
+-------- ---------
+--- Change table: total rows and rows for subject 42 ---
+total_change_rows rows_for_subject_42
+----------------- -------------------
+100 1
+=== PART B: try to start the cleanup job ===
+Msg 22997, Level 16, State 1, Server 651334c31df8, Procedure sys.sp_cdc_start_job_internal, Line 29
+The Change Data Capture 'cleanup' job does not exist in the system table 'msdb.dbo.cdc_jobs'. Use the stored procedure 'sys.sp_cdc_add_job' to add the Change Data Capture job.
+=== PART C: change subject 43 with no capture job present ===
+--- Change table rows for subject 43 (only the original insert = change not captured) ---
+operation customer_id full_name
+--------- ----------- ---------
+2 43 Subject_000043
+=== PART D: add the capture job ===
+Job 'cdc.backup_lab_r2_capture' started successfully.
+--- Change table rows for subject 43 after the capture job was added ---
+    operation: 2 = insert, 3 = update (before), 4 = update (after)
+operation customer_id full_name
+--------- ----------- ---------
+2 43 Subject_000043
+3 43 Subject_000043
+4 43 Subject_000043_changed
+=== PART E: add a cleanup job with 1-minute retention and run it ===
+Job 'cdc.backup_lab_r2_cleanup' started successfully.
+HResult 0x5606, Level 16, State 1
+SQLServerAgent Error: Request to run job cdc.backup_lab_r2_cleanup (from User sa) refused because the job already has a pending request from User sa.
+--- CDC jobs registered now ---
+job_type retention
+-------- ---------
+capture 0
+cleanup 1
+--- Change table after cleanup: total rows and rows for subject 42 ---
+total_change_rows rows_for_subject_42
+----------------- -------------------
+102 1

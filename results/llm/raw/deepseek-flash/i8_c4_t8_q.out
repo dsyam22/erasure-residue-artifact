@@ -1,0 +1,16 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+(4 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+(1 rows affected)
+name|object_id|principal_id|schema_id|parent_object_id|type|type_desc|create_date|modify_date
+----|---------|------------|---------|----------------|----|---------|-----------|-----------
+customer|901578250|NULL|1|0|U |USER_TABLE|2026-10-10 19:08:27.243|2026-10-10 19:08:27.243
+PK__customer__CD65CB85E787FACC|917578307|NULL|1|901578250|PK|PRIMARY_KEY_CONSTRAINT|2026-10-10 19:08:27.257|2026-10-10 19:08:27.257
+(2 rows affected)

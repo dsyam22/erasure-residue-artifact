@@ -1,0 +1,7 @@
+SchemaName|TableName|ColumnName|DataType|MaxLengthBytes
+----------|---------|----------|--------|--------------
+dbo|customer|customer_id|int|2
+dbo|customer|full_name|nvarchar|100
+dbo|customer|email|nvarchar|200
+dbo|customer|phone|nvarchar|30
+(4 rows affected)

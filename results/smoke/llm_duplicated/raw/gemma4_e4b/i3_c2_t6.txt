@@ -1,0 +1,42 @@
+```sql
+DECLARE @customer_id INT = 42;
+DECLARE @full_name NVARCHAR(100) = 'Subject_0000042';
+DECLARE @email NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Use a temporary table to store the results and ensure only one result set is returned.
+IF OBJECT_ID('tempdb..#Results') IS NOT NULL DROP TABLE #Results;
+CREATE TABLE #Results (object_name NVARCHAR(200), rows_found BIGINT);
+
+-- 1. Check dbo.customer (Current state)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.customer' = object_name, COUNT(*) = rows_found
+FROM dbo.customer
+WHERE full_name = @full_name OR email = @email OR phone = @phone;
+
+-- 2. Check dbo.member (Current state)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.member' = object_name, COUNT(*) = rows_found
+FROM dbo.member
+WHERE full_name = @full_name OR email = @email OR phone = @phone;
+
+-- 3. Check dbo.member_history (Historical state for SYSTEM_VERSIONED table)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'dbo.member_history' = object_name, COUNT(*) = rows_found
+FROM dbo.member_history
+WHERE full_name = @full_name OR email = @email OR phone = @phone;
+
+-- 4. Check cdc.dbo_customer_CT (CDC Capture Table)
+INSERT INTO #Results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT' = object_name, COUNT(*) = rows_found
+FROM cdc.dbo_customer_CT
+WHERE full_name = @full_name OR email = @email OR phone = @phone;
+
+-- Final selection to meet the single result set requirement
+SELECT 
+    object_name, 
+    rows_found
+FROM #Results;
+
+DROP TABLE #Results;
+```

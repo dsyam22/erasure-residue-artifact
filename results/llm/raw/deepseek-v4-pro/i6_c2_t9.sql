@@ -1,0 +1,61 @@
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current customer table (phone column dropped)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', 0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('dbo.customer')
+      AND c.name = 'phone'
+);
+
+-- Check CDC capture instance for phone column in change table
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @customer_id
+  AND phone = @phone;
+
+-- Check CDC metadata for captured columns (if phone still tracked)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.captured_columns', COUNT(*)
+FROM cdc.captured_columns cc
+JOIN cdc.change_tables ct ON cc.object_id = ct.source_object_id
+WHERE ct.capture_instance = 'dbo_customer'
+  AND cc.column_name = 'phone';
+
+-- Check system tables for any column named phone in any table
+INSERT INTO #results (object_name, rows_found)
+SELECT 'sys.columns', COUNT(*)
+FROM sys.columns c
+JOIN sys.tables t ON c.object_id = t.object_id
+WHERE c.name = 'phone';
+
+-- Check temporal history tables (none expected, but verify)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'sys.tables (temporal)', COUNT(*)
+FROM sys.tables t
+WHERE t.temporal_type <> 0
+  AND t.name LIKE '%customer%';
+
+-- Check CDC change tables for any phone column
+INSERT INTO #results (object_name, rows_found)
+SELECT 'sys.columns (CDC)', COUNT(*)
+FROM sys.columns c
+JOIN sys.tables t ON c.object_id = t.object_id
+JOIN cdc.change_tables ct ON t.object_id = ct.object_id
+WHERE c.name = 'phone';
+
+-- Return aggregated results
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name;
+
+DROP TABLE #results;

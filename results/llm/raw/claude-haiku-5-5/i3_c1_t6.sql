@@ -1,0 +1,66 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #needles (v nvarchar(200) NOT NULL);
+INSERT INTO #needles (v) VALUES
+    (N'Subject_0000042'),
+    (N'subject42@example.invalid'),
+    (N'+1-555-0000042');
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.TABLE_SCHEMA, t.TABLE_NAME
+    FROM INFORMATION_SCHEMA.TABLES AS t
+    WHERE t.TABLE_TYPE = 'BASE TABLE'
+    ORDER BY t.TABLE_SCHEMA, t.TABLE_NAME;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    SELECT @pred = STRING_AGG(
+            CAST(N'EXISTS (SELECT 1 FROM #needles AS n WHERE CHARINDEX(n.v, CAST('
+                 + QUOTENAME(c.COLUMN_NAME)
+                 + N' AS nvarchar(max))) > 0)' AS nvarchar(max)),
+            N' OR ')
+    FROM INFORMATION_SCHEMA.COLUMNS AS c
+    WHERE c.TABLE_SCHEMA = @schema
+      AND c.TABLE_NAME = @table
+      AND c.DATA_TYPE IN ('char', 'nchar', 'varchar', 'nvarchar', 'sysname');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' AS x WHERE ' + @pred + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@c bigint OUTPUT',
+            @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl INTO @schema, @table;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+DROP TABLE #needles;

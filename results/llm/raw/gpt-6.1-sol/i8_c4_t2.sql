@@ -1,0 +1,29 @@
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR CHARINDEX(
+          N'Subject_0000042' COLLATE Latin1_General_100_BIN2,
+          full_name COLLATE Latin1_General_100_BIN2
+      ) > 0
+   OR CHARINDEX(
+          N'subject42@example.invalid' COLLATE Latin1_General_100_BIN2,
+          email COLLATE Latin1_General_100_BIN2
+      ) > 0
+   OR CHARINDEX(
+          N'+1-555-0000042' COLLATE Latin1_General_100_BIN2,
+          phone COLLATE Latin1_General_100_BIN2
+      ) > 0;
+
+/*
+Scope: the sole user table identified by the catalog inspection.
+A zero count establishes absence from its currently visible logical rows,
+not physical erasure from the database.
+
+DELETE can leave original values in transaction-log records, ghost records,
+and deallocated pages. The supplied principal lacks the elevated permissions
+needed to inspect those storage locations comprehensively. Backups and other
+external copies are also not inspected. Consequently, this result must not
+be interpreted as proof that no recoverable personal data remains.
+*/

@@ -1,0 +1,63 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #pii_values (v nvarchar(200) NOT NULL);
+INSERT INTO #pii_values (v) VALUES
+    (N'Subject_0000042'),
+    (N'subject42@example.invalid'),
+    (N'+1-555-0000042');
+
+CREATE TABLE #scan (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @s sysname, @t sysname, @obj nvarchar(300),
+        @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @s, @t;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj  = @s + N'.' + @t;
+    SET @cnt  = 0;
+    SET @pred = NULL;
+
+    -- Build predicate over all character-type columns:
+    -- varchar(167), nvarchar(231), char(175), nchar(239)
+    SELECT @pred = STRING_AGG(
+               CAST(QUOTENAME(c.name) + N' IN (SELECT v FROM #pii_values)' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@s) + N'.' + QUOTENAME(@t))
+      AND c.system_type_id IN (167, 231, 175, 239);
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@s) + N'.' + QUOTENAME(@t)
+                 + N' WHERE ' + @pred;
+        EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan (object_name, rows_found) VALUES (@obj, @cnt);
+
+    FETCH NEXT FROM tbl INTO @s, @t;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+
+DROP TABLE #scan;
+DROP TABLE #pii_values;
+```

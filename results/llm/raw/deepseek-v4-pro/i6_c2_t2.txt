@@ -1,0 +1,99 @@
+```sql
+SET NOCOUNT ON;
+
+-- Temporary table to hold results
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current table dbo.customer for any row with the subject's phone number
+-- Since the phone column has been dropped, we cannot check it directly.
+-- We can only verify that the column no longer exists.
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'dbo'
+      AND t.name = 'customer'
+      AND c.name = 'phone'
+)
+BEGIN
+    -- If column exists, check for the subject's phone number
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', COUNT(*)
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND phone = '+1-555-0000042';
+END
+ELSE
+BEGIN
+    -- Column does not exist, so no rows can contain the phone number
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', 0;
+END
+
+-- Check CDC capture instance for any row with the subject's phone number
+-- The CDC table may still contain the phone column if it was captured before the column was dropped
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'cdc'
+      AND t.name = 'dbo_customer_CT'
+      AND c.name = 'phone'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = 42
+      AND phone = '+1-555-0000042';
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END
+
+-- Check for any other tables that might contain the phone number
+-- This includes any table that has a column named 'phone' and contains the subject's data
+DECLARE @sql NVARCHAR(MAX) = N'';
+DECLARE @table_name NVARCHAR(255);
+DECLARE @schema_name NVARCHAR(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT s.name, t.name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON c.object_id = t.object_id
+WHERE c.name = 'phone'
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')  -- already checked
+  AND NOT (s.name = 'cdc' AND t.name = 'dbo_customer_CT'); -- already checked
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT ''' 
+             + QUOTENAME(@schema_name) + '.' + QUOTENAME(@table_name) 
+             + ''', COUNT(*) FROM ' 
+             + QUOTENAME(@schema_name) + '.' + QUOTENAME(@table_name)
+             + ' WHERE customer_id = 42 AND phone = ''+1-555-0000042''';
+    EXEC sp_executesql @sql;
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

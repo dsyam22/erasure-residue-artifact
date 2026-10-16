@@ -1,0 +1,9 @@
+column_name|data_type
+-----------|---------
+customer_id|int
+full_name|nvarchar
+email|nvarchar
+phone|nvarchar
+valid_from|datetime2
+valid_to|datetime2
+(6 rows affected)

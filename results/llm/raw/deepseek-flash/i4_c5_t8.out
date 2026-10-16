@@ -1,0 +1,8 @@
+[cdc].[dbo_customer_CT].[email]|2
+[cdc].[dbo_customer_CT].[full_name]|2
+[cdc].[dbo_customer_CT].[phone]|2
+[dbo].[member_history].[email]|1
+[dbo].[member_history].[full_name]|1
+[dbo].[member_history].[phone]|1
+dbo.customer|0
+dbo.member|0

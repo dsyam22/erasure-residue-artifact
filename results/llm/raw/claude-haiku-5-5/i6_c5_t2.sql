@@ -1,0 +1,17 @@
+-- SCRIPT
+SELECT N'dbo.customer' AS object_name,
+       (SELECT COUNT(*)
+        FROM dbo.customer
+        WHERE full_name LIKE N'%+1-555-0000042%'
+           OR email LIKE N'%+1-555-0000042%') AS rows_found
+UNION ALL
+SELECT N'cdc.dbo_customer_CT',
+       (SELECT COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE phone = N'+1-555-0000042'
+           OR (customer_id = 42 AND phone IS NOT NULL))
+UNION ALL
+SELECT N'cdc.ddl_history',
+       (SELECT COUNT(*)
+        FROM cdc.ddl_history
+        WHERE ddl_command LIKE N'%+1-555-0000042%');

@@ -1,0 +1,15 @@
+-- SCRIPT
+SELECT 'dbo.customer' AS object_name, 
+       COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (full_name = 'Subject_0000042' OR email = 'subject42@example.invalid')
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c
+      JOIN sys.tables t ON c.object_id = t.object_id
+      JOIN sys.schemas s ON t.schema_id = s.schema_id
+      WHERE s.name = 'dbo' 
+        AND t.name = 'customer'
+        AND c.name = 'phone'
+  );

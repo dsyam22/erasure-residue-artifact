@@ -1,0 +1,57 @@
+SET NOCOUNT ON;
+
+-- Staging table for per-object results (temporary objects are permitted)
+CREATE TABLE #pii_check_results
+(
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found  bigint  NOT NULL
+);
+
+-- Subject: customer_id / member_id 42
+-- Original personal data: full_name 'Subject_0000042', email 'subject42@example.invalid', phone '+1-555-0000042'
+
+-- 1. Live customer table
+INSERT INTO #pii_check_results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT_BIG(*)
+FROM dbo.customer AS c
+WHERE c.customer_id = 42
+   OR c.full_name = N'Subject_0000042'
+   OR c.email     = N'subject42@example.invalid'
+   OR c.phone     = N'+1-555-0000042';
+
+-- 2. Live member table
+INSERT INTO #pii_check_results (object_name, rows_found)
+SELECT N'dbo.member',
+       COUNT_BIG(*)
+FROM dbo.member AS m
+WHERE m.member_id = 42
+   OR m.full_name = N'Subject_0000042'
+   OR m.email     = N'subject42@example.invalid'
+   OR m.phone     = N'+1-555-0000042';
+
+-- 3. Temporal history table for dbo.member (retains prior versions indefinitely)
+INSERT INTO #pii_check_results (object_name, rows_found)
+SELECT N'dbo.member_history',
+       COUNT_BIG(*)
+FROM dbo.member_history AS mh
+WHERE mh.member_id = 42
+   OR mh.full_name = N'Subject_0000042'
+   OR mh.email     = N'subject42@example.invalid'
+   OR mh.phone     = N'+1-555-0000042';
+
+-- 4. CDC change table for dbo.customer (captures pre-deletion values)
+INSERT INTO #pii_check_results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT_BIG(*)
+FROM cdc.dbo_customer_CT AS ct
+WHERE ct.customer_id = 42
+   OR ct.full_name = N'Subject_0000042'
+   OR ct.email     = N'subject42@example.invalid'
+   OR ct.phone     = N'+1-555-0000042';
+
+-- Single result set: one row per object checked (0 where nothing found)
+SELECT object_name,
+       rows_found
+FROM #pii_check_results
+ORDER BY object_name;

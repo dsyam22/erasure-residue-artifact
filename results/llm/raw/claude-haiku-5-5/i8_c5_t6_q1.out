@@ -1,0 +1,4 @@
+schema_name|table_name|object_id|is_ms_shipped|temporal_type|is_memory_optimized|approx_rows
+-----------|----------|---------|-------------|-------------|-------------------|-----------
+dbo|customer|901578250|0|0|0|99
+(1 rows affected)

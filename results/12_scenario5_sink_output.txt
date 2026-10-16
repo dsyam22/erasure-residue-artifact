@@ -1,0 +1,49 @@
+Changed database context to 'erasure_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-10 15:59:53.3261927
+--- Initial load: consumer run 1 ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+0 0 100
+sink_rows
+---------
+100
+=== PART A: consumer keeps up ===
+--- Consumer run 2 ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+0 1 0
+--- Subject 42 in the sink (no rows = delete propagated) ---
+subscriber_id full_name email
+------------- --------- -----
+=== PART B: consumer lags, cleanup runs first ===
+--- Delete of subject 43 is in the change table (operation 1 = delete) ---
+operation subscriber_id full_name email
+--------- ------------- --------- -----
+2 43 Subject_000043 subject43@example.invalid
+1 43 Subject_000043 subject43@example.invalid
+--- Waiting 75 seconds, then cleanup with 1-minute retention ---
+Job 'cdc.erasure_lab_cleanup' started successfully.
+--- Change table rows for subject 43 after cleanup ---
+change_rows_for_subject_43
+--------------------------
+2
+--- Consumer run 3 (after cleanup) ---
+window_was_clamped deletes_applied upserts_applied
+------------------ --------------- ---------------
+0 1 0
+--- Subject 43: source table ---
+source_rows_for_subject_43
+--------------------------
+0
+--- Subject 43: sink (a row here = erased at source, still present downstream) ---
+subscriber_id full_name email
+------------- --------- -----
+--- Row counts ---
+source_rows sink_rows
+----------- ---------
+98 98
+=== Restore default retention ===

@@ -1,0 +1,37 @@
+```sql
+WITH SearchResults AS (
+    -- 1. Check dbo.customer (Current)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN T.customer_id = 42 OR T.full_name LIKE 'Subject_%0000042' OR T.email = 'subject42@example.invalid' OR T.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer AS T
+
+    UNION ALL
+
+    -- 2. Check cdc.dbo_customer_CT (CDC Change Table)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN T.customer_id = 42 OR T.full_name LIKE 'Subject_%0000042' OR T.email = 'subject42@example.invalid' OR T.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM cdc.dbo_customer_CT AS T
+
+    UNION ALL
+
+    -- 3. Check dbo.member (Current Temporal Table View)
+    SELECT
+        'dbo.member' AS object_name,
+        COUNT(CASE WHEN T.member_id = 42 OR T.full_name LIKE 'Subject_%0000042' OR T.email = 'subject42@example.invalid' OR T.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.member AS T
+
+    UNION ALL
+
+    -- 4. Check dbo.member_history (Temporal History Table)
+    SELECT
+        'dbo.member_history' AS object_name,
+        COUNT(CASE WHEN T.member_id = 42 OR T.full_name LIKE 'Subject_%0000042' OR T.email = 'subject42@example.invalid' OR T.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.member_history AS T
+)
+SELECT
+    object_name,
+    rows_found
+FROM SearchResults;
+```

@@ -1,0 +1,10 @@
+TableName|ColumnName|DataType|SchemaName
+---------|----------|--------|----------
+customer|customer_id|int|dbo
+customer|full_name|nvarchar|dbo
+customer|email|nvarchar|dbo
+customer|phone|nvarchar|dbo
+(4 rows affected)
+name|object_id|principal_id|schema_id|parent_object_id|type|type_desc|create_date|modify_date|is_ms_shipped|is_published|is_schema_published|referenced_object_id|key_index_id|is_disabled|is_not_for_replication|is_not_trusted|delete_referential_action|delete_referential_action_desc|update_referential_action|update_referential_action_desc|is_system_named
+----|---------|------------|---------|----------------|----|---------|-----------|-----------|-------------|------------|-------------------|--------------------|------------|-----------|----------------------|--------------|-------------------------|------------------------------|-------------------------|------------------------------|---------------
+(0 rows affected)

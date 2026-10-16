@@ -1,0 +1,59 @@
+SET NOCOUNT ON;
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results;
+CREATE TABLE #results (object_name nvarchar(300) NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @sch sysname, @tbl sysname, @obj int, @pred nvarchar(max), @sql nvarchar(max), @label nvarchar(300);
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @sch, @tbl, @obj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(CAST(
+        CASE
+            WHEN c.name = N'customer_id' AND c.system_type_id = 56
+                THEN QUOTENAME(c.name) + N' = 42'
+            ELSE QUOTENAME(c.name) + N' IN (N''Subject_0000042'', N''subject42@example.invalid'', N''+1-555-0000042'')'
+        END AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @obj
+      AND ((c.name = N'customer_id' AND c.system_type_id = 56)
+           OR c.system_type_id IN (167, 175, 231, 239));
+
+    SET @label = @sch + N'.' + @tbl;
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@label, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT N'''
+                 + REPLACE(@label, N'''', N'''''')
+                 + N''', COUNT_BIG(*) FROM ' + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl)
+                 + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql;
+    END
+
+    FETCH NEXT FROM tcur INTO @sch, @tbl, @obj;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

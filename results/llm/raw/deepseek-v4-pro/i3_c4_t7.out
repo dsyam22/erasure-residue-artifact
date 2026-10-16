@@ -1,0 +1,4 @@
+Msg 313, Level 16, State 3, Server 651334c31df8, Line 29
+An insufficient number of arguments were supplied for the procedure or function cdc.fn_cdc_get_all_changes_dbo_customer.
+Msg 313, Level 16, State 3, Server 651334c31df8, Line 38
+An insufficient number of arguments were supplied for the procedure or function cdc.fn_cdc_get_net_changes_dbo_customer.

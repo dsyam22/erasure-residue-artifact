@@ -1,0 +1,17 @@
+name|type_desc|is_ms_shipped
+----|---------|-------------
+fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|1
+fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|1
+fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|0
+fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|1
+fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|1
+fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|0
+captured_columns|USER_TABLE|1
+change_tables|USER_TABLE|1
+customer|USER_TABLE|0
+dbo_customer_CT|USER_TABLE|1
+ddl_history|USER_TABLE|1
+index_columns|USER_TABLE|1
+lsn_time_mapping|USER_TABLE|1
+systranschemas|USER_TABLE|1
+(14 rows affected)

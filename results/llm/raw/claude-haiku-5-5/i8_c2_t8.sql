@@ -1,0 +1,62 @@
+SET NOCOUNT ON;
+
+DECLARE @v1 nvarchar(200) = N'Subject_0000042';
+DECLARE @v2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @v3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #scan_results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @sch sysname, @tbl sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.TABLE_SCHEMA, t.TABLE_NAME
+    FROM INFORMATION_SCHEMA.TABLES AS t
+    WHERE t.TABLE_TYPE = 'BASE TABLE'
+    ORDER BY t.TABLE_SCHEMA, t.TABLE_NAME;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @sch, @tbl;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    SELECT @pred = STRING_AGG(
+               CAST(QUOTENAME(c.COLUMN_NAME) + N' IN (@p1, @p2, @p3)' AS nvarchar(max)),
+               N' OR ')
+    FROM INFORMATION_SCHEMA.COLUMNS AS c
+    WHERE c.TABLE_SCHEMA = @sch
+      AND c.TABLE_NAME   = @tbl
+      AND c.DATA_TYPE IN ('char', 'varchar', 'nchar', 'nvarchar');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT(*) FROM '
+                 + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@c bigint OUTPUT, @p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200)',
+             @c  = @cnt OUTPUT,
+             @p1 = @v1,
+             @p2 = @v2,
+             @p3 = @v3;
+    END
+
+    INSERT INTO #scan_results (object_name, rows_found)
+    VALUES (CAST(@sch + N'.' + @tbl AS sysname), @cnt);
+
+    FETCH NEXT FROM tcur INTO @sch, @tbl;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;

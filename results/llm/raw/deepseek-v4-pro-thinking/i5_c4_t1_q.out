@@ -1,0 +1,52 @@
+database_name|server_name
+-------------|-----------
+llm_i5|651334c31df8
+(1 rows affected)
+schema_name
+-----------
+db_accessadmin
+db_backupoperator
+db_datareader
+db_datawriter
+db_ddladmin
+db_denydatareader
+db_denydatawriter
+db_owner
+db_securityadmin
+dbo
+guest
+(11 rows affected)
+schema_name|table_name|temporal_type|temporal_type_desc|history_schema_name|history_table_name
+-----------|----------|-------------|------------------|-------------------|------------------
+dbo|customer|2|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history
+dbo|customer_history|1|HISTORY_TABLE|NULL|NULL
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0
+dbo|customer|5|valid_from|datetime2|8|27|7|0|0|0
+dbo|customer|6|valid_to|datetime2|8|27|7|0|0|0
+dbo|customer_history|1|customer_id|int|4|10|0|0|0|0
+dbo|customer_history|2|full_name|nvarchar|200|0|0|0|0|0
+dbo|customer_history|3|email|nvarchar|400|0|0|0|0|0
+dbo|customer_history|4|phone|nvarchar|60|0|0|1|0|0
+dbo|customer_history|5|valid_from|datetime2|8|27|7|0|0|0
+dbo|customer_history|6|valid_to|datetime2|8|27|7|0|0|0
+(12 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+dbo|customer_history|1
+(2 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)

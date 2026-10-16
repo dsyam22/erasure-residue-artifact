@@ -1,0 +1,67 @@
+SET NOCOUNT ON;
+
+DECLARE @pName  nvarchar(200) = N'%Subject\_0000042%';
+DECLARE @pEmail nvarchar(200) = N'%subject42@example.invalid%';
+DECLARE @pPhone nvarchar(200) = N'%+1-555-0000042%';
+
+CREATE TABLE #results (
+    object_name nvarchar(400) NOT NULL,
+    rows_found  int           NOT NULL
+);
+
+DECLARE @object_id int, @qname nvarchar(400), @name nvarchar(400);
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt int;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name),
+           SCHEMA_NAME(t.schema_id) + N'.' + t.name
+    FROM sys.tables AS t
+    WHERE t.is_ms_shipped = 0
+    ORDER BY SCHEMA_NAME(t.schema_id), t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @object_id, @qname, @name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    -- Character columns only: varchar(167), nvarchar(231), char(175), nchar(239)
+    SELECT @pred = STRING_AGG(
+               CONVERT(nvarchar(max),
+                   CONCAT(QUOTENAME(c.name), N' LIKE @pName ESCAPE ''\'' OR ',
+                          QUOTENAME(c.name), N' LIKE @pEmail ESCAPE ''\'' OR ',
+                          QUOTENAME(c.name), N' LIKE @pPhone ESCAPE ''\''')),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @object_id
+      AND c.system_type_id IN (167, 231, 175, 239);
+
+    SET @cnt = 0;
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT(*) FROM ' + @qname + N' WHERE ' + @pred + N';';
+        EXEC sp_executesql
+             @sql,
+             N'@c int OUTPUT, @pName nvarchar(200), @pEmail nvarchar(200), @pPhone nvarchar(200)',
+             @c = @cnt OUTPUT,
+             @pName = @pName,
+             @pEmail = @pEmail,
+             @pPhone = @pPhone;
+    END
+
+    INSERT INTO #results (object_name, rows_found) VALUES (@name, @cnt);
+
+    FETCH NEXT FROM tbl_cur INTO @object_id, @qname, @name;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

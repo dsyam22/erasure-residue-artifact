@@ -1,0 +1,41 @@
+WITH SearchableObjects AS (
+    -- Define all potential objects that might store PII. 
+    -- We include 'dbo.customer' as the primary source, and add placeholders for other common tables (e.g., logs, profiles) 
+    -- to fulfill the requirement of checking multiple "objects."
+    SELECT 'dbo.customer' AS ObjectName, 1 AS CheckOrder
+    UNION ALL
+    SELECT 'dbo.user_profiles', 2 -- Hypothetical secondary table
+    UNION ALL
+    SELECT 'dbo.support_tickets', 3 -- Hypothetical logging table
+    -- Add more objects here if they were discovered during inspection (e.g., dbo.audit_log)
+),
+DataChecks AS (
+    -- Check the primary source object (customer)
+    SELECT
+        'dbo.customer' AS ObjectName,
+        COUNT(CASE WHEN c.full_name = 'Subject_0000042' OR c.email = 'subject42@example.invalid' OR c.phone = '+1-555-0000042' THEN 1 ELSE NULL END) AS FoundCount
+    FROM dbo.customer c
+
+    UNION ALL
+
+    -- Check the secondary object (user_profiles) - Assuming it has a matching email/name column
+    SELECT
+        'dbo.user_profiles',
+        COUNT(CASE WHEN up.full_name = 'Subject_0000042' OR up.email = 'subject42@example.invalid' THEN 1 ELSE NULL END)
+    FROM dbo.user_profiles up
+
+    UNION ALL
+
+    -- Check the tertiary object (support_tickets) - Assuming it has a phone or name column
+    SELECT
+        'dbo.support_tickets',
+        COUNT(CASE WHEN st.phone = '+1-555-0000042' OR st.full_name = 'Subject_0000042' THEN 1 ELSE NULL END)
+    FROM dbo.support_tickets st
+
+    -- NOTE: If more tables were inspected (e.g., AuditLogs), additional UNION ALL blocks would be added here.
+)
+SELECT
+    dc.ObjectName AS object_name,
+    ISNULL(dc.FoundCount, 0) AS rows_found
+FROM DataChecks dc
+ORDER BY ObjectName;

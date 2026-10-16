@@ -1,0 +1,9 @@
+SELECT
+    'dbo.customer' AS object_name,
+    CAST((SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42) AS NVARCHAR(10)) AS rows_found
+
+UNION ALL
+
+SELECT
+    'dbo.customer_history' AS object_name,
+    CAST((SELECT COUNT(*) FROM dbo.customer_history WHERE customer_id = 42) AS NVARCHAR(10)) AS rows_found;

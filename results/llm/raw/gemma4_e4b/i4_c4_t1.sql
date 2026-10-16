@@ -1,0 +1,21 @@
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(c.customer_id) AS rows_found
+FROM
+    dbo.customer c
+WHERE
+    c.full_name = 'Subject_0000042' OR
+    c.email = 'subject42@example.invalid' OR
+    c.phone = '+1-555-0000042'
+
+UNION ALL
+
+SELECT
+    'dbo.member' AS object_name,
+    COUNT(m.member_id) AS rows_found
+FROM
+    dbo.member m
+WHERE
+    m.full_name = 'Subject_0000042' OR
+    m.email = 'subject42@example.invalid' OR
+    m.phone = '+1-555-0000042';

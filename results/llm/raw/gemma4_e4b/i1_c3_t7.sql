@@ -1,0 +1,16 @@
+WITH CheckResults AS (
+    -- 1. Check the primary table (dbo.customer)
+    SELECT
+        'dbo.customer' AS [object_name],
+        (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid') AS rows_found
+    UNION ALL
+
+    -- 2. Check the CDC Change Table (cdc.dbo_customer_CT)
+    -- Data deleted from dbo.customer remains in the change stream until cleanup runs.
+    SELECT
+        'cdc.dbo_customer_CT' AS [object_name],
+        (SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid')
+)
+
+-- Select the final results, ensuring only one result set is returned.
+SELECT object_name, rows_found FROM CheckResults;

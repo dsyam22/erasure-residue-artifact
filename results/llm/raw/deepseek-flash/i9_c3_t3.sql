@@ -1,0 +1,140 @@
+/* Verify whether erased personal data still exists anywhere in this database.
+   Read-only: SELECT statements only. Returns exactly one result set:
+   object_name | rows_found
+*/
+
+SET NOCOUNT ON;
+
+DECLARE @cid   int           = 42;
+DECLARE @fname nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* 1) dbo.customer - current table */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT_BIG(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @fname
+   OR email     = @email
+   OR phone     = @phone;
+
+/* 2) dbo.customer_history - temporal history table */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer_history',
+       COUNT_BIG(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @fname
+   OR email     = @email
+   OR phone     = @phone;
+
+/* 3) CDC change tables (if any exist) */
+DECLARE @cdcTable sysname, @sql nvarchar(max);
+
+DECLARE cdc_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(OBJECT_SCHEMA_NAME(OBJECT_ID)) + N'.' + QUOTENAME(OBJECT_NAME(OBJECT_ID))
+    FROM cdc.change_tables;
+
+OPEN cdc_cur;
+FETCH NEXT FROM cdc_cur INTO @cdcTable;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT @tbl, COUNT_BIG(*)
+        FROM ' + @cdcTable + N' AS ct
+        WHERE EXISTS (
+            SELECT 1
+            FROM ' + @cdcTable + N' AS x
+            WHERE x.__$operation IN (1,2,3,4)
+              AND (
+                    CAST(x.full_name AS nvarchar(200)) = @fname
+                 OR CAST(x.email     AS nvarchar(320)) = @email
+                 OR CAST(x.phone     AS nvarchar(50))  = @phone
+              )
+        );';
+
+    BEGIN TRY
+        EXEC sp_executesql @sql,
+             N'@tbl sysname, @fname nvarchar(200), @email nvarchar(320), @phone nvarchar(50), @results TABLE (object_name sysname, rows_found bigint) OUTPUT',
+             @tbl = @cdcTable, @fname = @fname, @email = @email, @phone = @phone, @results = @results;
+    END TRY
+    BEGIN CATCH
+        /* If the change table lacks the expected columns, record 0 */
+        INSERT INTO @results (object_name, rows_found)
+        SELECT @cdcTable, 0;
+    END CATCH;
+
+    FETCH NEXT FROM cdc_cur INTO @cdcTable;
+END
+CLOSE cdc_cur;
+DEALLOCATE cdc_cur;
+
+/* 4) Any other user base tables that might contain the same values.
+      (Excludes system tables, CDC tables, and the objects already checked.) */
+DECLARE @tbl sysname, @schema sysname, @col sysname, @checkSql nvarchar(max);
+
+DECLARE other_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT IN ('customer','customer_history')
+      AND NOT EXISTS (SELECT 1 FROM cdc.change_tables ct WHERE ct.source_object_id = t.object_id)
+      AND s.name NOT IN ('cdc','sys');
+
+OPEN other_cur;
+FETCH NEXT FROM other_cur INTO @schema, @tbl;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @where nvarchar(max) = N'';
+    SET @sql = N'';
+    DECLARE col_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT c.name
+        FROM sys.columns c
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@tbl))
+          AND c.system_type_id IN (167,175,231,239,241)  -- char/varchar/nchar/nvarchar/date-time-ish
+          AND c.name NOT LIKE 'generated%';
+    OPEN col_cur;
+    FETCH NEXT FROM col_cur INTO @col;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @where = @where +
+            CASE WHEN @where = N'' THEN N'' ELSE N' OR ' END +
+            N'CAST(' + QUOTENAME(@col) + N' AS nvarchar(4000)) IN (@fname, @email, @phone)';
+        FETCH NEXT FROM col_cur INTO @col;
+    END
+    CLOSE col_cur;
+    DEALLOCATE col_cur;
+
+    IF @where <> N''
+    BEGIN
+        SET @sql = N'
+            INSERT INTO @results (object_name, rows_found)
+            SELECT @tblname, COUNT_BIG(*)
+            FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@tbl) + N'
+            WHERE ' + @where + N';';
+
+        BEGIN TRY
+            EXEC sp_executesql @sql,
+                 N'@tblname sysname, @fname nvarchar(200), @email nvarchar(320), @phone nvarchar(50), @results TABLE (object_name sysname, rows_found bigint) OUTPUT',
+                 @tblname = @schema + N'.' + @tbl, @fname = @fname, @email = @email, @phone = @phone, @results = @results;
+        END TRY
+        BEGIN CATCH
+            INSERT INTO @results (object_name, rows_found)
+            SELECT @schema + N'.' + @tbl, 0;
+        END CATCH;
+    END
+
+    FETCH NEXT FROM other_cur INTO @schema, @tbl;
+END
+CLOSE other_cur;
+DEALLOCATE other_cur;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

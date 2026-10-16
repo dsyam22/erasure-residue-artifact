@@ -1,0 +1,104 @@
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(4000) = N'Subject_0000042';
+DECLARE @em nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name nvarchar(517), rows_found bigint);
+
+/* 1. Base table dbo.customer */
+INSERT INTO #results
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+/* 2. Any user table in the database with text columns - dynamic scan */
+DECLARE @schema sysname, @table sysname, @col sysname;
+DECLARE @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name, c.name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('nvarchar','varchar','nchar','char','ntext','text','sysname')
+  AND t.is_ms_shipped = 0;
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+    INSERT INTO #results
+    SELECT @obj, COUNT(*)
+    FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+    WHERE CAST(' + QUOTENAME(@col) + N' AS nvarchar(max)) IN (@fn, @em, @ph);';
+
+    BEGIN TRY
+        EXEC sp_executesql @sql,
+            N'@obj nvarchar(517), @fn nvarchar(4000), @em nvarchar(4000), @ph nvarchar(4000)',
+            @obj = @schema + N'.' + @table,
+            @fn = @fn, @em = @em, @ph = @ph;
+    END TRY
+    BEGIN CATCH
+        /* skip columns that cannot be compared */
+    END CATCH
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @col;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+/* 3. Any integer column anywhere matching customer_id 42 */
+DECLARE @isql nvarchar(max);
+DECLARE icol_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name, c.name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE ty.name IN ('int','bigint','smallint','tinyint')
+  AND t.is_ms_shipped = 0;
+
+OPEN icol_cursor;
+FETCH NEXT FROM icol_cursor INTO @schema, @table, @col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @isql = N'
+    INSERT INTO #results
+    SELECT @obj, COUNT(*)
+    FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+    WHERE ' + QUOTENAME(@col) + N' = @cid;';
+
+    BEGIN TRY
+        EXEC sp_executesql @isql,
+            N'@obj nvarchar(517), @cid int',
+            @obj = @schema + N'.' + @table,
+            @cid = @cid;
+    END TRY
+    BEGIN CATCH
+    END CATCH
+
+    FETCH NEXT FROM icol_cursor INTO @schema, @table, @col;
+END
+
+CLOSE icol_cursor;
+DEALLOCATE icol_cursor;
+
+/* Aggregate per object and return single result set */
+SELECT object_name,
+       SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;

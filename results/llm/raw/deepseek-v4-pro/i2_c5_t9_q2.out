@@ -1,0 +1,15 @@
+table_name|column_name|data_type
+----------|-----------|---------
+customer|customer_id|int
+customer|full_name|nvarchar
+customer|email|nvarchar
+customer|phone|nvarchar
+customer|valid_from|datetime2
+customer|valid_to|datetime2
+customer_history|customer_id|int
+customer_history|full_name|nvarchar
+customer_history|email|nvarchar
+customer_history|phone|nvarchar
+customer_history|valid_from|datetime2
+customer_history|valid_to|datetime2
+(12 rows affected)

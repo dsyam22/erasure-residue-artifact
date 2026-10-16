@@ -1,0 +1,85 @@
+SET NOCOUNT ON;
+
+/* Read-only erasure verification for llm_i1.
+   Scans every user table's character columns (nvarchar, varchar, nchar, char)
+   for the erased subject's original values and returns one row per table.
+   Matching is substring-based (LIKE with escaped wildcards), so embedded
+   occurrences are also detected. Non-character columns (e.g. int, xml, ntext,
+   text, varbinary) are not scanned. */
+
+DECLARE @v_name  nvarchar(200) = N'Subject_0000042';
+DECLARE @v_email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @v_phone nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @pN nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@v_name,  N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+DECLARE @pE nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@v_email, N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+DECLARE @pP nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@v_phone, N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid  int,
+        @sch  sysname,
+        @tbl  sysname,
+        @pred nvarchar(max),
+        @sql  nvarchar(max),
+        @cnt  bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @oid, @sch, @tbl;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(
+               CAST(N'(' + QUOTENAME(c.name) + N' LIKE @pN ESCAPE N''\'' OR '
+                         + QUOTENAME(c.name) + N' LIKE @pE ESCAPE N''\'' OR '
+                         + QUOTENAME(c.name) + N' LIKE @pP ESCAPE N''\'')' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char');
+
+    SET @cnt = 0;
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT(*) FROM '
+                 + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sp_executesql
+             @sql,
+             N'@pN nvarchar(400), @pE nvarchar(400), @pP nvarchar(400), @cnt_out bigint OUTPUT',
+             @pN = @pN,
+             @pE = @pE,
+             @pP = @pP,
+             @cnt_out = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (CAST(@sch + N'.' + @tbl AS nvarchar(400)), ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @oid, @sch, @tbl;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

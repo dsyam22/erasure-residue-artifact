@@ -1,0 +1,5 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA IN ('dbo', 'reporting')
+  AND DATA_TYPE IN ('nvarchar', 'varchar', 'nchar', 'char');

@@ -1,0 +1,23 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+cdc|dbo_customer_CT|__$start_lsn|binary
+cdc|dbo_customer_CT|__$end_lsn|binary
+cdc|dbo_customer_CT|__$seqval|binary
+cdc|dbo_customer_CT|__$operation|int
+cdc|dbo_customer_CT|__$update_mask|varbinary
+cdc|dbo_customer_CT|customer_id|int
+cdc|dbo_customer_CT|full_name|nvarchar
+cdc|dbo_customer_CT|email|nvarchar
+cdc|dbo_customer_CT|phone|nvarchar
+cdc|dbo_customer_CT|__$command_id|int
+dbo|member_history|member_id|int
+dbo|member_history|full_name|nvarchar
+dbo|member_history|email|nvarchar
+dbo|member_history|phone|nvarchar
+dbo|member_history|valid_from|datetime2
+dbo|member_history|valid_to|datetime2
+dbo|systranschemas|tabid|int
+dbo|systranschemas|startlsn|binary
+dbo|systranschemas|endlsn|binary
+dbo|systranschemas|typeid|int
+(20 rows affected)

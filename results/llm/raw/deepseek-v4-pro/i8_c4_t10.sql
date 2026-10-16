@@ -1,0 +1,84 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(500),
+    rows_found int
+);
+
+-- dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check all user tables for columns that could contain the data
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql + 
+    N'INSERT INTO #results (object_name, rows_found) ' +
+    N'SELECT ''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', COUNT(*) ' +
+    N'FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' ' +
+    N'WHERE ' +
+    STUFF((
+        SELECT N' OR ' + QUOTENAME(c.name) + N' = @customer_id OR ' + QUOTENAME(c.name) + N' = @full_name OR ' + QUOTENAME(c.name) + N' = @email OR ' + QUOTENAME(c.name) + N' = @phone'
+        FROM sys.columns c
+        WHERE c.object_id = t.object_id
+          AND c.system_type_id IN (48, 52, 56, 58, 104, 127, 167, 175, 231, 239, 241)
+        FOR XML PATH(''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, '') + N';'
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+  AND t.name <> 'customer'
+  AND EXISTS (
+    SELECT 1 FROM sys.columns c 
+    WHERE c.object_id = t.object_id 
+      AND c.system_type_id IN (48, 52, 56, 58, 104, 127, 167, 175, 231, 239, 241)
+  );
+
+IF @sql <> N''
+    EXEC sp_executesql @sql, N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(50)', 
+        @customer_id = @customer_id, @full_name = @full_name, @email = @email, @phone = @phone;
+
+-- Check views
+DECLARE @view_sql nvarchar(max) = N'';
+
+SELECT @view_sql = @view_sql +
+    N'INSERT INTO #results (object_name, rows_found) ' +
+    N'SELECT ''' + QUOTENAME(s.name) + N'.' + QUOTENAME(v.name) + N''', COUNT(*) ' +
+    N'FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(v.name) + N' ' +
+    N'WHERE ' +
+    STUFF((
+        SELECT N' OR ' + QUOTENAME(c.name) + N' = @customer_id OR ' + QUOTENAME(c.name) + N' = @full_name OR ' + QUOTENAME(c.name) + N' = @email OR ' + QUOTENAME(c.name) + N' = @phone'
+        FROM sys.columns c
+        WHERE c.object_id = v.object_id
+          AND c.system_type_id IN (48, 52, 56, 58, 104, 127, 167, 175, 231, 239, 241)
+        FOR XML PATH(''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, '') + N';'
+FROM sys.views v
+INNER JOIN sys.schemas s ON v.schema_id = s.schema_id
+WHERE v.is_ms_shipped = 0
+  AND EXISTS (
+    SELECT 1 FROM sys.columns c 
+    WHERE c.object_id = v.object_id 
+      AND c.system_type_id IN (48, 52, 56, 58, 104, 127, 167, 175, 231, 239, 241)
+  );
+
+IF @view_sql <> N''
+    EXEC sp_executesql @view_sql, N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(50)', 
+        @customer_id = @customer_id, @full_name = @full_name, @email = @email, @phone = @phone;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

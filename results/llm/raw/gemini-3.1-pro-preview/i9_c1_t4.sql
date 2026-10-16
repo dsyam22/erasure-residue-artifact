@@ -1,0 +1,46 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #Results (
+    object_name nvarchar(256),
+    rows_found int
+);
+
+-- Check main table
+DECLARE @Count int;
+SELECT @Count = COUNT(*) 
+FROM dbo.customer 
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+INSERT INTO #Results (object_name, rows_found) 
+VALUES ('dbo.customer', @Count);
+
+-- Check temporal history table if it exists
+DECLARE @HistorySchema nvarchar(128);
+DECLARE @HistoryTable nvarchar(128);
+DECLARE @Sql nvarchar(max);
+
+SELECT 
+    @HistorySchema = SCHEMA_NAME(h.schema_id),
+    @HistoryTable = h.name
+FROM sys.tables t
+JOIN sys.tables h ON t.history_table_id = h.object_id
+WHERE t.object_id = OBJECT_ID('dbo.customer');
+
+IF @HistoryTable IS NOT NULL
+BEGIN
+    SET @Sql = N'SELECT @CountOut = COUNT(*) FROM ' + QUOTENAME(@HistorySchema) + N'.' + QUOTENAME(@HistoryTable) + 
+               N' WHERE customer_id = 42 OR full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042'';';
+    
+    EXEC sp_executesql @Sql, N'@CountOut int OUTPUT', @CountOut = @Count OUTPUT;
+    
+    INSERT INTO #Results (object_name, rows_found) 
+    VALUES (@HistorySchema + '.' + @HistoryTable, @Count);
+END
+
+SELECT object_name, rows_found 
+FROM #Results;
+
+DROP TABLE #Results;

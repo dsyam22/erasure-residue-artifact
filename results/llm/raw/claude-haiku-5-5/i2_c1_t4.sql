@@ -1,0 +1,58 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (object_name nvarchar(300) NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @pN nvarchar(200) = N'%Subject\_0000042%';
+DECLARE @pE nvarchar(200) = N'%subject42@example.invalid%';
+DECLARE @pP nvarchar(200) = N'%+1-555-0000042%';
+
+DECLARE @oid int, @sch sysname, @tbl sysname, @where nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @oid, @sch, @tbl;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = NULL;
+    SET @cnt = 0;
+
+    -- Build predicate over all character columns (varchar, char, nvarchar, nchar)
+    SELECT @where = STRING_AGG(CONVERT(nvarchar(max),
+            N'(' + QUOTENAME(c.name) + N' LIKE @pN ESCAPE ''\'' OR '
+                 + QUOTENAME(c.name) + N' LIKE @pE ESCAPE ''\'' OR '
+                 + QUOTENAME(c.name) + N' LIKE @pP ESCAPE ''\'')'), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (167, 175, 231, 239);
+
+    IF @where IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl)
+                 + N' WHERE ' + @where + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@pN nvarchar(200), @pE nvarchar(200), @pP nvarchar(200), @cnt_out bigint OUTPUT',
+            @pN = @pN, @pE = @pE, @pP = @pP, @cnt_out = @cnt OUTPUT;
+    END
+
+    INSERT INTO @results (object_name, rows_found)
+    VALUES (CONVERT(nvarchar(300), @sch + N'.' + @tbl), ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @oid, @sch, @tbl;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

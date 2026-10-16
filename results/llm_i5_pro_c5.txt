@@ -1,0 +1,11 @@
+i5 c5 t1: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2690+537 (total 3227)
+i5 c5 t2: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2602+495 (total 6324)
+i5 c5 t3: executes=1 parseable=1 recall=0.0 false_clean=1 false_alarm=0 tokens=381+127 (total 6832)
+i5 c5 t4: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2375+361 (total 9568)
+i5 c5 t5: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2377+452 (total 12397)
+i5 c5 t6: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2572+491 (total 15460)
+i5 c5 t7: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2550+478 (total 18488)
+i5 c5 t8: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2728+413 (total 21629)
+i5 c5 t9: executes=1 parseable=1 recall=1.0 false_clean=0 false_alarm=0 tokens=2575+406 (total 24610)
+i5 c5 t10: executes=1 parseable=1 recall=0.0 false_clean=1 false_alarm=0 tokens=381+134 (total 25125)
+Done: 34 calls, 25125 tokens.

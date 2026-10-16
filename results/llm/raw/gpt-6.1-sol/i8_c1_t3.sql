@@ -1,0 +1,118 @@
+USE [llm_i8];
+
+SET NOCOUNT ON;
+
+/*
+Read-only logical-data check of every non-system table, including temporal
+history tables and CDC change tables when present.
+
+Searches character/XML columns for the original name, email, or phone;
+numeric columns named customer_id for 42; and binary columns for the original
+strings in UTF-16 or ASCII form.
+
+IMPORTANT: This cannot certify physical erasure "anywhere in the database".
+SELECT queries cannot exhaustively inspect deleted/ghost records, deallocated
+pages, transaction-log contents, encrypted payloads, or arbitrary encodings.
+A zero count therefore establishes only that this logical-data search found
+no matching rows. Run with SELECT permission on all tables and appropriate
+UNMASK permissions; row-level security can also restrict visibility.
+*/
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found
+              FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + COALESCE(p.predicate, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(CONVERT(nvarchar(max),
+        CASE
+            WHEN c.system_type_id IN
+                 (35, 99, 167, 175, 231, 239, 241)
+            THEN
+                N'(CHARINDEX(@full_name, TRY_CONVERT(nvarchar(max), ' +
+                QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0
+                OR CHARINDEX(@email, TRY_CONVERT(nvarchar(max), ' +
+                QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0
+                OR CHARINDEX(@phone, TRY_CONVERT(nvarchar(max), ' +
+                QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0' +
+                CASE WHEN c.name = N'customer_id'
+                     THEN N' OR TRY_CONVERT(decimal(38, 10), ' +
+                          QUOTENAME(c.name) + N') = 42'
+                     ELSE N''
+                END + N')'
+
+            WHEN c.system_type_id IN (34, 165, 173)
+            THEN
+                N'(CHARINDEX(@name_unicode, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0
+                OR CHARINDEX(@email_unicode, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0
+                OR CHARINDEX(@phone_unicode, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0
+                OR CHARINDEX(@name_ascii, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0
+                OR CHARINDEX(@email_ascii, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0
+                OR CHARINDEX(@phone_ascii, CONVERT(varbinary(max), ' +
+                QUOTENAME(c.name) + N')) > 0)'
+
+            WHEN c.name = N'customer_id'
+             AND c.system_type_id IN
+                 (48, 52, 56, 59, 60, 62, 106, 108, 122, 127)
+            THEN QUOTENAME(c.name) + N' = 42'
+        END
+    ), N' OR ') AS predicate
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+) AS p
+WHERE t.is_ms_shipped = 0;
+
+SELECT @sql =
+    N'SELECT object_name, rows_found FROM (' +
+    COALESCE(
+        @sql,
+        N'SELECT CONVERT(nvarchar(517), NULL) AS object_name,
+                 CONVERT(bigint, 0) AS rows_found WHERE 1 = 0'
+    ) +
+    N') AS results ORDER BY object_name;';
+
+DECLARE
+    @name_unicode  varbinary(max) = CONVERT(varbinary(max), N'Subject_0000042'),
+    @email_unicode varbinary(max) = CONVERT(varbinary(max), N'subject42@example.invalid'),
+    @phone_unicode varbinary(max) = CONVERT(varbinary(max), N'+1-555-0000042'),
+    @name_ascii    varbinary(max) = CONVERT(varbinary(max), 'Subject_0000042'),
+    @email_ascii   varbinary(max) = CONVERT(varbinary(max), 'subject42@example.invalid'),
+    @phone_ascii   varbinary(max) = CONVERT(varbinary(max), '+1-555-0000042');
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@full_name nvarchar(100),
+      @email nvarchar(320),
+      @phone nvarchar(100),
+      @name_unicode varbinary(max),
+      @email_unicode varbinary(max),
+      @phone_unicode varbinary(max),
+      @name_ascii varbinary(max),
+      @email_ascii varbinary(max),
+      @phone_ascii varbinary(max)',
+    @full_name = N'Subject_0000042',
+    @email = N'subject42@example.invalid',
+    @phone = N'+1-555-0000042',
+    @name_unicode = @name_unicode,
+    @email_unicode = @email_unicode,
+    @phone_unicode = @phone_unicode,
+    @name_ascii = @name_ascii,
+    @email_ascii = @email_ascii,
+    @phone_ascii = @phone_ascii;

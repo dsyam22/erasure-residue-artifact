@@ -1,0 +1,8 @@
+count_dbo
+---------
+0
+(1 rows affected)
+count_replica
+-------------
+1
+(1 rows affected)

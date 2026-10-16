@@ -1,0 +1,4 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 127
+Invalid column name 'type_desc'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 129
+Invalid column name 'on_failure_desc'.

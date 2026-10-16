@@ -1,0 +1,19 @@
+table_schema|table_name|column_name
+------------|----------|-----------
+dbo|customer|customer_id
+dbo|customer|full_name
+dbo|customer|email
+dbo|customer|phone
+dbo|member|member_id
+dbo|member|full_name
+dbo|member|email
+dbo|member|phone
+dbo|member|valid_from
+dbo|member|valid_to
+dbo|member_history|member_id
+dbo|member_history|full_name
+dbo|member_history|email
+dbo|member_history|phone
+dbo|member_history|valid_from
+dbo|member_history|valid_to
+(16 rows affected)

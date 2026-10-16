@@ -1,0 +1,5 @@
+schema_name|table_name|index_name|type_desc
+-----------|----------|----------|---------
+dbo|customer|PK__customer__CD65CB85CC564D83|CLUSTERED
+dbo|customer_history|ix_customer_history|CLUSTERED
+(2 rows affected)

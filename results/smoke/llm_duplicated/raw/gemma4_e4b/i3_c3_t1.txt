@@ -1,0 +1,27 @@
+```sql
+SELECT 
+    'dbo.customer' AS object_name, 
+    COUNT(CASE WHEN c.full_name = 'Subject_0000042' AND c.email = 'subject42@example.invalid' AND c.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM dbo.customer c
+
+UNION ALL
+
+SELECT 
+    'cdc.dbo_customer_CT' AS object_name, 
+    COUNT(CASE WHEN t.full_name = 'Subject_0000042' AND t.email = 'subject42@example.invalid' AND t.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM cdc.dbo_customer_CT t
+
+UNION ALL
+
+SELECT 
+    'dbo.member' AS object_name, 
+    COUNT(CASE WHEN m.full_name = 'Subject_0000042' AND m.email = 'subject42@example.invalid' AND m.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM dbo.member m
+
+UNION ALL
+
+SELECT 
+    'dbo.member_history' AS object_name, 
+    COUNT(CASE WHEN h.full_name = 'Subject_0000042' AND h.email = 'subject42@example.invalid' AND h.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM dbo.member_history h;
+```

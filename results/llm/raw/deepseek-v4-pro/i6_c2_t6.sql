@@ -1,0 +1,42 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer (current table)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('dbo.customer')
+        AND c.name = 'phone'
+  )
+  AND CAST(phone AS NVARCHAR(50)) = @phone;
+
+-- Check cdc.dbo_customer_CT (change data capture table)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @customer_id
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('cdc.dbo_customer_CT')
+        AND c.name = 'phone'
+  )
+  AND CAST(phone AS NVARCHAR(50)) = @phone;
+
+-- Return results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

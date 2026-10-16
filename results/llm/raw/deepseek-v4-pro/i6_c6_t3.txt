@@ -1,0 +1,33 @@
+```sql
+-- SCRIPT
+DECLARE @results TABLE (object_name nvarchar(255), rows_found int);
+
+-- Check the change table for the subject's phone number
+INSERT INTO @results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+  AND phone = '+1-555-0000042';
+
+-- Check the change data capture functions
+-- fn_cdc_get_all_changes_dbo_customer
+DECLARE @from_lsn binary(10), @to_lsn binary(10);
+SET @from_lsn = sys.fn_cdc_get_min_lsn('dbo_customer');
+SET @to_lsn = sys.fn_cdc_get_max_lsn();
+
+INSERT INTO @results (object_name, rows_found)
+SELECT 'cdc.fn_cdc_get_all_changes_dbo_customer', COUNT(*)
+FROM cdc.fn_cdc_get_all_changes_dbo_customer(@from_lsn, @to_lsn, 'all')
+WHERE customer_id = 42
+  AND phone = '+1-555-0000042';
+
+-- fn_cdc_get_net_changes_dbo_customer
+INSERT INTO @results (object_name, rows_found)
+SELECT 'cdc.fn_cdc_get_net_changes_dbo_customer', COUNT(*)
+FROM cdc.fn_cdc_get_net_changes_dbo_customer(@from_lsn, @to_lsn, 'all')
+WHERE customer_id = 42
+  AND phone = '+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM @results;
+```

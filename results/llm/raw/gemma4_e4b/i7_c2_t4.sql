@@ -1,0 +1,24 @@
+SELECT 
+    'dbo.customer' AS object_name, 
+    CAST(T1.rows_found AS VARCHAR) AS rows_found
+UNION ALL
+SELECT 
+    'reporting.customer_replica' AS object_name, 
+    CAST(T2.rows_found AS VARCHAR) AS rows_found;
+
+-- Temporary structure to hold the count for dbo.customer
+WITH CustomerCount AS (
+    SELECT COUNT(*) AS rows_found FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'
+),
+-- Temporary structure to hold the count for reporting.customer_replica
+ReplicaCount AS (
+    SELECT COUNT(*) AS rows_found FROM reporting.customer_replica WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042'
+)
+SELECT 
+    CASE WHEN TCC.rows_found > 0 THEN 'dbo.customer' ELSE NULL END AS object_name, -- Use CASE/ISNULL logic if combining multiple CTEs was necessary, but UNION ALL is cleaner here.
+    CAST(TCC.rows_found AS VARCHAR) AS rows_found
+FROM (SELECT COUNT(*) AS rows_found FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS TCC
+UNION ALL
+SELECT 
+    'reporting.customer_replica', 
+    CAST(TCR.rows_found AS VARCHAR) FROM (SELECT COUNT(*) AS rows_found FROM reporting.customer_replica WHERE customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042') AS TCR;

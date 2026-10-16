@@ -1,0 +1,12 @@
+schema_name|table_name|temporal_type_desc|column_name|data_type|max_length
+-----------|----------|------------------|-----------|---------|----------
+dbo|customer|NON_TEMPORAL_TABLE|full_name|nvarchar|200
+dbo|customer|NON_TEMPORAL_TABLE|email|nvarchar|400
+dbo|customer|NON_TEMPORAL_TABLE|phone|nvarchar|60
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|full_name|nvarchar|200
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|email|nvarchar|400
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|phone|nvarchar|60
+dbo|member_history|HISTORY_TABLE|full_name|nvarchar|200
+dbo|member_history|HISTORY_TABLE|email|nvarchar|400
+dbo|member_history|HISTORY_TABLE|phone|nvarchar|60
+(9 rows affected)

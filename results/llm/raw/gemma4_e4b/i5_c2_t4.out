@@ -1,0 +1,8 @@
+Msg 137, Level 15, State 1, Server 651334c31df8, Line 7
+Must declare the scalar variable "@count_customer".
+Msg 137, Level 15, State 1, Server 651334c31df8, Line 15
+Must declare the scalar variable "@count_history".
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 25
+Must declare the scalar variable "@count_customer".
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 29
+Must declare the scalar variable "@count_history".

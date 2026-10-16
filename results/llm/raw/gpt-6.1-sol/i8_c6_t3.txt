@@ -1,0 +1,21 @@
+```sql
+-- SCRIPT
+-- Checks all user tables discovered in llm_i8 (dbo.customer only).
+-- A zero count verifies only the absence of accessible matching rows.
+-- Transaction-log inspection was denied; this cannot certify physical
+-- erasure from the log, deallocated pages, backups, or other inaccessible storage.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM [llm_i8].[dbo].[customer]
+WHERE customer_id = 42
+   OR CHARINDEX(N'Subject_0000042', full_name) > 0
+   OR CHARINDEX(N'subject42@example.invalid', full_name) > 0
+   OR CHARINDEX(N'+1-555-0000042', full_name) > 0
+   OR CHARINDEX(N'Subject_0000042', email) > 0
+   OR CHARINDEX(N'subject42@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-0000042', email) > 0
+   OR CHARINDEX(N'Subject_0000042', phone) > 0
+   OR CHARINDEX(N'subject42@example.invalid', phone) > 0
+   OR CHARINDEX(N'+1-555-0000042', phone) > 0;
+```

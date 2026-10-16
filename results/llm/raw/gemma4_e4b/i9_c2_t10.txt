@@ -1,0 +1,34 @@
+```sql
+SELECT
+    object_name,
+    rows_found
+FROM
+(
+    -- Check 1: Current records in dbo.customer
+    SELECT
+        CAST('dbo.customer' AS NVARCHAR(256)) AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+    dbo.customer T
+    WHERE
+        T.customer_id = 42
+        AND T.full_name = 'Subject_0000042'
+        AND T.email = 'subject42@example.invalid'
+        AND T.phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- Check 2: Historical records in dbo.customer_history (where deleted data resides)
+    SELECT
+        CAST('dbo.customer_history' AS NVARCHAR(256)) AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+    dbo.customer_history T
+    WHERE
+        T.customer_id = 42
+        AND T.full_name = 'Subject_0000042'
+        AND T.email = 'subject42@example.invalid'
+        AND T.phone = '+1-555-0000042'
+
+) AS Results;
+```

@@ -1,0 +1,99 @@
+/* Read-only verification: does the erased subject's original personal data
+   still exist anywhere in llm_i1? Returns exactly one result set:
+   object_name | rows_found */
+
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* ---- dbo.customer ---- */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* ---- Scan all other base tables in the database for the subject's data.
+        Each table gets its own row. Columns are matched by value against
+        the subject's original personal data (any string/int column). ---- */
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+DECLARE @colName sysname, @colType sysname;
+
+DECLARE tbl_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND NOT (s.name = N'dbo' AND t.name = N'customer');
+
+OPEN tbl_cursor;
+FETCH NEXT FROM tbl_cursor INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'';
+
+    DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+        SELECT c.name, ty.name
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+          AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char',
+                          N'int', N'bigint', N'smallint', N'tinyint');
+
+    OPEN col_cursor;
+    FETCH NEXT FROM col_cursor INTO @colName, @colType;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF @sql <> N''
+            SET @sql = @sql + N' OR ';
+
+        IF @colType IN (N'nvarchar', N'varchar', N'nchar', N'char')
+            SET @sql = @sql + N'CAST(' + QUOTENAME(@colName) + N' AS nvarchar(max)) IN ('
+                     + N'N''' + REPLACE(@full_name, N'''', N'''''') + N''','
+                     + N'N''' + REPLACE(@email, N'''', N'''''') + N''','
+                     + N'N''' + REPLACE(@phone, N'''', N'''''') + N''')';
+        ELSE
+            SET @sql = @sql + QUOTENAME(@colName) + N' = ' + CAST(@customer_id AS nvarchar(20));
+
+        FETCH NEXT FROM col_cursor INTO @colName, @colType;
+    END
+
+    CLOSE col_cursor;
+    DEALLOCATE col_cursor;
+
+    IF @sql <> N''
+    BEGIN
+        DECLARE @cnt int;
+        DECLARE @full nvarchar(max) =
+            N'SELECT @c = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+            + N' WHERE ' + @sql + N';';
+
+        EXEC sp_executesql @full, N'@c int OUTPUT', @c = @cnt OUTPUT;
+
+        INSERT INTO @results (object_name, rows_found)
+        VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table), @cnt);
+    END
+    ELSE
+    BEGIN
+        INSERT INTO @results (object_name, rows_found)
+        VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table), 0);
+    END
+
+    FETCH NEXT FROM tbl_cursor INTO @schema, @table;
+END
+
+CLOSE tbl_cursor;
+DEALLOCATE tbl_cursor;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

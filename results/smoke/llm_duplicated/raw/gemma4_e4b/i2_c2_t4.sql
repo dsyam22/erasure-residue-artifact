@@ -1,0 +1,29 @@
+DECLARE @CustomerID INT = 42;
+DECLARE @FullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @Email NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @Phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Variables to hold the counts found in each location
+DECLARE @CustomerTableCount INT;
+DECLARE @HistoryTableCount INT;
+
+-- 1. Check the current version of the table (dbo.customer)
+SELECT @CustomerTableCount = COUNT(*) 
+FROM dbo.customer c
+WHERE c.customer_id = @CustomerID
+  AND c.full_name = @FullName
+  AND c.email = @Email
+  AND c.phone = @Phone;
+
+-- 2. Check the history table (dbo.customer_history)
+SELECT @HistoryTableCount = COUNT(*) 
+FROM dbo.customer_history h
+WHERE h.customer_id = @CustomerID
+  AND h.full_name = @FullName
+  AND h.email = @Email
+  AND h.phone = @Phone;
+
+-- Return the results in the required format
+SELECT 'dbo.customer' AS object_name, @CustomerTableCount AS rows_found
+UNION ALL
+SELECT 'dbo.customer_history' AS object_name, @HistoryTableCount AS rows_found;

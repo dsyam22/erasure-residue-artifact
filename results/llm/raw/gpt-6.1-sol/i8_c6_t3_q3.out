@@ -1,0 +1,19 @@
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+dbo|customer|USER_TABLE|NULL
+dbo|PK__customer__CD65CB85E787FACC|PRIMARY_KEY_CONSTRAINT|NULL
+(2 rows affected)
+entity_name|subentity_name|permission_name
+-----------|--------------|---------------
+database||CONNECT
+database||SELECT
+database||VIEW ANY COLUMN ENCRYPTION KEY DEFINITION
+database||VIEW ANY COLUMN MASTER KEY DEFINITION
+database||VIEW DEFINITION
+database||VIEW PERFORMANCE DEFINITION
+database||VIEW SECURITY DEFINITION
+(7 rows affected)
+schema_name|table_name|is_tracked_by_cdc|is_replicated|is_merge_published|ledger_type_desc|index_id|partition_number|rows
+-----------|----------|-----------------|-------------|------------------|----------------|--------|----------------|----
+dbo|customer|0|0|0|NON_LEDGER_TABLE|1|1|99
+(1 rows affected)

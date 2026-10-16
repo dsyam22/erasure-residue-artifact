@@ -1,0 +1,66 @@
+SET NOCOUNT ON;
+
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email     nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone     nvarchar(200) = N'+1-555-0000042';
+
+-- Escape LIKE wildcards (\, %, _) so the values are matched literally
+DECLARE @pn nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@full_name, N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+DECLARE @pe nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@email,     N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+DECLARE @ph nvarchar(400) = N'%' + REPLACE(REPLACE(REPLACE(@phone,     N'\', N'\\'), N'%', N'\%'), N'_', N'\_') + N'%';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  int     NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @oid int;
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt int;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(CAST(
+                N'(x.' + QUOTENAME(c.name) + N' LIKE @pn ESCAPE ''\'' OR x.' + QUOTENAME(c.name)
+              + N' LIKE @pe ESCAPE ''\'' OR x.' + QUOTENAME(c.name)
+              + N' LIKE @ph ESCAPE ''\'')' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar');
+
+    IF @pred IS NULL SET @pred = N'1 = 0';
+
+    SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' AS x WHERE ' + @pred + N';';
+    SET @cnt = 0;
+
+    EXEC sys.sp_executesql
+         @sql,
+         N'@pn nvarchar(400), @pe nvarchar(400), @ph nvarchar(400), @cnt int OUTPUT',
+         @pn = @pn, @pe = @pe, @ph = @ph, @cnt = @cnt OUTPUT;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, @cnt);
+
+    FETCH NEXT FROM tcur INTO @schema, @table, @oid;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

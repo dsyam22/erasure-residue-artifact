@@ -1,0 +1,9 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|customer_history|full_name|nvarchar|200|0
+dbo|customer_history|email|nvarchar|400|0
+dbo|customer_history|phone|nvarchar|60|1
+(6 rows affected)

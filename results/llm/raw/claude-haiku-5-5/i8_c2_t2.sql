@@ -1,0 +1,61 @@
+SET NOCOUNT ON;
+
+-- Subject's original personal data (search values)
+DECLARE @v_name  nvarchar(100) = N'Subject_0000042';
+DECLARE @v_email nvarchar(100) = N'subject42@example.invalid';
+DECLARE @v_phone nvarchar(100) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found  bigint  NOT NULL DEFAULT (0)
+);
+
+DECLARE @schema sysname, @table sysname, @oid int;
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt  = 0;
+
+    -- Build predicate: any character column containing any of the subject's values
+    SELECT @pred = STRING_AGG(CONVERT(nvarchar(max),
+            CONCAT(N'(CHARINDEX(@n, ', QUOTENAME(c.name), N') > 0 OR CHARINDEX(@e, ', QUOTENAME(c.name),
+                   N') > 0 OR CHARINDEX(@p, ', QUOTENAME(c.name), N') > 0)')), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql
+             @sql,
+             N'@n nvarchar(100), @e nvarchar(100), @p nvarchar(100), @c bigint OUTPUT',
+             @n = @v_name, @e = @v_email, @p = @v_phone, @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (CONCAT(@schema, N'.', @table), ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

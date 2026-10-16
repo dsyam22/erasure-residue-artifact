@@ -1,0 +1,51 @@
+WITH CheckResults AS (
+    -- 1. dbo.customer (Source Table)
+    SELECT 'dbo.customer' AS object_name,
+           (SELECT COUNT(1) FROM dbo.customer WHERE customer_id = 42 AND full_name = 'Subject_0000042') AS rows_found
+
+    UNION ALL
+
+    -- 2. cdc.dbo_customer_CT (Change Tracking Table - Primary location for historical data)
+    SELECT 'cdc.dbo_customer_CT',
+           (SELECT COUNT(1) FROM cdc.dbo_customer_CT WHERE customer_id = 42 AND full_name LIKE '%Subject%' AND email LIKE '%subject%')
+
+    UNION ALL
+
+    -- 3. cdc.change_tables (General Change Log - Check for ID presence)
+    SELECT 'cdc.change_tables',
+           (SELECT COUNT(1) FROM cdc.change_tables WHERE CAST(id AS INT) = 42)
+
+    UNION ALL
+
+    -- 4. dbo.systranschemas (System Metadata - Checking only by CustomerID if applicable, highly unlikely to hold PII)
+    SELECT 'dbo.systranschemas',
+           (SELECT COUNT(1) FROM dbo.systranschemas WHERE CAST(customer_id AS NVARCHAR(50)) = '42')
+
+    UNION ALL
+
+    -- 5. cdc.captured_columns (System Metadata - Checking for ID presence)
+    SELECT 'cdc.captured_columns',
+           (SELECT COUNT(1) FROM cdc.captured_columns WHERE CAST(customer_id AS NVARCHAR(50)) = '42')
+
+    UNION ALL
+
+    -- 6. cdc.ddl_history (System Metadata - Checking for ID presence)
+    SELECT 'cdc.ddl_history',
+           (SELECT COUNT(1) FROM cdc.ddl_history WHERE CAST(customer_id AS NVARCHAR(50)) = '42')
+
+    UNION ALL
+
+    -- 7. cdc.index_columns (System Metadata - Checking for ID presence)
+    SELECT 'cdc.index_columns',
+           (SELECT COUNT(1) FROM cdc.index_columns WHERE CAST(customer_id AS NVARCHAR(50)) = '42')
+
+    UNION ALL
+
+    -- 8. cdc.lsn_time_mapping (System Metadata - Checking for ID presence)
+    SELECT 'cdc.lsn_time_mapping',
+           (SELECT COUNT(1) FROM cdc.lsn_time_mapping WHERE CAST(customer_id AS NVARCHAR(50)) = '42')
+
+);
+
+-- Final selection to format the single required result set
+SELECT object_name, rows_found FROM CheckResults;

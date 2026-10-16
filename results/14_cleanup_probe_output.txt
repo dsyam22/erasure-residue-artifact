@@ -1,0 +1,76 @@
+================ erasure_lab / dbo_subscriber ================
+Changed database context to 'erasure_lab'.
+--- BEFORE: clock, retention, change-table state ---
+server_time one_minute_cutoff
+----------- -----------------
+2026-10-10 16:08:27.397 2026-10-10 16:07:27.397
+job_type retention
+-------- ---------
+capture 0
+cleanup 4320
+change_rows oldest_change_time newest_change_time
+----------- ------------------ ------------------
+102 2026-10-10 15:59:33.310 2026-10-10 16:00:13.803
+capture_instance low_watermark_lsn low_watermark_time
+---------------- ----------------- ------------------
+dbo_subscriber 0x00000030000048E0003C 2026-10-10 15:59:32.030
+mapping_rows oldest_mapping_time newest_mapping_time
+------------ ------------------- -------------------
+7 2026-10-10 15:56:52.937 2026-10-10 16:05:14.363
+lsn_at_cutoff time_at_cutoff
+------------- --------------
+0x00000030000057C80003 2026-10-10 16:05:14.363
+Job 'cdc.erasure_lab_cleanup' started successfully.
+--- AFTER cleanup at 1-minute retention ---
+server_time
+-----------
+2026-10-10 16:08:57.440
+change_rows oldest_change_time newest_change_time
+----------- ------------------ ------------------
+1 2026-10-10 16:00:13.803 2026-10-10 16:00:13.803
+capture_instance low_watermark_lsn low_watermark_time
+---------------- ----------------- ------------------
+dbo_subscriber 0x00000030000054F00005 2026-10-10 16:00:13.803
+mapping_rows oldest_mapping_time newest_mapping_time
+------------ ------------------- -------------------
+2 2026-10-10 16:00:13.803 2026-10-10 16:05:14.363
+================ backup_lab_r2 / dbo_customer ================
+Changed database context to 'backup_lab_r2'.
+--- BEFORE: clock, retention, change-table state ---
+server_time one_minute_cutoff
+----------- -----------------
+2026-10-10 16:08:57.460 2026-10-10 16:07:57.460
+job_type retention
+-------- ---------
+capture 0
+cleanup 1
+change_rows oldest_change_time newest_change_time
+----------- ------------------ ------------------
+102 2026-10-10 15:48:15.753 2026-10-10 15:55:44.250
+capture_instance low_watermark_lsn low_watermark_time
+---------------- ----------------- ------------------
+dbo_customer 0x0000002B000004D0009C 2026-10-10 15:48:15.753
+mapping_rows oldest_mapping_time newest_mapping_time
+------------ ------------------- -------------------
+4 2026-10-10 15:48:15.753 2026-10-10 16:05:49.453
+lsn_at_cutoff time_at_cutoff
+------------- --------------
+0x0000002D000000200003 2026-10-10 16:05:49.453
+Job 'cdc.backup_lab_r2_cleanup' started successfully.
+--- AFTER cleanup at 1-minute retention ---
+server_time
+-----------
+2026-10-10 16:09:27.530
+change_rows oldest_change_time newest_change_time
+----------- ------------------ ------------------
+0 NULL NULL
+capture_instance low_watermark_lsn low_watermark_time
+---------------- ----------------- ------------------
+dbo_customer 0x0000002C00000DB00003 2026-10-10 16:00:48.850
+mapping_rows oldest_mapping_time newest_mapping_time
+------------ ------------------- -------------------
+2 2026-10-10 16:00:48.850 2026-10-10 16:05:49.453
+--- Rows left for subject 42 in the restored copy ---
+rows_for_subject_42
+-------------------
+0

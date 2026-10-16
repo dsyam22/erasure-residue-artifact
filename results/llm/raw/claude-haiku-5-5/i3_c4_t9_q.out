@@ -1,0 +1,52 @@
+schema_name|table_name|temporal_type_desc|is_tracked_by_cdc|change_tracking_enabled|history_table_name|row_count
+-----------|----------|------------------|-----------------|-----------------------|------------------|---------
+cdc|captured_columns|NON_TEMPORAL_TABLE|0|0|NULL|4
+cdc|change_tables|NON_TEMPORAL_TABLE|0|0|NULL|1
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|0|0|NULL|101
+cdc|ddl_history|NON_TEMPORAL_TABLE|0|0|NULL|0
+cdc|index_columns|NON_TEMPORAL_TABLE|0|0|NULL|1
+cdc|lsn_time_mapping|NON_TEMPORAL_TABLE|0|0|NULL|1223
+dbo|customer|NON_TEMPORAL_TABLE|1|0|NULL|99
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|0|0|member_history|99
+dbo|member_history|HISTORY_TABLE|0|0|NULL|1
+dbo|systranschemas|NON_TEMPORAL_TABLE|0|0|NULL|0
+schema_name|object_name|type_desc|column_name|data_type|max_length
+-----------|-----------|---------|-----------|---------|----------
+cdc|captured_columns|USER_TABLE|column_name|sysname|256
+cdc|change_tables|USER_TABLE|role_name|sysname|256
+cdc|change_tables|USER_TABLE|index_name|sysname|256
+cdc|change_tables|USER_TABLE|filegroup_name|sysname|256
+cdc|dbo_customer_CT|USER_TABLE|customer_id|int|4
+cdc|dbo_customer_CT|USER_TABLE|full_name|nvarchar|200
+cdc|dbo_customer_CT|USER_TABLE|email|nvarchar|400
+cdc|dbo_customer_CT|USER_TABLE|phone|nvarchar|60
+cdc|index_columns|USER_TABLE|column_name|sysname|256
+dbo|customer|USER_TABLE|customer_id|int|4
+dbo|customer|USER_TABLE|full_name|nvarchar|200
+dbo|customer|USER_TABLE|email|nvarchar|400
+dbo|customer|USER_TABLE|phone|nvarchar|60
+dbo|member|USER_TABLE|member_id|int|4
+dbo|member|USER_TABLE|full_name|nvarchar|200
+dbo|member|USER_TABLE|email|nvarchar|400
+dbo|member|USER_TABLE|phone|nvarchar|60
+dbo|member_history|USER_TABLE|member_id|int|4
+dbo|member_history|USER_TABLE|full_name|nvarchar|200
+dbo|member_history|USER_TABLE|email|nvarchar|400
+dbo|member_history|USER_TABLE|phone|nvarchar|60
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE
+source_table|matching_rows
+------------|-------------
+dbo.customer|0
+source_table|matching_rows
+------------|-------------
+dbo.member|0
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 80
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i3'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 80
+The user does not have permission to perform this action.

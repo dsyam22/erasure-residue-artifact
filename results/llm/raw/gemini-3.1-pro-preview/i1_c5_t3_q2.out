@@ -1,0 +1,13 @@
+name|type_name
+----|---------
+__$start_lsn|binary
+__$end_lsn|binary
+__$seqval|binary
+__$operation|int
+__$update_mask|varbinary
+customer_id|int
+full_name|nvarchar
+email|nvarchar
+phone|nvarchar
+__$command_id|int
+(10 rows affected)

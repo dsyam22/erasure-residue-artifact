@@ -1,0 +1,137 @@
+/* Read-only verification: is the erased subject's personal data still stored anywhere? */
+
+DECLARE @cid  int           = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @mail nvarchar(200) = N'subject42@example.invalid';
+DECLARE @tel  nvarchar(200) = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#res') IS NOT NULL DROP TABLE #res;
+CREATE TABLE #res (object_name sysname, rows_found bigint);
+
+/* 1) Live table */
+INSERT INTO #res (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @mail
+   OR phone = @tel;
+
+/* 2) CDC change table (all columns, incl. __$operation = 1 means DELETE) */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+    INSERT INTO #res (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @cid
+       OR full_name = @name
+       OR email = @mail
+       OR phone = @tel;
+
+/* 3) Any other CDC capture instances on dbo.customer */
+IF OBJECT_ID('cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @tbl sysname, @cap sysname, @sql nvarchar(max);
+
+    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT QUOTENAME(OBJECT_SCHEMA_NAME(source_object_id)) + '.' + QUOTENAME(OBJECT_NAME(source_object_id)),
+               capture_instance
+        FROM cdc.change_tables
+        WHERE source_object_id = OBJECT_ID('dbo.customer')
+          AND capture_instance <> 'dbo_customer';
+
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @tbl, @cap;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'
+            IF OBJECT_ID(''cdc.' + @cap + '_CT'') IS NOT NULL
+                INSERT INTO #res (object_name, rows_found)
+                SELECT ''cdc.' + @cap + '_CT'', COUNT(*)
+                FROM cdc.' + QUOTENAME(@cap + '_CT') + N'
+                WHERE customer_id = @cid OR full_name = @name OR email = @mail OR phone = @tel;';
+        EXEC sp_executesql @sql,
+             N'@cid int, @name nvarchar(200), @mail nvarchar(200), @tel nvarchar(200)',
+             @cid = @cid, @name = @name, @mail = @mail, @tel = @tel;
+        FETCH NEXT FROM cur INTO @tbl, @cap;
+    END
+    CLOSE cur; DEALLOCATE cur;
+END
+
+/* 4) Temporal history table, if dbo.customer happens to be temporal */
+IF EXISTS (SELECT 1 FROM sys.tables
+           WHERE object_id = OBJECT_ID('dbo.customer') AND temporal_type = 1)
+BEGIN
+    DECLARE @hist sysname, @hsql nvarchar(max);
+    SELECT @hist = QUOTENAME(OBJECT_SCHEMA_NAME(history_table_id)) + '.' + QUOTENAME(OBJECT_NAME(history_table_id))
+    FROM sys.tables
+    WHERE object_id = OBJECT_ID('dbo.customer');
+
+    SET @hsql = N'
+        INSERT INTO #res (object_name, rows_found)
+        SELECT @h, COUNT(*)
+        FROM ' + @hist + N'
+        WHERE customer_id = @cid OR full_name = @name OR email = @mail OR phone = @tel;';
+    EXEC sp_executesql @hsql,
+         N'@h sysname, @cid int, @name nvarchar(200), @mail nvarchar(200), @tel nvarchar(200)',
+         @h = @hist, @cid = @cid, @name = @name, @mail = @mail, @tel = @tel;
+END
+
+/* 5) Any other temporal history tables in the database (defensive sweep) */
+DECLARE @tschema sysname, @ttable sysname, @thist sysname, @tsql nvarchar(max);
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(OBJECT_SCHEMA_NAME(history_table_id)) ,
+           QUOTENAME(OBJECT_NAME(history_table_id))
+    FROM sys.tables
+    WHERE temporal_type = 1
+      AND object_id <> OBJECT_ID('dbo.customer');
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @tschema, @ttable;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @tsql = N'
+        INSERT INTO #res (object_name, rows_found)
+        SELECT @o, COUNT(*)
+        FROM ' + @tschema + '.' + @ttable + N'
+        WHERE full_name = @name OR email = @mail OR phone = @tel;';
+    EXEC sp_executesql @tsql,
+         N'@o sysname, @name nvarchar(200), @mail nvarchar(200), @tel nvarchar(200)',
+         @o = @tschema + '.' + @ttable, @name = @name, @mail = @mail, @tel = @tel;
+    FETCH NEXT FROM tcur INTO @tschema, @ttable;
+END
+CLOSE tcur; DEALLOCATE tcur;
+
+/* 6) Any other user table in the database that carries a matching column set */
+DECLARE @oschema sysname, @otable sysname, @osql nvarchar(max);
+
+DECLARE ocur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name), QUOTENAME(t.name)
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.object_id <> OBJECT_ID('dbo.customer')
+      AND t.name NOT LIKE '%_CT'
+      AND EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id AND c.name = 'email')
+      AND EXISTS (SELECT 1 FROM sys.columns c WHERE c.object_id = t.object_id AND c.name = 'phone');
+
+OPEN ocur;
+FETCH NEXT FROM ocur INTO @oschema, @otable;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @osql = N'
+        INSERT INTO #res (object_name, rows_found)
+        SELECT @o, COUNT(*)
+        FROM ' + @oschema + '.' + @otable + N'
+        WHERE email = @mail OR phone = @tel;';
+    EXEC sp_executesql @osql,
+         N'@o sysname, @mail nvarchar(200), @tel nvarchar(200)',
+         @o = @oschema + '.' + @otable, @mail = @mail, @tel = @tel;
+    FETCH NEXT FROM ocur INTO @oschema, @otable;
+END
+CLOSE ocur; DEALLOCATE ocur;
+
+/* Final single result set */
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;

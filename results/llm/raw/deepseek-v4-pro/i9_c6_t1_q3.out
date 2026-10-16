@@ -1,0 +1,9 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+dbo|customer_history|customer_id|int
+dbo|customer_history|full_name|nvarchar
+dbo|customer_history|email|nvarchar
+dbo|customer_history|phone|nvarchar
+dbo|customer_history|valid_from|datetime2
+dbo|customer_history|valid_to|datetime2
+(6 rows affected)

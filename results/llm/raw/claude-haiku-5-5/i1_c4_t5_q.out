@@ -1,0 +1,2 @@
+Msg 8127, Level 16, State 1, Server 651334c31df8, Line 26
+Column "sys.columns.column_id" is invalid in the ORDER BY clause because it is not contained in either an aggregate function or the GROUP BY clause.

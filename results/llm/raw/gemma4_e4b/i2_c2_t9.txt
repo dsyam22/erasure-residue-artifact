@@ -1,0 +1,30 @@
+```sql
+SELECT object_name, rows_found
+FROM (
+    -- Check 1: Active Table (dbo.customer)
+    SELECT 
+        'dbo.customer' AS object_name, 
+        (
+            SELECT COUNT(1) 
+            FROM dbo.customer c
+            WHERE c.customer_id = 42 
+              AND c.full_name = 'Subject_0000042' 
+              AND c.email = 'subject42@example.invalid' 
+              AND c.phone = '+1-555-0000042'
+        ) AS rows_found
+
+    UNION ALL
+
+    -- Check 2: History Table (dbo.customer_history)
+    SELECT 
+        'dbo.customer_history', 
+        (
+            SELECT COUNT(1) 
+            FROM dbo.customer_history ch
+            WHERE ch.customer_id = 42 
+              AND ch.full_name = 'Subject_0000042' 
+              AND ch.email = 'subject42@example.invalid' 
+              AND ch.phone = '+1-555-0000042'
+        )
+) AS Results;
+```

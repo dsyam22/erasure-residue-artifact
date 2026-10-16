@@ -1,0 +1,38 @@
+database_name|database_id|compatibility_level|recovery_model_desc|snapshot_isolation_state_desc|is_read_committed_snapshot_on|is_cdc_enabled|is_encrypted|is_published|is_subscribed|is_distributor|source_database_id|can_view_definition|can_view_database_state|can_view_database_performance_state|has_database_select
+-------------|-----------|-------------------|-------------------|-----------------------------|-----------------------------|--------------|------------|------------|-------------|--------------|------------------|-------------------|-----------------------|-----------------------------------|-------------------
+llm_i8|32|160|FULL|OFF|0|0|0|0|0|0|NULL|1|0|0|1
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|is_filetable|is_external|ledger_type_desc|is_dropped_ledger_table|is_replicated|is_merge_published|is_ms_shipped|column_id|column_name|type_schema_name|type_name|max_length|precision|scale|collation_name|is_nullable|is_computed|computed_definition|generated_always_type_desc|encryption_type_desc|is_hidden|is_masked|masking_function|can_select
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|---------------|------------|-----------|----------------|-----------------------|-------------|------------------|-------------|---------|-----------|----------------|---------|----------|---------|-----|--------------|-----------|-----------|-------------------|--------------------------|--------------------|---------|---------|----------------|----------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0|0|0|0|1|customer_id|sys|int|4|10|0|NULL|0|0|NULL|NOT_APPLICABLE|NULL|0|0|NULL|1
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0|0|0|0|2|full_name|sys|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|NULL|0|0|NULL|1
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0|0|0|0|3|email|sys|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|NOT_APPLICABLE|NULL|0|0|NULL|1
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0|0|0|0|4|phone|sys|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|NOT_APPLICABLE|NULL|0|0|NULL|1
+(4 rows affected)
+schema_name|table_name|index_id|index_name|type_desc|is_disabled|approximate_rows
+-----------|----------|--------|----------|---------|-----------|----------------
+dbo|customer|1|PK__customer__CD65CB85E787FACC|CLUSTERED|0|99
+(1 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|is_track_columns_updated_on|begin_version|cleanup_version|min_valid_version
+-----------|----------|---------------------------|-------------|---------------|-----------------
+(0 rows affected)
+schema_name|object_name|policy_name|is_enabled|predicate_definition|predicate_type_desc|operation_desc
+-----------|-----------|-----------|----------|--------------------|-------------------|--------------
+(0 rows affected)
+logical_file_name|type_desc|physical_name|size_in_8kb_pages|state_desc
+-----------------|---------|-------------|-----------------|----------
+llm_i8|ROWS|/var/opt/mssql/data/llm_i8.mdf|1024|ONLINE
+llm_i8_log|LOG|/var/opt/mssql/data/llm_i8_log.ldf|1024|ONLINE
+(2 rows affected)
+database_name|database_id|source_database_id|state_desc
+-------------|-----------|------------------|----------
+(0 rows affected)
+schema_name|table_name|is_enabled|fulltext_catalog_name|indexed_column
+-----------|----------|----------|---------------------|--------------
+(0 rows affected)

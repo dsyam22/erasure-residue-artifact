@@ -1,0 +1,9 @@
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+reporting|customer_replica|full_name|nvarchar|200
+reporting|customer_replica|email|nvarchar|400
+reporting|customer_replica|phone|nvarchar|60
+(6 rows affected)

@@ -1,0 +1,68 @@
+SET NOCOUNT ON;
+
+DECLARE @id    int            = 42,
+        @name  nvarchar(200)  = N'Subject_0000042',
+        @email nvarchar(320)  = N'subject42@example.invalid',
+        @phone nvarchar(50)   = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @objid int,
+        @obj nvarchar(300), @where nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table, @objid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @where = NULL;
+    SET @cnt = 0;
+
+    -- Character columns are matched against the subject's name, email and phone;
+    -- a customer_id column is matched against the subject's id.
+    SELECT @where = STRING_AGG(
+               CAST(CASE WHEN c.system_type_id IN (167, 231, 175, 239)
+                         THEN QUOTENAME(c.name) + N' IN (@e, @p, @n)'
+                         ELSE QUOTENAME(c.name) + N' = @id'
+                    END AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @objid
+      AND (c.system_type_id IN (167, 231, 175, 239)           -- varchar, nvarchar, char, nchar
+           OR (c.name = N'customer_id' AND c.system_type_id = 56)); -- int
+
+    IF @where IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT_BIG(*) FROM ' + @obj +
+                   N' WHERE ' + @where + N';';
+
+        EXEC sys.sp_executesql
+            @sql,
+            N'@e nvarchar(320), @p nvarchar(50), @n nvarchar(200), @id int, @cnt_out bigint OUTPUT',
+            @e = @email, @p = @phone, @n = @name, @id = @id, @cnt_out = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (CAST(@schema + N'.' + @table AS sysname), @cnt);
+
+    FETCH NEXT FROM tbl INTO @schema, @table, @objid;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

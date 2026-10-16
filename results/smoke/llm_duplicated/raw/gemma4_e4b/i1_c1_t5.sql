@@ -1,0 +1,14 @@
+WITH ObjectChecks AS (
+    -- Check dbo.customer table for residual data presence
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(256)) AS object_name,
+        COUNT(1) AS rows_found
+    FROM dbo.customer c
+    WHERE c.full_name = 'Subject_0000042'
+       OR c.email = 'subject42@example.invalid'
+       OR c.phone = '+1-555-0000042'
+)
+SELECT 
+    object_name, 
+    rows_found 
+FROM ObjectChecks;

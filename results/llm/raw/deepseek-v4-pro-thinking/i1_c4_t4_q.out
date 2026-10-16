@@ -1,0 +1,59 @@
+database_name
+-------------
+llm_i1
+(1 rows affected)
+object_id|schema_name|object_name|type|type_desc|create_date|modify_date
+---------|-----------|-----------|----|---------|-----------|-----------
+1301579675|cdc|fn_cdc_get_all_changes_dbo_customer|IF|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:05.587|2026-10-10 19:08:05.587
+1317579732|cdc|fn_cdc_get_net_changes_dbo_customer|IF|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:05.590|2026-10-10 19:08:05.590
+901578250|dbo|customer|U |USER_TABLE|2026-10-10 19:08:05.070|2026-10-10 19:08:05.753
+(3 rows affected)
+schema_name|object_name|object_type|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|collation_name
+-----------|-----------|-----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|--------------
+dbo|customer|USER_TABLE|1|customer_id|int|4|10|0|0|0|0|NULL
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|0|0|0|0|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|0|0|0|0|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|0|0|1|0|0|SQL_Latin1_General_CP1_CI_AS
+(4 rows affected)
+schema_name|object_name|object_type|approximate_row_count
+-----------|-----------|-----------|---------------------
+dbo|customer|USER_TABLE|99
+(1 rows affected)
+fk_name|referencing_schema|referencing_table|referencing_columns|referenced_schema|referenced_table|referenced_columns
+-------|------------------|-----------------|-------------------|-----------------|----------------|------------------
+(0 rows affected)
+schema_name|object_name|index_name|type_desc|is_unique|is_primary_key|key_columns
+-----------|-----------|----------|---------|---------|--------------|-----------
+dbo|customer|PK__customer__CD65CB8586DFDB6E|CLUSTERED|1|1|customer_id
+(1 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+type_desc|schema_name|object_name|definition
+---------|-----------|-----------|----------
+SQL_INLINE_TABLE_VALUED_FUNCTION|cdc|fn_cdc_get_all_changes_dbo_customer|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+SQL_INLINE_TABLE_VALUED_FUNCTION|cdc|fn_cdc_get_net_changes_dbo_customer|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+(2 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)

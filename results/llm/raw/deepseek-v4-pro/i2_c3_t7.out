@@ -1,0 +1,21 @@
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 106
+Incorrect syntax near the keyword 'OR'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 116
+Incorrect syntax near ';
+
+    EXEC sp_executesql @sql, N'.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 118
+Unclosed quotation mark after the character string ', @tableName;
+    FETCH NEXT FROM table_cursor INTO @tableName;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;
+'.

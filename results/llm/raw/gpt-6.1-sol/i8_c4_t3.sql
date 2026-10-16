@@ -1,0 +1,24 @@
+-- Checks the only user table identified by the catalog inspection.
+-- A zero count verifies absence from readable live rows only; it cannot
+-- establish absence from transaction logs, deallocated pages, or backups.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer AS c
+WHERE c.customer_id = 42
+   OR EXISTS
+   (
+       SELECT 1
+       FROM (VALUES (c.full_name), (c.email), (c.phone)) AS stored(value)
+       CROSS JOIN
+       (
+           VALUES
+               (N'Subject_0000042'),
+               (N'subject42@example.invalid'),
+               (N'+1-555-0000042')
+       ) AS original(value)
+       WHERE CHARINDEX(
+           original.value COLLATE Latin1_General_100_BIN2,
+           stored.value COLLATE Latin1_General_100_BIN2
+       ) > 0
+   );

@@ -1,0 +1,114 @@
+section
+-------
+Database Info
+(1 rows affected)
+database_name|server_name|sql_version
+-------------|-----------|-----------
+llm_i4|651334c31df8|Microsoft SQL Server 2022 (RTM-CU27) (KB5104824) - 16.0.4295.3 (X64)
+	Aug 26 2026 11:02:22
+	Copyright (C) 2022 Microsoft Corporation
+	Developer Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+(1 rows affected)
+section
+-------
+Tables and Row Counts
+(1 rows affected)
+schema_name|table_name|row_count|create_date|modify_date
+-----------|----------|---------|-----------|-----------
+cdc|captured_columns|4|2026-10-10 19:08:15.617|2026-10-10 19:08:15.623
+cdc|change_tables|1|2026-10-10 19:08:15.617|2026-10-10 19:08:15.630
+cdc|dbo_customer_CT|102|2026-10-10 19:08:15.963|2026-10-10 19:08:15.980
+cdc|ddl_history|0|2026-10-10 19:08:15.617|2026-10-10 19:08:15.623
+cdc|index_columns|1|2026-10-10 19:08:15.620|2026-10-10 19:08:15.627
+cdc|lsn_time_mapping|883|2026-10-10 19:08:15.617|2026-10-10 19:08:15.627
+dbo|customer|100|2026-10-10 19:08:15.370|2026-10-10 19:08:16.177
+dbo|member|100|2026-10-10 19:08:15.377|2026-10-10 19:08:15.377
+dbo|member_history|1|2026-10-10 19:08:15.377|2026-10-10 19:08:15.390
+dbo|systranschemas|0|2026-10-10 19:08:15.563|2026-10-10 19:08:15.617
+(10 rows affected)
+section
+-------
+Columns
+(1 rows affected)
+schema_name|table_name|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed
+-----------|----------|-----------|---------|----------|---------|-----|-----------|-----------|-----------
+cdc|captured_columns|object_id|int|4|10|0|0|0|0
+cdc|captured_columns|column_name|sysname|256|0|0|0|0|0
+cdc|captured_columns|column_id|int|4|10|0|1|0|0
+cdc|captured_columns|column_type|sysname|256|0|0|0|0|0
+cdc|captured_columns|column_ordinal|int|4|10|0|0|0|0
+cdc|captured_columns|is_computed|bit|1|1|0|1|0|0
+cdc|captured_columns|masking_function|nvarchar|8000|0|0|1|0|0
+cdc|change_tables|object_id|int|4|10|0|0|0|0
+cdc|change_tables|version|int|4|10|0|1|0|0
+cdc|change_tables|source_object_id|int|4|10|0|1|0|0
+cdc|change_tables|capture_instance|sysname|256|0|0|0|0|0
+cdc|change_tables|start_lsn|binary|10|0|0|1|0|0
+cdc|change_tables|end_lsn|binary|10|0|0|1|0|0
+cdc|change_tables|supports_net_changes|bit|1|1|0|1|0|0
+cdc|change_tables|has_drop_pending|bit|1|1|0|1|0|0
+cdc|change_tables|role_name|sysname|256|0|0|1|0|0
+cdc|change_tables|index_name|sysname|256|0|0|1|0|0
+cdc|change_tables|filegroup_name|sysname|256|0|0|1|0|0
+cdc|change_tables|create_date|datetime|8|23|3|1|0|0
+cdc|change_tables|partition_switch|bit|1|1|0|0|0|0
+cdc|dbo_customer_CT|__$start_lsn|binary|10|0|0|0|0|0
+cdc|dbo_customer_CT|__$end_lsn|binary|10|0|0|1|0|0
+cdc|dbo_customer_CT|__$seqval|binary|10|0|0|0|0|0
+cdc|dbo_customer_CT|__$operation|int|4|10|0|0|0|0
+cdc|dbo_customer_CT|__$update_mask|varbinary|128|0|0|1|0|0
+cdc|dbo_customer_CT|customer_id|int|4|10|0|1|0|0
+cdc|dbo_customer_CT|full_name|nvarchar|200|0|0|1|0|0
+cdc|dbo_customer_CT|email|nvarchar|400|0|0|1|0|0
+cdc|dbo_customer_CT|phone|nvarchar|60|0|0|1|0|0
+cdc|dbo_customer_CT|__$command_id|int|4|10|0|1|0|0
+cdc|ddl_history|source_object_id|int|4|10|0|1|0|0
+cdc|ddl_history|object_id|int|4|10|0|0|0|0
+cdc|ddl_history|required_column_update|bit|1|1|0|1|0|0
+cdc|ddl_history|ddl_command|nvarchar|-1|0|0|1|0|0
+cdc|ddl_history|ddl_lsn|binary|10|0|0|0|0|0
+cdc|ddl_history|ddl_time|datetime|8|23|3|1|0|0
+cdc|index_columns|object_id|int|4|10|0|0|0|0
+cdc|index_columns|column_name|sysname|256|0|0|0|0|0
+cdc|index_columns|index_ordinal|tinyint|1|3|0|0|0|0
+cdc|index_columns|column_id|int|4|10|0|0|0|0
+cdc|lsn_time_mapping|start_lsn|binary|10|0|0|0|0|0
+cdc|lsn_time_mapping|tran_begin_time|datetime|8|23|3|1|0|0
+cdc|lsn_time_mapping|tran_end_time|datetime|8|23|3|1|0|0
+cdc|lsn_time_mapping|tran_id|varbinary|10|0|0|1|0|0
+cdc|lsn_time_mapping|tran_begin_lsn|binary|10|0|0|1|0|0
+dbo|customer|customer_id|int|4|10|0|0|0|0
+dbo|customer|full_name|nvarchar|200|0|0|0|0|0
+dbo|customer|email|nvarchar|400|0|0|0|0|0
+dbo|customer|phone|nvarchar|60|0|0|1|0|0
+dbo|member|member_id|int|4|10|0|0|0|0
+dbo|member|full_name|nvarchar|200|0|0|0|0|0
+dbo|member|email|nvarchar|400|0|0|0|0|0
+dbo|member|phone|nvarchar|60|0|0|1|0|0
+dbo|member|valid_from|datetime2|8|27|7|0|0|0
+dbo|member|valid_to|datetime2|8|27|7|0|0|0
+dbo|member_history|member_id|int|4|10|0|0|0|0
+dbo|member_history|full_name|nvarchar|200|0|0|0|0|0
+dbo|member_history|email|nvarchar|400|0|0|0|0|0
+dbo|member_history|phone|nvarchar|60|0|0|1|0|0
+dbo|member_history|valid_from|datetime2|8|27|7|0|0|0
+dbo|member_history|valid_to|datetime2|8|27|7|0|0|0
+dbo|systranschemas|tabid|int|4|10|0|0|0|0
+dbo|systranschemas|startlsn|binary|10|0|0|0|0|0
+dbo|systranschemas|endlsn|binary|10|0|0|0|0|0
+dbo|systranschemas|typeid|int|4|10|0|0|0|0
+(65 rows affected)
+section
+-------
+Foreign Keys
+(1 rows affected)
+fk_name|fk_schema|fk_table|pk_schema|pk_table
+-------|---------|--------|---------|--------
+(0 rows affected)
+section
+-------
+Other User Objects
+(1 rows affected)
+schema_name|object_name|type_desc|create_date|modify_date
+-----------|-----------|------
+[output truncated]

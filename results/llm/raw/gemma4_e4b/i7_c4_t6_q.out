@@ -1,0 +1,14 @@
+TableName|SchemaName|ColumnName|DataType|MaxLength|IsNullable
+---------|----------|----------|--------|---------|----------
+customer|dbo|customer_id|int|4|0
+customer|dbo|full_name|nvarchar|200|0
+customer|dbo|email|nvarchar|400|0
+customer|dbo|phone|nvarchar|60|1
+customer_replica|reporting|customer_id|int|4|0
+customer_replica|reporting|full_name|nvarchar|200|0
+customer_replica|reporting|email|nvarchar|400|0
+customer_replica|reporting|phone|nvarchar|60|1
+(8 rows affected)
+name|object_id|principal_id|schema_id|parent_object_id|type|type_desc|create_date|modify_date|is_ms_shipped|is_published|is_schema_published|is_replicated|has_replication_filter|has_opaque_metadata|has_unchecked_assembly_data|with_check_option|is_date_correlation_view|is_tracked_by_cdc|has_snapshot|ledger_view_type|ledger_view_type_desc|is_dropped_ledger_view
+----|---------|------------|---------|----------------|----|---------|-----------|-----------|-------------|------------|-------------------|-------------|----------------------|-------------------|---------------------------|-----------------|------------------------|-----------------|------------|----------------|---------------------|----------------------
+(0 rows affected)

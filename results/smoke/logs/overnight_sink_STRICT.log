@@ -1,0 +1,11 @@
+=== 2026-10-10T17:39:02Z m5_sink DB=m_s_STRICT CONSUMER=STRICT TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_s_STRICT'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_STRICT_capture' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+Job 'cdc.m_s_STRICT_cleanup' started successfully.
+RESULT,STRICT,1,100,0,2.10,0,0,10,0,313,0

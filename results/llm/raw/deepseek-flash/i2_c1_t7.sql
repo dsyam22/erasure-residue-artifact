@@ -1,0 +1,28 @@
+SET NOCOUNT ON;
+
+DECLARE @subject_customer_id int = 42;
+DECLARE @subject_full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @subject_email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @subject_phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+IF OBJECT_ID(N'dbo.customer', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.customer', COUNT_BIG(*)
+    FROM dbo.customer
+    WHERE customer_id = @subject_customer_id
+       OR full_name = @subject_full_name
+       OR email = @subject_email
+       OR phone = @subject_phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found) VALUES (N'dbo.customer', 0);
+END
+
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

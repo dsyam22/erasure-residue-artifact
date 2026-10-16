@@ -1,0 +1,13 @@
+TABLE_SCHEMA|TABLE_NAME
+------------|----------
+cdc|captured_columns
+cdc|change_tables
+cdc|dbo_customer_CT
+cdc|ddl_history
+cdc|index_columns
+cdc|lsn_time_mapping
+dbo|customer
+dbo|member
+dbo|member_history
+dbo|systranschemas
+(10 rows affected)

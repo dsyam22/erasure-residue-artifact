@@ -1,0 +1,33 @@
+WITH CheckCounts AS (
+    -- 1. dbo.customer table check
+    SELECT 
+        'dbo.customer' AS object_name,
+        CAST(COUNT(CASE WHEN c.full_name = 'Subject_0000042' AND c.email = 'subject42@example.invalid' AND c.phone = '+1-555-0000042' THEN 1 END) AS INT) AS rows_found
+    FROM dbo.customer c
+
+    UNION ALL
+
+    -- 2. dbo.member table check
+    SELECT 
+        'dbo.member' AS object_name,
+        CAST(COUNT(CASE WHEN m.full_name = 'Subject_0000042' AND m.email = 'subject42@example.invalid' AND m.phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM dbo.member m
+
+    UNION ALL
+
+    -- 3. cdc.dbo_customer_CT (CDC table) check
+    SELECT 
+        'cdc.dbo_customer_CT' AS object_name,
+        CAST(COUNT(CASE WHEN cdt.full_name = 'Subject_0000042' AND cdt.email = 'subject42@example.invalid' AND cdt.phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM cdc.dbo_customer_CT cdt
+
+    UNION ALL
+
+    -- 4. dbo.member_history (Temporal History table) check
+    SELECT 
+        'dbo.member_history' AS object_name,
+        CAST(COUNT(CASE WHEN mhist.full_name = 'Subject_0000042' AND mhist.email = 'subject42@example.invalid' AND mhist.phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM dbo.member_history mhist
+)
+
+SELECT object_name, rows_found FROM CheckCounts;

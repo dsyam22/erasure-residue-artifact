@@ -1,0 +1,172 @@
+/* Read-only verification script: checks whether the erased personal data
+   (customer_id 42, 'Subject_0000042', 'subject42@example.invalid', '+1-555-0000042')
+   still exists anywhere in database llm_i8.
+   Returns exactly one result set: object_name, rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+/* 1. Base table dbo.customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* 2. Any other user table in the database that has a column whose name
+      matches the personal-data column names, checked generically. */
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT DISTINCT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    JOIN sys.columns AS c ON c.object_id = t.object_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT LIKE '%[_]history'
+      AND t.name NOT LIKE 'cdc[_]%'
+      AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+      AND NOT (s.name = N'dbo' AND t.name = N'customer');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N' AS x
+        WHERE '
+        + STUFF(
+            (SELECT N' OR ' + CASE c.name
+                    WHEN N'customer_id' THEN N'x.' + QUOTENAME(c.name) + N' = @cid'
+                    WHEN N'full_name'   THEN N'x.' + QUOTENAME(c.name) + N' = @name'
+                    WHEN N'email'       THEN N'x.' + QUOTENAME(c.name) + N' = @email'
+                    WHEN N'phone'       THEN N'x.' + QUOTENAME(c.name) + N' = @phone'
+                  END
+             FROM sys.columns AS c
+             WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+               AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+             FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(max)'),
+            1, 4, N'');
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+        @obj = @schema + N'.' + @table, @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+/* 3. CDC change tables (cdc.dbo_customer_CT etc.) if CDC is/was enabled. */
+IF OBJECT_ID(N'cdc.change_tables', N'U') IS NOT NULL
+BEGIN
+    DECLARE @ctSchema sysname, @ctName sysname, @ctSQL nvarchar(max);
+
+    DECLARE cdc_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT OBJECT_SCHEMA_NAME(ct.object_id), OBJECT_NAME(ct.object_id)
+        FROM cdc.change_tables AS ct;
+
+    OPEN cdc_cur;
+    FETCH NEXT FROM cdc_cur INTO @ctSchema, @ctName;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @ctSQL = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@ctSchema) + N'.' + QUOTENAME(@ctName) + N' AS x
+            WHERE '
+            + STUFF(
+                (SELECT N' OR ' + CASE c.name
+                        WHEN N'customer_id' THEN N'x.' + QUOTENAME(c.name) + N' = @cid'
+                        WHEN N'full_name'   THEN N'x.' + QUOTENAME(c.name) + N' = @name'
+                        WHEN N'email'       THEN N'x.' + QUOTENAME(c.name) + N' = @email'
+                        WHEN N'phone'       THEN N'x.' + QUOTENAME(c.name) + N' = @phone'
+                      END
+                 FROM sys.columns AS c
+                 WHERE c.object_id = OBJECT_ID(QUOTENAME(@ctSchema) + N'.' + QUOTENAME(@ctName))
+                   AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+                 FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(max)'),
+                1, 4, N'');
+
+        IF @ctSQL IS NOT NULL
+            EXEC sp_executesql @ctSQL,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = @ctSchema + N'.' + @ctName, @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+
+        FETCH NEXT FROM cdc_cur INTO @ctSchema, @ctName;
+    END
+    CLOSE cdc_cur;
+    DEALLOCATE cdc_cur;
+END
+
+/* 4. Temporal history tables (if any exist for tables that held this data). */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE temporal_type = 1)
+BEGIN
+    DECLARE @hSchema sysname, @hName sysname, @hSQL nvarchar(max);
+
+    DECLARE hist_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT OBJECT_SCHEMA_NAME(t.history_table_id), OBJECT_NAME(t.history_table_id)
+        FROM sys.tables AS t
+        WHERE t.temporal_type = 1
+          AND t.history_table_id IS NOT NULL;
+
+    OPEN hist_cur;
+    FETCH NEXT FROM hist_cur INTO @hSchema, @hName;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @hSQL = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@hSchema) + N'.' + QUOTENAME(@hName) + N' AS x
+            WHERE '
+            + STUFF(
+                (SELECT N' OR ' + CASE c.name
+                        WHEN N'customer_id' THEN N'x.' + QUOTENAME(c.name) + N' = @cid'
+                        WHEN N'full_name'   THEN N'x.' + QUOTENAME(c.name) + N' = @name'
+                        WHEN N'email'       THEN N'x.' + QUOTENAME(c.name) + N' = @email'
+                        WHEN N'phone'       THEN N'x.' + QUOTENAME(c.name) + N' = @phone'
+                      END
+                 FROM sys.columns AS c
+                 WHERE c.object_id = OBJECT_ID(QUOTENAME(@hSchema) + N'.' + QUOTENAME(@hName))
+                   AND c.name IN (N'customer_id', N'full_name', N'email', N'phone')
+                 FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(max)'),
+                1, 4, N'');
+
+        IF @hSQL IS NOT NULL
+            EXEC sp_executesql @hSQL,
+                N'@obj sysname, @cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+                @obj = @hSchema + N'.' + @hName, @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+
+        FETCH NEXT FROM hist_cur INTO @hSchema, @hName;
+    END
+    CLOSE hist_cur;
+    DEALLOCATE hist_cur;
+END
+
+/* 5. Change tracking side table (sys.change_tracking_tables) - the side table
+      stores only keys, so check whether the subject's key is still tracked. */
+IF OBJECT_ID(N'sys.change_tracking_tables', N'V') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'sys.change_tracking_tables (tracked tables with PK = ' + CAST(@cid AS nvarchar(20)) + N')',
+           COUNT(*)
+    FROM sys.change_tracking_tables AS ctt
+    JOIN sys.tables AS t ON t.object_id = ctt.object_id
+    WHERE t.name = N'customer';
+END
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

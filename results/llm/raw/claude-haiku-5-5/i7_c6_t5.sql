@@ -1,0 +1,20 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+SELECT x.object_name, x.rows_found
+FROM (
+    SELECT CAST(N'dbo.customer' AS nvarchar(256)) AS object_name,
+           (SELECT COUNT(*)
+              FROM dbo.customer AS t
+             WHERE t.full_name = N'Subject_0000042'
+                OR t.email = N'subject42@example.invalid'
+                OR t.phone = N'+1-555-0000042') AS rows_found
+    UNION ALL
+    SELECT CAST(N'reporting.customer_replica' AS nvarchar(256)) AS object_name,
+           (SELECT COUNT(*)
+              FROM reporting.customer_replica AS r
+             WHERE r.full_name = N'Subject_0000042'
+                OR r.email = N'subject42@example.invalid'
+                OR r.phone = N'+1-555-0000042') AS rows_found
+) AS x
+ORDER BY x.object_name;

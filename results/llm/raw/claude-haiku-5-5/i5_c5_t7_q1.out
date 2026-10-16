@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type_desc|history_table_id|column_name|data_type|max_length
+-----------|----------|------------------|----------------|-----------|---------|----------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|customer_id|int|4
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|full_name|nvarchar|200
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|email|nvarchar|400
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|phone|nvarchar|60
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|valid_from|datetime2|8
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|valid_to|datetime2|8
+dbo|customer_history|HISTORY_TABLE|NULL|customer_id|int|4
+dbo|customer_history|HISTORY_TABLE|NULL|full_name|nvarchar|200
+dbo|customer_history|HISTORY_TABLE|NULL|email|nvarchar|400
+dbo|customer_history|HISTORY_TABLE|NULL|phone|nvarchar|60
+dbo|customer_history|HISTORY_TABLE|NULL|valid_from|datetime2|8
+dbo|customer_history|HISTORY_TABLE|NULL|valid_to|datetime2|8
+(12 rows affected)

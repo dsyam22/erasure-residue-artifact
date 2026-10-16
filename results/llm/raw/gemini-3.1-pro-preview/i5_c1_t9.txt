@@ -1,0 +1,49 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(512),
+    rows_found INT
+);
+
+DECLARE @HistorySchema NVARCHAR(128);
+DECLARE @HistoryTable NVARCHAR(128);
+
+SELECT 
+    @HistorySchema = s_hist.name, 
+    @HistoryTable = t_hist.name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.tables t_hist ON t.history_table_id = t_hist.object_id
+JOIN sys.schemas s_hist ON t_hist.schema_id = s_hist.schema_id
+WHERE s.name = 'dbo' AND t.name = 'customer';
+
+DECLARE @Count INT;
+
+-- Check dbo.customer
+SELECT @Count = COUNT(*) 
+FROM dbo.customer 
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+INSERT INTO @Results (object_name, rows_found) 
+VALUES ('dbo.customer', @Count);
+
+-- Check history table if the table is system-versioned
+IF @HistoryTable IS NOT NULL
+BEGIN
+    DECLARE @Sql NVARCHAR(MAX);
+    SET @Sql = N'SELECT @Cnt = COUNT(*) FROM ' + QUOTENAME(@HistorySchema) + N'.' + QUOTENAME(@HistoryTable) + 
+               N' WHERE customer_id = 42 OR full_name = ''Subject_0000042'' OR email = ''subject42@example.invalid'' OR phone = ''+1-555-0000042'';';
+    
+    EXEC sp_executesql @Sql, N'@Cnt INT OUTPUT', @Cnt = @Count OUTPUT;
+    
+    INSERT INTO @Results (object_name, rows_found) 
+    VALUES (@HistorySchema + '.' + @HistoryTable, @Count);
+END
+
+SELECT object_name, rows_found 
+FROM @Results;
+```

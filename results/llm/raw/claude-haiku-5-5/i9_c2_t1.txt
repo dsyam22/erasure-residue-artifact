@@ -1,0 +1,77 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #scan
+(
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @fq nvarchar(400), @oname sysname;
+DECLARE @oid int, @pred nvarchar(max), @sql nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @fq;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @oname = @schema + N'.' + @table;
+    SET @oid = OBJECT_ID(@fq);
+    SET @pred = NULL;
+
+    -- Build predicate: any string column containing the subject's original
+    -- full_name, email or phone, or any customer_id column equal to 42.
+    SELECT @pred = STRING_AGG(CAST(x.term AS nvarchar(max)), N' OR ')
+    FROM
+    (
+        SELECT QUOTENAME(c.name) + N' LIKE N''%Subject\_0000042%'' ESCAPE ''\''' AS term
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT QUOTENAME(c.name) + N' LIKE N''%subject42@example.invalid%'' ESCAPE ''\'''
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT QUOTENAME(c.name) + N' LIKE N''%+1-555-0000042%'' ESCAPE ''\'''
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT QUOTENAME(c.name) + N' = 42'
+        FROM sys.columns AS c
+        WHERE c.object_id = @oid AND c.name = N'customer_id'
+    ) AS x;
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #scan (object_name, rows_found) VALUES (@oname, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #scan (object_name, rows_found) '
+                 + N'SELECT @o, COUNT_BIG(*) FROM ' + @fq
+                 + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql, N'@o sysname', @o = @oname;
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @fq;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+
+DROP TABLE #scan;
+```

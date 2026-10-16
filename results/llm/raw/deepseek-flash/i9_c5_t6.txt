@@ -1,0 +1,58 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = STRING_AGG(CAST(N'
+SELECT N''' + REPLACE(s.name, '''', '''''') + N'.' + REPLACE(t.name, '''', '''''') + N''' AS object_name,
+       COUNT_BIG(*) AS rows_found
+FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' AS src
+WHERE EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = t.object_id
+      AND ty.name IN (N''char'', N''varchar'', N''nchar'', N''nvarchar'', N''text'', N''ntext'')
+      AND (
+            src.' + QUOTENAME(c.name) + N' = @full_name
+         OR src.' + QUOTENAME(c.name) + N' = @email
+         OR src.' + QUOTENAME(c.name) + N' = @phone
+         OR src.' + QUOTENAME(c.name) + N' LIKE N''%'' + @full_name + N''%''
+         OR src.' + QUOTENAME(c.name) + N' LIKE N''%'' + @email + N''%''
+         OR src.' + QUOTENAME(c.name) + N' LIKE N''%'' + @phone + N''%''
+      )
+)' AS nvarchar(max)), N' UNION ALL ')
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0;
+
+IF @sql IS NULL OR @sql = N''
+BEGIN
+    SELECT CAST(NULL AS sysname) AS object_name, CAST(0 AS bigint) AS rows_found WHERE 1 = 0;
+    RETURN;
+END
+
+SET @sql = N'INSERT INTO #results (object_name, rows_found) ' + @sql + N';';
+
+EXEC sp_executesql
+    @sql,
+    N'@cid int, @full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+    @cid = @cid,
+    @full_name = @full_name,
+    @email = @email,
+    @phone = @phone;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

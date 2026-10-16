@@ -1,0 +1,62 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #hits (
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj nvarchar(400),
+        @cond nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj  = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @cond = NULL;
+    SET @n    = 0;
+
+    -- One condition per text-like column: any of the three subject values present
+    SELECT @cond = STRING_AGG(CAST(
+        N'(CHARINDEX(@p1, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@p2, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@p3, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID(@obj)
+      AND TYPE_NAME(c.user_type_id) IN (N'varchar', N'nvarchar', N'char', N'nchar', N'xml');
+
+    IF @cond IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT_BIG(*) FROM ' + @obj + N' WHERE ' + @cond + N';';
+        EXEC sp_executesql
+            @sql,
+            N'@p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200), @n bigint OUTPUT',
+            @p1 = N'Subject_0000042',
+            @p2 = N'subject42@example.invalid',
+            @p3 = N'+1-555-0000042',
+            @n  = @n OUTPUT;
+    END
+
+    INSERT INTO #hits (object_name, rows_found)
+    VALUES (@obj, ISNULL(@n, 0));
+
+    FETCH NEXT FROM tcur INTO @schema, @table;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #hits
+ORDER BY object_name;
+```

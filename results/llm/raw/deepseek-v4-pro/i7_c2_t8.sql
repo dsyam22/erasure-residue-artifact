@@ -1,0 +1,35 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer for any rows with the subject's original personal data
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check reporting.customer_replica for any rows with the subject's original personal data
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'reporting.customer_replica' AS object_name,
+    COUNT(*) AS rows_found
+FROM reporting.customer_replica
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Return the results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

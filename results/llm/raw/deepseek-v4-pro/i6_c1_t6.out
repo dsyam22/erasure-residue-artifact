@@ -1,0 +1,26 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+cdc.captured_columns.masking_function|0
+cdc.dbo_customer_CT.email|0
+cdc.dbo_customer_CT.full_name|0
+cdc.dbo_customer_CT.phone|1
+cdc.ddl_history.ddl_command|0
+dbo.customer|0
+dbo.customer.email|0
+dbo.customer.full_name|0
+
+(8 rows affected)

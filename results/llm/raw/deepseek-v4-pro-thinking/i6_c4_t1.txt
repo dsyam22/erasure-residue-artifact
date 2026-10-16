@@ -1,0 +1,80 @@
+```sql
+SET NOCOUNT ON;
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL
+    DROP TABLE #results;
+
+CREATE TABLE #results (
+    object_name nvarchar(257) NOT NULL,
+    rows_found int NOT NULL
+);
+
+DECLARE
+    @schema_name sysname,
+    @table_name sysname,
+    @table_id int,
+    @display_name nvarchar(257),
+    @quoted_name nvarchar(257),
+    @where_clause nvarchar(max),
+    @sql nvarchar(max),
+    @cnt int,
+    @phone_pattern nvarchar(50) = N'%+1-555-0000042%';
+
+DECLARE table_cursor CURSOR LOCAL FORWARD_ONLY READ_ONLY FOR
+SELECT s.name, t.name, t.object_id
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @table_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @display_name = @schema_name + N'.' + @table_name;
+    SET @quoted_name = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+
+    SELECT @where_clause = STRING_AGG(
+        N'CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE @phonePattern',
+        N' OR '
+    )
+    FROM sys.columns AS c
+    WHERE c.object_id = @table_id
+      AND c.is_computed = 0
+      AND TYPE_NAME(c.system_type_id) IN (
+          N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext'
+      );
+
+    IF @where_clause IS NULL
+    BEGIN
+        SET @cnt = 0;
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + @quoted_name +
+                   N' WHERE ' + @where_clause;
+
+        EXEC sp_executesql
+            @sql,
+            N'@phonePattern nvarchar(50), @cnt int OUTPUT',
+            @phonePattern = @phone_pattern,
+            @cnt = @cnt OUTPUT;
+    END;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@display_name, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @table_id;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

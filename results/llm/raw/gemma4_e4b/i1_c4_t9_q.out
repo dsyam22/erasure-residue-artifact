@@ -1,0 +1,20 @@
+TableName|SchemaName|Source
+---------|----------|------
+captured_columns|cdc|System
+change_tables|cdc|System
+dbo_customer_CT|cdc|System
+ddl_history|cdc|System
+index_columns|cdc|System
+lsn_time_mapping|cdc|System
+customer|dbo|User
+(7 rows affected)
+ColumnName|DataType|MaxLength|IsNullable|TableName
+----------|--------|---------|----------|---------
+customer_id|int|4|0|customer
+full_name|nvarchar|200|0|customer
+email|nvarchar|400|0|customer
+phone|nvarchar|60|1|customer
+(4 rows affected)
+ForeignKeyName|SourceTable|SourceColumn|TargetTable|TargetColumn
+--------------|-----------|------------|-----------|------------
+(0 rows affected)

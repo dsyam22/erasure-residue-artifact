@@ -1,0 +1,25 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|customer|valid_from|datetime2|8|0
+dbo|customer|valid_to|datetime2|8|0
+dbo|customer_history|customer_id|int|4|0
+dbo|customer_history|full_name|nvarchar|200|0
+dbo|customer_history|email|nvarchar|400|0
+dbo|customer_history|phone|nvarchar|60|1
+dbo|customer_history|valid_from|datetime2|8|0
+dbo|customer_history|valid_to|datetime2|8|0
+(12 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|customer_history|USER_TABLE
+(2 rows affected)
+index_name|schema_name|table_name|type_desc|is_unique
+----------|-----------|----------|---------|---------
+PK__customer__CD65CB85CC564D83|dbo|customer|CLUSTERED|1
+ix_customer_history|dbo|customer_history|CLUSTERED|0
+(2 rows affected)

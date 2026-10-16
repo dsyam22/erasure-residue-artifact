@@ -1,0 +1,20 @@
+
+(2 rows affected)
+
+(0 rows affected)
+Msg 2628, Level 16, State 1, Server 651334c31df8, Line 57
+String or binary data would be truncated in table 'tempdb.dbo.#Results____________________________________________________________________________________________________________000000000567', column 'object_name'. Truncated value: '
+        INSERT INTO #Results (object_name, rows_found)
+        SELECT 
+            ''[dbo][customer'.
+The statement has been terminated.
+
+(0 rows affected)
+Msg 2628, Level 16, State 1, Server 651334c31df8, Line 57
+String or binary data would be truncated in table 'tempdb.dbo.#Results____________________________________________________________________________________________________________000000000567', column 'object_name'. Truncated value: '
+        INSERT INTO #Results (object_name, rows_found)
+        SELECT 
+            ''[dbo][customer'.
+The statement has been terminated.
+
+(0 rows affected)

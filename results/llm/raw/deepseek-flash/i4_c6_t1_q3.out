@@ -1,0 +1,15 @@
+schema_name|table_name|column_name
+-----------|----------|-----------
+cdc|dbo_customer_CT|email
+cdc|dbo_customer_CT|full_name
+cdc|dbo_customer_CT|phone
+dbo|customer|email
+dbo|customer|full_name
+dbo|customer|phone
+dbo|member|email
+dbo|member|full_name
+dbo|member|phone
+dbo|member_history|email
+dbo|member_history|full_name
+dbo|member_history|phone
+(12 rows affected)

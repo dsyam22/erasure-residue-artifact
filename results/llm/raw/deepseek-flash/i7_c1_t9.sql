@@ -1,0 +1,36 @@
+/* Read-only verification: search for the erased subject's original personal data
+   across all relevant objects in database llm_i7. Returns a single result set:
+   object_name | rows_found */
+
+SET NOCOUNT ON;
+
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @results TABLE (
+    object_name sysname,
+    rows_found  int
+);
+
+/* ---- dbo.customer ---- */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+/* ---- reporting.customer_replica ---- */
+INSERT INTO @results (object_name, rows_found)
+SELECT N'reporting.customer_replica', COUNT(*)
+FROM reporting.customer_replica
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+SELECT object_name, rows_found
+FROM @results;

@@ -1,0 +1,38 @@
+```sql
+WITH CheckResults AS (
+    -- 1. Check dbo.customer (Current State)
+    SELECT 
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN T1.full_name = 'Subject_0000042' AND T1.email = 'subject42@example.invalid' AND T1.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer T1
+    WHERE T1.customer_id = 42
+
+    UNION ALL
+
+    -- 2. Check cdc.dbo_customer_CT (CDC History)
+    SELECT 
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN T1.full_name = 'Subject_0000042' AND T1.email = 'subject42@example.invalid' AND T1.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM cdc.dbo_customer_CT T1
+    WHERE T1.customer_id = 42
+
+    UNION ALL
+
+    -- 3. Check dbo.member (Current State - System Versioned)
+    SELECT 
+        'dbo.member' AS object_name,
+        COUNT(CASE WHEN T1.full_name = 'Subject_0000042' AND T1.email = 'subject42@example.invalid' AND T1.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.member T1
+    WHERE T1.member_id = 42
+
+    UNION ALL
+
+    -- 4. Check dbo.member_history (System Versioned History Table)
+    SELECT 
+        'dbo.member_history' AS object_name,
+        COUNT(CASE WHEN T1.full_name = 'Subject_0000042' AND T1.email = 'subject42@example.invalid' AND T1.phone = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.member_history T1
+    WHERE T1.member_id = 42
+)
+SELECT object_name, rows_found FROM CheckResults;
+```

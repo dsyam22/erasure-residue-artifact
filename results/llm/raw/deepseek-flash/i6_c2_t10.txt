@@ -1,0 +1,104 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+DECLARE @phone_digits nvarchar(100) = N'15550000042';
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* dbo.customer: phone column dropped; check remaining columns for the phone value */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND (
+        full_name LIKE '%' + @phone + '%'
+     OR email     LIKE '%' + @phone + '%'
+     OR full_name LIKE '%' + @phone_digits + '%'
+     OR email     LIKE '%' + @phone_digits + '%'
+  );
+
+/* CDC change table for dbo.customer: captured_columns include phone */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT',
+           COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+      AND (
+            full_name LIKE '%' + @phone + '%'
+         OR email     LIKE '%' + @phone + '%'
+         OR full_name LIKE '%' + @phone_digits + '%'
+         OR email     LIKE '%' + @phone_digits + '%'
+      );
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END;
+
+/* Scan every other user table in the database for the phone value in any string column */
+DECLARE @schema sysname, @table sysname, @column sysname;
+DECLARE @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name <> 'customer'
+      AND s.name <> 'cdc'
+      AND s.name <> 'sys';
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE column_cursor CURSOR LOCAL FAST_FORWARD FOR
+        SELECT c.name
+        FROM sys.columns c
+        JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + '.' + QUOTENAME(@table))
+          AND ty.name IN ('nvarchar','varchar','nchar','char','ntext','text','xml');
+
+    OPEN column_cursor;
+    FETCH NEXT FROM column_cursor INTO @column;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'
+            INSERT INTO @results (object_name, rows_found)
+            SELECT @obj, COUNT(*)
+            FROM ' + QUOTENAME(@schema) + '.' + QUOTENAME(@table) + N'
+            WHERE CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) LIKE ''%'' + @phone + ''%''
+               OR CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) LIKE ''%'' + @phone_digits + ''%'';';
+
+        EXEC sp_executesql @sql,
+            N'@obj sysname, @phone nvarchar(100), @phone_digits nvarchar(100)',
+            @obj = @schema + '.' + @table,
+            @phone = @phone,
+            @phone_digits = @phone_digits;
+
+        FETCH NEXT FROM column_cursor INTO @column;
+    END;
+
+    CLOSE column_cursor;
+    DEALLOCATE column_cursor;
+
+    FETCH NEXT FROM table_cursor INTO @schema, @table;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;
+```

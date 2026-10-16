@@ -1,0 +1,5 @@
+TABLE_CATALOG|TABLE_SCHEMA|TABLE_NAME
+-------------|------------|----------
+llm_i7|dbo|customer
+llm_i7|reporting|customer_replica
+(2 rows affected)

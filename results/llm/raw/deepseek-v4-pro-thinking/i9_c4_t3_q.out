@@ -1,0 +1,23 @@
+database_name|schema_name|table_name|object_id|temporal_type_desc|history_table_name|is_tracked_by_cdc|ledger_type_desc|ledger_view_name|is_memory_optimized|row_count
+-------------|-----------|----------|---------|------------------|------------------|-----------------|----------------|----------------|-------------------|---------
+llm_i9|dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|customer_history|0|NON_LEDGER_TABLE|NULL|0|99
+llm_i9|dbo|customer_history|933578364|HISTORY_TABLE|NULL|0|NON_LEDGER_TABLE|NULL|0|0
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|generated_always_type_desc|encryption_type_desc
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|--------------------------|--------------------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|NULL
+dbo|customer|5|valid_from|datetime2|8|27|7|0|0|0|AS_ROW_START|NULL
+dbo|customer|6|valid_to|datetime2|8|27|7|0|0|0|AS_ROW_END|NULL
+dbo|customer_history|1|customer_id|int|4|10|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|2|full_name|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|3|email|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|4|phone|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|5|valid_from|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer_history|6|valid_to|datetime2|8|27|7|0|0|0|NOT_APPLICABLE|NULL
+(12 rows affected)
+foreign_key_name|parent_schema|parent_table|parent_column|referenced_schema|referenced_table|referenced_column
+----------------|-------------|------------|-------------|-----------------|----------------|-----------------
+(0 rows affected)

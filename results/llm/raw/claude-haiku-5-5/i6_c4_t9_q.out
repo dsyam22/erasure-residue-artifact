@@ -1,0 +1,27 @@
+finding_type|schema_name|object_name|type_desc|column_name|data_type
+------------|-----------|-----------|---------|-----------|---------
+column|cdc|dbo_customer_CT|USER_TABLE|phone|nvarchar
+column|cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|phone|nvarchar
+column|cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|phone|nvarchar
+column|sys|sysbrickfiles|SYSTEM_TABLE|createlsn|binary
+column|sys|sysbrickfiles|SYSTEM_TABLE|firstupdatelsn|binary
+column|sys|sysbrickfiles|SYSTEM_TABLE|lastupdatelsn|binary
+column|sys|sysbrickfiles|SYSTEM_TABLE|readwritelsn|binary
+column|sys|sysprufiles|SYSTEM_TABLE|createlsn|binary
+column|sys|sysprufiles|SYSTEM_TABLE|firstupdatelsn|binary
+column|sys|sysprufiles|SYSTEM_TABLE|lastupdatelsn|binary
+column|sys|sysprufiles|SYSTEM_TABLE|readwritelsn|binary
+module_definition|cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|NULL|NULL
+module_definition|cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|NULL|NULL
+module_definition|cdc|sp_batchinsert_1285579618|SQL_STORED_PROCEDURE|NULL|NULL
+module_definition|cdc|sp_insdel_1285579618|SQL_STORED_PROCEDURE|NULL|NULL
+module_definition|cdc|sp_upd_1285579618|SQL_STORED_PROCEDURE|NULL|NULL
+user_table|cdc|captured_columns|USER_TABLE|0|4
+user_table|cdc|change_tables|USER_TABLE|0|1
+user_table|cdc|dbo_customer_CT|USER_TABLE|0|100
+user_table|cdc|ddl_history|USER_TABLE|0|1
+user_table|cdc|index_columns|USER_TABLE|0|1
+user_table|cdc|lsn_time_mapping|USER_TABLE|0|1227
+user_table|dbo|customer|USER_TABLE|0|100
+user_table|dbo|systranschemas|USER_TABLE|0|2
+(24 rows affected)

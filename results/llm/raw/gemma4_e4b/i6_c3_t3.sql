@@ -1,0 +1,19 @@
+WITH Check_Results AS (
+    -- Check 1: CDC History Table (Most likely location for retained historical data)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        COUNT(CASE WHEN [phone] = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = 42
+
+    UNION ALL
+
+    -- Check 2: Live Table (The column was dropped, so we expect 0 matches for the specific phone number)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN [phone] IS NOT NULL AND [phone] = '+1-555-0000042' THEN 1 END) AS rows_found
+    FROM dbo.customer
+)
+-- Select the final result set structure required by the task
+SELECT object_name, rows_found
+FROM Check_Results;

@@ -1,0 +1,81 @@
+```sql
+DECLARE @TargetPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Temporary table to store the required results structure
+IF OBJECT_ID('tempdb..#VerificationResults') IS NOT NULL DROP TABLE #VerificationResults;
+
+CREATE TABLE #VerificationResults (
+    object_name NVARCHAR(256),
+    rows_found INT
+);
+
+-- Cursor setup to iterate over all user tables and views in the default schema (dbo)
+DECLARE @ObjectSchema sysname, @ObjectName sysname;
+
+DECLARE ObjectCursor CURSOR FOR
+SELECT 
+    s.name, 
+    t.name
+FROM 
+    sys.tables t
+JOIN 
+    sys.schemas s ON t.schema_id = s.schema_id
+WHERE 
+    s.name = 'dbo' AND OBJECTPROPERTY(object_id, 'IsUserTable') = 1
+
+UNION ALL
+
+SELECT 
+    s.name, 
+    v.name
+FROM 
+    sys.views v
+JOIN 
+    sys.schemas s ON v.schema_id = s.schema_id
+WHERE 
+    s.name = 'dbo' AND OBJECTPROPERTY(object_id, 'IsUserView') = 1;
+
+OPEN ObjectCursor;
+FETCH NEXT FROM ObjectCursor INTO @ObjectSchema, @ObjectName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @SQL NVARCHAR(MAX);
+    DECLARE @RowCount INT = 0;
+
+    -- Build the dynamic query to count occurrences of the target phone number
+    -- We check all character-based columns (nvarchar/varchar) for simplicity, 
+    -- assuming PII is stored as text.
+    SET @SQL = N'SELECT @count = COUNT(1) FROM ' + QUOTENAME(@ObjectSchema) + '.' + QUOTENAME(@ObjectName) + 
+                N' WHERE EXISTS (SELECT 1 FROM sys.columns c JOIN sys.types t ON c.system_type_id = t.system_type_id AND c.user_type_id = t.user_type_id WHERE c.object_id = OBJECT_ID(N''' + QUOTENAME(@ObjectSchema) + '.' + QUOTENAME(@ObjectName) + ''') AND t.name IN (''nvarchar'', ''varchar'') AND ' + 
+                STUFF((SELECT ', ' + QUOTENAME(c.name) + ' IS NOT NULL AND CAST(' + QUOTENAME(c.name) + ') LIKE @phone_pattern' FROM sys.columns c WHERE OBJECT_ID(N''' + QUOTENAME(@ObjectSchema) + '.' + QUOTENAME(@ObjectName) + ''') = c.object_id), 1, 2, '') + N');';
+
+    -- Execute the dynamic count query
+    EXEC sp_executesql @SQL, 
+                        N'@count INT OUTPUT, @phone_pattern NVARCHAR(50)', 
+                        @count = @RowCount OUTPUT, 
+                        @phone_pattern = @TargetPhone;
+
+    -- Insert results into the temporary table
+    INSERT INTO #VerificationResults (object_name, rows_found)
+    VALUES (@ObjectSchema + '.' + @ObjectName, @RowCount);
+
+    FETCH NEXT FROM ObjectCursor INTO @ObjectSchema, @ObjectName;
+END
+
+CLOSE ObjectCursor;
+DEALLOCATE ObjectCursor;
+
+-- Final result set structure as required by the prompt
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    #VerificationResults
+ORDER BY 
+    CASE WHEN object_name = 'dbo.customer' THEN 0 ELSE 1 END, -- Ensure customer is checked first conceptually
+    object_name;
+
+-- Clean up the temporary table
+DROP TABLE #VerificationResults;
+```

@@ -1,0 +1,4 @@
+[dbo].[customer]|2
+cdc.dbo_customer_CT|1
+dbo.customer|0
+dbo.customer|0

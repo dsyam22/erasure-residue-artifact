@@ -1,0 +1,21 @@
+```sql
+SELECT object_name, rows_found FROM (
+    -- Check dbo.customer
+    SELECT 'dbo.customer' AS object_name, COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = 42
+      AND full_name = N'Subject_0000042'
+      AND email = N'subject42@example.invalid'
+      AND phone = N'+1-555-0000042'
+
+    UNION ALL
+
+    -- Check reporting.customer_replica
+    SELECT 'reporting.customer_replica', COUNT(*)
+    FROM reporting.customer_replica
+    WHERE customer_id = 42
+      AND full_name = N'Subject_0000042'
+      AND email = N'subject42@example.invalid'
+      AND phone = N'+1-555-0000042'
+) AS Results;
+```

@@ -1,0 +1,15 @@
+name type_desc
+---- ---------
+ix_member_history CLUSTERED
+
+(1 rows affected)
+is_temporal_history_retention_enabled
+-------------------------------------
+1
+
+(1 rows affected)
+sqlserver_start_time
+--------------------
+2026-10-08 01:34:58.113
+
+(1 rows affected)

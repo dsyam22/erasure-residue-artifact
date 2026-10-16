@@ -1,0 +1,46 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @needle nvarchar(100) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+-- Check dbo.customer: all text columns present (full_name, email)
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE CONVERT(nvarchar(max), full_name) LIKE N'%' + @needle + N'%'
+   OR CONVERT(nvarchar(max), email) LIKE N'%' + @needle + N'%';
+
+-- Build one INSERT per table (avoid nested STRING_AGG)
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql +
+    N'INSERT INTO @results (object_name, rows_found) SELECT ' +
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N'''' + N' AS object_name, COUNT(*) FROM ' +
+    QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+    N' WHERE ' +
+    cols.expr + N';' + CHAR(10)
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+CROSS APPLY (
+    SELECT STRING_AGG(
+        N'CONVERT(nvarchar(max), ' + QUOTENAME(c.name) + N') LIKE N''%' + @needle + N'%''',
+        N' OR '
+    ) AS expr
+    FROM sys.columns c
+    JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = t.object_id
+      AND ty.name IN ('char','nchar','varchar','nvarchar','text','ntext','sysname','xml')
+) AS cols
+WHERE t.is_ms_shipped = 0
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')
+  AND cols.expr IS NOT NULL;
+
+IF @sql <> N''
+    EXEC sp_executesql @sql, N'@needle nvarchar(100), @results TABLE (object_name sysname, rows_found int) OUTPUT', @needle, @results;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

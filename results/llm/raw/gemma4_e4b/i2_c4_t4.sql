@@ -1,0 +1,19 @@
+WITH CustomerChecks AS (
+    -- Check dbo.customer table for residual data
+    SELECT 
+        'dbo.customer' AS object_name,
+        COUNT(CASE WHEN customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' THEN 1 END) AS count_found
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- Check dbo.customer_history table for residual data
+    SELECT 
+        'dbo.customer_history' AS object_name,
+        COUNT(CASE WHEN customer_id = 42 AND full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' THEN 1 END) AS count_found
+    FROM dbo.customer_history
+)
+SELECT
+    object_name,
+    count_found AS rows_found
+FROM CustomerChecks;

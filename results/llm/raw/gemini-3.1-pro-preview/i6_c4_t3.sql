@@ -1,0 +1,7 @@
+SELECT 'cdc.dbo_customer_CT' AS object_name, COUNT(*) AS rows_found
+FROM cdc.dbo_customer_CT
+WHERE phone LIKE '%+1-555-0000042%'
+UNION ALL
+SELECT 'dbo.customer' AS object_name, COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE full_name LIKE '%+1-555-0000042%' OR email LIKE '%+1-555-0000042%';

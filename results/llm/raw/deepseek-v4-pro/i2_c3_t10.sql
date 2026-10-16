@@ -1,0 +1,78 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found int NOT NULL
+);
+
+-- Check current table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check temporal history table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check CDC change tables (if any exist)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE 'cdc.%' AND is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_table nvarchar(255);
+    DECLARE cdc_cursor CURSOR FOR
+        SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.name LIKE 'cdc.%'
+          AND t.is_tracked_by_cdc = 1;
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @cdc_table;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @sql nvarchar(max) = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT N''' + @cdc_table + N''', COUNT(*)
+            FROM ' + @cdc_table + N'
+            WHERE customer_id = @customer_id
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone;';
+        EXEC sp_executesql @sql,
+            N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+            @customer_id, @full_name, @email, @phone;
+        FETCH NEXT FROM cdc_cursor INTO @cdc_table;
+    END;
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+-- Ensure at least one row per object checked (including CDC if none exist)
+IF NOT EXISTS (SELECT 1 FROM #results WHERE object_name LIKE 'cdc.%')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.change_tables', 0
+    WHERE EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE 'cdc.%' AND is_tracked_by_cdc = 1);
+END
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,19 @@
+```sql
+DECLARE @CustomerCount INT;
+DECLARE @HistoryCount INT;
+
+-- Check 1: The live table view
+SELECT @CustomerCount = COUNT(customer_id)
+FROM dbo.customer
+WHERE customer_id = 42;
+
+-- Check 2: The history/archive table (due to temporal system)
+SELECT @HistoryCount = COUNT(customer_id)
+FROM dbo.customer_history
+WHERE customer_id = 42;
+
+-- Return the results in the required single result set format
+SELECT 'dbo.customer' AS object_name, @CustomerCount AS rows_found
+UNION ALL
+SELECT 'dbo.customer_history' AS object_name, @HistoryCount AS rows_found;
+```

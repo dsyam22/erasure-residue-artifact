@@ -1,0 +1,15 @@
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|customer|valid_from|datetime2
+dbo|customer|valid_to|datetime2
+dbo|customer_history|customer_id|int
+dbo|customer_history|full_name|nvarchar
+dbo|customer_history|email|nvarchar
+dbo|customer_history|phone|nvarchar
+dbo|customer_history|valid_from|datetime2
+dbo|customer_history|valid_to|datetime2
+(12 rows affected)

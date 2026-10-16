@@ -1,0 +1,15 @@
+schema_name|object_name|object_type|column_id|column_name|data_type|max_length|is_nullable|is_identity|is_computed
+-----------|-----------|-----------|---------|-----------|---------|----------|-----------|-----------|-----------
+dbo|customer|USER_TABLE|1|customer_id|int|4|0|0|0
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|0|0
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|0|0
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|1|0|0
+dbo|customer|USER_TABLE|5|valid_from|datetime2|8|0|0|0
+dbo|customer|USER_TABLE|6|valid_to|datetime2|8|0|0|0
+dbo|customer_history|USER_TABLE|1|customer_id|int|4|0|0|0
+dbo|customer_history|USER_TABLE|2|full_name|nvarchar|200|0|0|0
+dbo|customer_history|USER_TABLE|3|email|nvarchar|400|0|0|0
+dbo|customer_history|USER_TABLE|4|phone|nvarchar|60|1|0|0
+dbo|customer_history|USER_TABLE|5|valid_from|datetime2|8|0|0|0
+dbo|customer_history|USER_TABLE|6|valid_to|datetime2|8|0|0|0
+(12 rows affected)

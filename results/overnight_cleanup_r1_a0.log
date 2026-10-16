@@ -1,0 +1,290 @@
+=== 2026-10-10T18:21:03Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=1 (attempt 1) ===
+Changed database context to 'master'.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 0%.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 100%.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,1,2026-10-10 18:21:15,5.65,10.68,8,21,0,0,0,0
+=== 2026-10-10T18:31:56Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=2 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,2,2026-10-10 18:32:05,5.68,10.77,8,21,0,0,0,0
+=== 2026-10-10T18:42:51Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=3 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,3,2026-10-10 18:43:00,5.58,10.58,8,21,0,0,0,0
+=== 2026-10-10T18:53:35Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=4 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,4,2026-10-10 18:53:44,5.60,10.60,8,21,0,0,0,0
+=== 2026-10-10T19:04:20Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=5 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,5,2026-10-10 19:04:29,5.68,10.68,8,21,0,0,0,0
+=== 2026-10-10T19:15:10Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=6 (attempt 1) ===
+Changed database context to 'master'.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 0%.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 100%.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,6,2026-10-10 19:15:23,5.60,10.60,8,21,0,0,0,0
+=== 2026-10-10T19:25:59Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=7 (attempt 1) ===
+Changed database context to 'master'.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 0%.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 100%.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,7,2026-10-10 19:26:12,5.62,10.62,8,21,0,0,0,0
+=== 2026-10-10T19:36:49Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=8 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,8,2026-10-10 19:37:00,5.60,11.12,8,22,0,0,0,0
+=== 2026-10-10T19:48:07Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=9 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,9,2026-10-10 19:48:18,5.57,11.07,8,22,0,0,0,0
+=== 2026-10-10T19:59:22Z m4_cleanup DB=m_c_r1_a0 RET=1 ACTIVITY=0 TRIAL=10 (attempt 1) ===
+Changed database context to 'master'.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 0%.
+Nonqualified transactions are being rolled back. Estimated rollback completion: 100%.
+Changed database context to 'm_c_r1_a0'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a0_capture' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+Job 'cdc.m_c_r1_a0_cleanup' started successfully.
+RESULT,1,0,10,2026-10-10 19:59:41,5.62,10.62,8,21,0,0,0,0

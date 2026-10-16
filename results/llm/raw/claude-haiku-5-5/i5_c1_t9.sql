@@ -1,0 +1,63 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @v1 nvarchar(200) = N'Subject_0000042';
+DECLARE @v2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @v3 nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @object_id int, @schema sysname, @table sysname;
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    SELECT @pred = STRING_AGG(CAST(
+        N'(CHARINDEX(@v1, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@v2, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@v3, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @object_id
+      AND c.system_type_id IN (167, 231, 175, 239);  -- varchar, nvarchar, char, nchar
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@v1 nvarchar(200), @v2 nvarchar(200), @v3 nvarchar(200), @cnt bigint OUTPUT',
+            @v1 = @v1, @v2 = @v2, @v3 = @v3, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

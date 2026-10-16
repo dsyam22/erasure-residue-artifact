@@ -1,0 +1,25 @@
+schema_name|table_name|temporal_type_desc|is_tracked_by_cdc|history_schema|history_table|column_name|data_type|max_length|trigger_count|change_tracking_enabled
+-----------|----------|------------------|-----------------|--------------|-------------|-----------|---------|----------|-------------|-----------------------
+dbo|customer|NON_TEMPORAL_TABLE|0|NULL|NULL|customer_id|int|4|0|0
+dbo|customer|NON_TEMPORAL_TABLE|0|NULL|NULL|full_name|nvarchar|200|0|0
+dbo|customer|NON_TEMPORAL_TABLE|0|NULL|NULL|email|nvarchar|400|0|0
+dbo|customer|NON_TEMPORAL_TABLE|0|NULL|NULL|phone|nvarchar|60|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|NULL|NULL|customer_id|int|4|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|NULL|NULL|full_name|nvarchar|200|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|NULL|NULL|email|nvarchar|400|0|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|NULL|NULL|phone|nvarchar|60|0|0
+(8 rows affected)
+schema_name|object_name|type_desc|note
+-----------|-----------|---------|----
+(0 rows affected)
+child_schema|child_table|parent_schema|parent_table|fk_name
+------------|-----------|-------------|------------|-------
+(0 rows affected)
+src|rows_for_42
+---|-----------
+dbo.customer|0
+(1 rows affected)
+src|rows_for_42
+---|-----------
+reporting.customer_replica|1
+(1 rows affected)

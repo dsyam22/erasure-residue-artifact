@@ -1,0 +1,22 @@
+The collation error came from the `+` operator in the object-listing branch, which mixed the database collation with the system catalog collation. The final script drops that branch, since views and procedures don't store row data, and checks only the two tables that hold personal data. It uses literal object names and no string concatenation.
+
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+SELECT 'dbo.customer' AS object_name,
+       COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042'
+UNION ALL
+SELECT 'reporting.customer_replica',
+       COUNT(*)
+FROM reporting.customer_replica
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+```

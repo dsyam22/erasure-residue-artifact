@@ -1,0 +1,40 @@
+SET NOCOUNT ON;
+
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+DECLARE @sql nvarchar(max);
+
+SELECT @sql = STRING_AGG(
+    CONCAT(
+        N'SELECT N''',
+        REPLACE(CONCAT(SCHEMA_NAME(t.schema_id), N'.', t.name), N'''', N''''''),
+        N''' AS object_name, COUNT(*) AS rows_found FROM ',
+        QUOTENAME(SCHEMA_NAME(t.schema_id)), N'.', QUOTENAME(t.name),
+        N' WHERE ',
+        COALESCE(c.search_condition, N'1=0')
+    ),
+    N' UNION ALL '
+)
+FROM sys.tables AS t
+CROSS APPLY (
+    SELECT STRING_AGG(
+        CONCAT(
+            N'TRY_CONVERT(nvarchar(max), ', QUOTENAME(c.name), N') COLLATE DATABASE_DEFAULT LIKE N''%',
+            REPLACE(@phone, N'''', N''''''),
+            N'%'''
+        ),
+        N' OR '
+    ) AS search_condition
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND c.system_type_id IN (35, 98, 99, 167, 175, 231, 239, 241)
+) AS c
+WHERE t.type = N'U'
+  AND t.is_ms_shipped = 0;
+
+IF @sql IS NOT NULL
+BEGIN
+    SET @sql = @sql + N' ORDER BY object_name;';
+    EXEC sys.sp_executesql @sql;
+END
+ELSE
+    SELECT N'' AS object_name, 0 AS rows_found WHERE 1=0;

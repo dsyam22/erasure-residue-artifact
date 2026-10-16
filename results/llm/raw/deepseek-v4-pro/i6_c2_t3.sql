@@ -1,0 +1,64 @@
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Temporary table to hold results
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current dbo.customer table (phone column should be dropped)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('dbo.customer')
+        AND c.name = 'phone'
+  )
+  AND CAST(full_name AS NVARCHAR(MAX)) = 'Subject_0000042'
+  AND CAST(email AS NVARCHAR(MAX)) = 'subject42@example.invalid'
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns c
+      WHERE c.object_id = OBJECT_ID('dbo.customer')
+        AND c.name = 'phone'
+  )
+  AND EXISTS (
+      SELECT 1
+      FROM dbo.customer
+      WHERE customer_id = @customer_id
+        AND phone = @phone
+  );
+
+-- Check CDC capture instance for dbo_customer
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables t 
+    WHERE t.name = 'dbo_customer_CT' 
+      AND SCHEMA_NAME(t.schema_id) = 'cdc'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 
+        'cdc.dbo_customer_CT',
+        COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+      AND phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END
+
+-- Return results
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

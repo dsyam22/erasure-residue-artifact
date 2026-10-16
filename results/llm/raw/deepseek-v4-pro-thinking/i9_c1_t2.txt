@@ -1,0 +1,68 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql = STRING_AGG(
+    N'SELECT '
+    + QUOTENAME(s.name + N'.' + t.name, N'''')
+    + N' AS object_name, COUNT_BIG(*) AS rows_found FROM '
+    + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    + N' WHERE '
+    + COALESCE(cond.conditions, N'1=0'),
+    N' UNION ALL '
+)
+FROM sys.tables AS t
+INNER JOIN sys.schemas AS s
+    ON t.schema_id = s.schema_id
+OUTER APPLY (
+    SELECT STRING_AGG(conds.cond, N' OR ') AS conditions
+    FROM (
+        SELECT QUOTENAME(c.name) + N' = @cid' AS cond
+        FROM sys.columns AS c
+        INNER JOIN sys.types AS ty
+            ON ty.system_type_id = c.system_type_id
+           AND ty.user_type_id = ty.system_type_id
+        WHERE c.object_id = t.object_id
+          AND c.name = N'customer_id'
+          AND ty.name IN (N'tinyint', N'smallint', N'int', N'bigint')
+
+        UNION ALL
+
+        SELECT QUOTENAME(c.name) + N' = @cid_string'
+        FROM sys.columns AS c
+        INNER JOIN sys.types AS ty
+            ON ty.system_type_id = c.system_type_id
+           AND ty.user_type_id = ty.system_type_id
+        WHERE c.object_id = t.object_id
+          AND c.name = N'customer_id'
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+
+        UNION ALL
+
+        SELECT QUOTENAME(c.name) + N' = @full_name OR '
+             + QUOTENAME(c.name) + N' = @email OR '
+             + QUOTENAME(c.name) + N' = @phone'
+        FROM sys.columns AS c
+        INNER JOIN sys.types AS ty
+            ON ty.system_type_id = c.system_type_id
+           AND ty.user_type_id = ty.system_type_id
+        WHERE c.object_id = t.object_id
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+    ) AS conds(cond)
+) AS cond
+WHERE t.is_ms_shipped = 0;
+
+EXEC sp_executesql
+    @sql,
+    N'@cid int,
+      @cid_string nvarchar(10),
+      @full_name nvarchar(100),
+      @email nvarchar(100),
+      @phone nvarchar(100)',
+    @cid = 42,
+    @cid_string = N'42',
+    @full_name = N'Subject_0000042',
+    @email = N'subject42@example.invalid',
+    @phone = N'+1-555-0000042';
+```

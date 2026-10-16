@@ -1,0 +1,98 @@
+DECLARE @SchemaName sysname = N'dbo';
+DECLARE @TableName sysname = N'customer';
+DECLARE @FullTableName nvarchar(257) = @SchemaName + N'.' + @TableName;
+DECLARE @CustomerId int = 42;
+DECLARE @OriginalPhone nvarchar(50) = N'+1-555-0000042';
+
+-- We need to check every table in the database for the original phone number,
+-- because the phone column may have been dropped, but the data might still exist
+-- in other tables (e.g., audit tables, backups, staging tables, etc.).
+-- Since the schema is unknown for all tables, we check all user tables.
+
+CREATE TABLE #Results (
+    object_name nvarchar(257),
+    rows_found int
+);
+
+-- Check the original table for the subject's phone number.
+-- The phone column no longer exists, so we cannot directly query it.
+-- However, we can check if the table still contains the original phone number
+-- in any column that might have been repurposed or if the column still exists
+-- under a different name. We will use a dynamic SQL approach to search all
+-- character-based columns in all tables for the original phone number.
+
+-- First, insert a row for the original table with 0 rows found (since phone column is dropped).
+INSERT INTO #Results (object_name, rows_found)
+VALUES (@FullTableName, 0);
+
+-- Now search all user tables (including dbo.customer) for the original phone number
+-- in any character column. We will exclude the original table from the dynamic search
+-- because we already added a row for it, but we still need to check if the phone number
+-- appears in any other column of that table (e.g., if it was accidentally copied to another column).
+-- To be thorough, we will search all tables, but we will update the row for dbo.customer
+-- if found, or add a new row if a different table contains it.
+
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = @sql + 
+    N'IF EXISTS (SELECT 1 FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + 
+    N' WHERE ' + 
+    STUFF((
+        SELECT N' OR ' + QUOTENAME(c.name) + N' LIKE N''%' + @OriginalPhone + N'%'''
+        FROM sys.columns c
+        WHERE c.object_id = t.object_id
+          AND c.system_type_id IN (35, 99, 167, 175, 231, 239) -- text, ntext, varchar, char, nvarchar, nchar
+        FOR XML PATH(N''), TYPE
+    ).value(N'.', N'nvarchar(max)'), 1, 4, N'') + 
+    N') 
+    BEGIN
+        IF ''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''' = @FullTableName
+            UPDATE #Results SET rows_found = rows_found + 1 WHERE object_name = @FullTableName;
+        ELSE
+            INSERT INTO #Results (object_name, rows_found)
+            VALUES (''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', 1);
+    END
+    ELSE
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM #Results WHERE object_name = ''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''')
+            INSERT INTO #Results (object_name, rows_found)
+            VALUES (''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', 0);
+    END;'
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+  AND EXISTS (
+      SELECT 1 FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.system_type_id IN (35, 99, 167, 175, 231, 239)
+  );
+
+EXEC sp_executesql @sql, N'@FullTableName nvarchar(257), @OriginalPhone nvarchar(50)', @FullTableName, @OriginalPhone;
+
+-- Ensure that every table we checked appears in the result set.
+-- The dynamic SQL above already inserts a row for each table it checks,
+-- but we also need to include tables that might not have been checked because
+-- they have no character columns. However, the original phone number is a string,
+-- so it can only be stored in character columns. Therefore, tables without character
+-- columns cannot contain the phone number. We will still include them with 0 rows.
+
+INSERT INTO #Results (object_name, rows_found)
+SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), 0
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.system_type_id IN (35, 99, 167, 175, 231, 239)
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM #Results r WHERE r.object_name = QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+  );
+
+-- Final result set
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;

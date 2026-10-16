@@ -1,0 +1,7 @@
+schema_name|table_name|column_name
+-----------|----------|-----------
+dbo|customer_history|customer_id
+dbo|customer_history|full_name
+dbo|customer_history|email
+dbo|customer_history|phone
+(4 rows affected)

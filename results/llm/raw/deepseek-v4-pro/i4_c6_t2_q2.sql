@@ -1,0 +1,6 @@
+-- QUERY
+SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo'
+  AND DATA_TYPE IN ('uniqueidentifier', 'sql_variant', 'xml', 'text', 'ntext', 'image', 'varbinary', 'binary')
+ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;

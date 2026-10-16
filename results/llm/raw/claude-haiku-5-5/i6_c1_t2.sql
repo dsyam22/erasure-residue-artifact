@@ -1,0 +1,68 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Build a predicate over all character/XML columns of this table.
+    -- Separators are stripped so formatted and unformatted phone numbers both match.
+    SET @pred = (
+        SELECT STRING_AGG(
+                   CAST(
+                       N'(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(CAST(' + QUOTENAME(c.name)
+                       + N' AS nvarchar(max)),N''-'',N''''),N'' '',N''''),N''+'',N''''),N''('',N''''),N'')'',N'''')'
+                       + N' LIKE N''%5550000042%'')'
+                   AS nvarchar(max)),
+                   N' OR ')
+        FROM sys.columns AS c
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+          AND c.system_type_id IN (167, 175, 231, 239, 241)  -- varchar, char, nvarchar, nchar, xml
+    );
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@schema + N'.' + @table, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @cnt_out = COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@cnt_out bigint OUTPUT',
+             @cnt_out = @cnt OUTPUT;
+
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (@schema + N'.' + @table, @cnt);
+    END
+
+    FETCH NEXT FROM tbl INTO @schema, @table;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,105 @@
+SET NOCOUNT ON;
+
+DECLARE @CustomerId INT = 42;
+DECLARE @FullName NVARCHAR(255) = N'Subject_0000042';
+DECLARE @Email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @Phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(255) NOT NULL,
+    rows_found INT NOT NULL
+);
+
+-- Check dbo.customer
+INSERT INTO #Results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @CustomerId
+   OR full_name = @FullName
+   OR email = @Email
+   OR phone = @Phone;
+
+-- Check if any table has columns that could contain the data
+-- This query dynamically checks all user tables for the specific values
+DECLARE @sql NVARCHAR(MAX) = N'';
+DECLARE @table_name NVARCHAR(255);
+DECLARE @schema_name NVARCHAR(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    s.name AS schema_name,
+    t.name AS table_name
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0
+ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Check if table has any column that could contain the data
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns c
+        WHERE c.object_id = OBJECT_ID(@schema_name + N'.' + @table_name)
+          AND c.system_type_id IN (167, 175, 231, 239, 56, 60, 61, 62, 106, 108, 122, 127)  -- char, varchar, nchar, nvarchar, int, bigint, smallint, tinyint, decimal, numeric, smallmoney, money
+    )
+    BEGIN
+        SET @sql = N'
+            IF EXISTS (
+                SELECT 1
+                FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N'
+                WHERE 1=0
+            )
+            BEGIN
+                DECLARE @found INT = 0;
+                
+                DECLARE @col_name NVARCHAR(255);
+                DECLARE col_cursor CURSOR FOR
+                SELECT c.name
+                FROM sys.columns c
+                WHERE c.object_id = OBJECT_ID(''' + @schema_name + N'.' + @table_name + N''')
+                  AND c.system_type_id IN (167, 175, 231, 239)  -- char, varchar, nchar, nvarchar
+                
+                OPEN col_cursor;
+                FETCH NEXT FROM col_cursor INTO @col_name;
+                
+                WHILE @@FETCH_STATUS = 0
+                BEGIN
+                    DECLARE @check_sql NVARCHAR(MAX);
+                    SET @check_sql = N''SELECT @found = @found + COUNT(*) FROM '' + QUOTENAME(''' + @schema_name + N''') + N''.'' + QUOTENAME(''' + @table_name + N''') + N'' WHERE '' + QUOTENAME(@col_name) + N'' IN ('''''' + CONVERT(NVARCHAR(255), @CustomerId) + N'''''', '''''' + @FullName + N'''''', '''''' + @Email + N'''''', '''''' + @Phone + N'''''')'';
+                    
+                    EXEC sp_executesql @check_sql, N''@found INT OUTPUT'', @found = @found OUTPUT;
+                    
+                    FETCH NEXT FROM col_cursor INTO @col_name;
+                END
+                
+                CLOSE col_cursor;
+                DEALLOCATE col_cursor;
+                
+                INSERT INTO #Results (object_name, rows_found)
+                VALUES (''' + @schema_name + N'.' + @table_name + N''', @found);
+            END
+        ';
+        
+        EXEC sp_executesql @sql;
+    END
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return results
+SELECT 
+    object_name,
+    rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;

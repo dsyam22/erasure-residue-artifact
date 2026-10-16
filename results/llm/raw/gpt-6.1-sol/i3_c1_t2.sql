@@ -1,0 +1,87 @@
+USE [llm_i3];
+
+-- Scan every accessible user table, including temporal history tables.
+-- Match original personal-data strings anywhere in textual/XML columns,
+-- and identifier 42 in columns named customer_id or member_id.
+-- This checks table data, not transaction logs, backups, or deallocated pages.
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CAST(
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + COALESCE(p.predicate, N'1 = 0')
+            AS nvarchar(max)
+        ),
+        N' UNION ALL '
+    ) WITHIN GROUP (ORDER BY s.name, t.name)
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CAST(
+            CASE
+                WHEN c.system_type_id IN
+                     (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN
+                    N'CHARINDEX(N''Subject_0000042'', TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE DATABASE_DEFAULT) > 0 OR ' +
+                    N'CHARINDEX(N''subject42@example.invalid'', TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE DATABASE_DEFAULT) > 0 OR ' +
+                    N'CHARINDEX(N''+1-555-0000042'', TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE DATABASE_DEFAULT) > 0'
+                ELSE NULL
+            END
+            +
+            CASE
+                WHEN c.name COLLATE DATABASE_DEFAULT IN
+                     (N'customer_id', N'member_id')
+                THEN
+                    CASE
+                        WHEN c.system_type_id IN
+                             (35, 99, 167, 175, 231, 239, 241, 98)
+                        THEN N' OR '
+                        ELSE N''
+                    END +
+                    N'TRY_CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N') COLLATE DATABASE_DEFAULT = N''42'''
+                ELSE N''
+            END
+            AS nvarchar(max)
+        ),
+        N' OR '
+    ) AS predicate
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND
+      (
+          c.system_type_id IN (35, 99, 167, 175, 231, 239, 241, 98)
+          OR
+          (
+              c.name COLLATE DATABASE_DEFAULT IN
+                  (N'customer_id', N'member_id')
+              AND c.system_type_id IN
+                  (48, 52, 56, 59, 60, 62, 104, 106, 108, 122, 127)
+          )
+      )
+) AS p
+WHERE t.is_ms_shipped = 0;
+
+SET @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                     CAST(NULL AS bigint) AS rows_found
+              WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS findings ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql @sql;

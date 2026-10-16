@@ -1,0 +1,23 @@
+schema_name|table_name|temporal_type_desc|history_table_id|column_name|type_name
+-----------|----------|------------------|----------------|-----------|---------
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|NULL|customer_id|int
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|NULL|full_name|nvarchar
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|NULL|email|nvarchar
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|NULL|phone|nvarchar
+dbo|customer|NON_TEMPORAL_TABLE|NULL|customer_id|int
+dbo|customer|NON_TEMPORAL_TABLE|NULL|full_name|nvarchar
+dbo|customer|NON_TEMPORAL_TABLE|NULL|email|nvarchar
+dbo|customer|NON_TEMPORAL_TABLE|NULL|phone|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|member_id|int
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|full_name|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|email|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|phone|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|valid_from|datetime2
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|965578478|valid_to|datetime2
+dbo|member_history|HISTORY_TABLE|NULL|member_id|int
+dbo|member_history|HISTORY_TABLE|NULL|full_name|nvarchar
+dbo|member_history|HISTORY_TABLE|NULL|email|nvarchar
+dbo|member_history|HISTORY_TABLE|NULL|phone|nvarchar
+dbo|member_history|HISTORY_TABLE|NULL|valid_from|datetime2
+dbo|member_history|HISTORY_TABLE|NULL|valid_to|datetime2
+(20 rows affected)

@@ -1,0 +1,130 @@
+```sql
+DECLARE @cid int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+/* dbo.customer */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+/* CDC change tables for dbo.customer (if CDC enabled) */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'customer' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    IF EXISTS (SELECT 1 FROM cdc.change_tables ct
+               JOIN sys.tables t ON t.object_id = ct.source_object_id
+               JOIN sys.schemas s ON s.schema_id = t.schema_id
+               WHERE s.name = 'dbo' AND t.name = 'customer')
+    BEGIN
+        DECLARE @cdc_schema sysname, @cdc_table sysname;
+        SELECT @cdc_schema = s.name, @cdc_table = ct.capture_instance
+        FROM cdc.change_tables ct
+        JOIN sys.tables t ON t.object_id = ct.source_object_id
+        JOIN sys.schemas s ON s.schema_id = t.schema_id
+        WHERE s.name = 'dbo' AND t.name = 'customer';
+
+        DECLARE @sql nvarchar(max) = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ''cdc.'' + @tbl, COUNT(*)
+            FROM ' + QUOTENAME(@cdc_schema) + N'.' + QUOTENAME(@cdc_table) + N'
+            WHERE (customer_id = @cid
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone)';
+        EXEC sp_executesql @sql,
+            N'@tbl sysname, @cid int, @full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+            @tbl = @cdc_table, @cid = @cid, @full_name = @full_name, @email = @email, @phone = @phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found) VALUES ('cdc.dbo_customer_CT', 0);
+    END
+END
+
+/* Temporal history table for dbo.customer (if temporal) */
+IF EXISTS (SELECT 1 FROM sys.tables WHERE object_id = OBJECT_ID('dbo.customer') AND temporal_type = 2)
+BEGIN
+    DECLARE @hist_schema sysname, @hist_table sysname;
+    SELECT @hist_schema = hs.name, @hist_table = ht.name
+    FROM sys.tables t
+    JOIN sys.tables ht ON ht.object_id = t.history_table_id
+    JOIN sys.schemas hs ON hs.schema_id = ht.schema_id
+    WHERE t.object_id = OBJECT_ID('dbo.customer');
+
+    DECLARE @sql2 nvarchar(max) = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @sch + ''.'' + @tbl, COUNT(*)
+        FROM ' + QUOTENAME(@hist_schema) + N'.' + QUOTENAME(@hist_table) + N'
+        WHERE (customer_id = @cid
+           OR full_name = @full_name
+           OR email = @email
+           OR phone = @phone)';
+    EXEC sp_executesql @sql2,
+        N'@sch sysname, @tbl sysname, @cid int, @full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+        @sch = @hist_schema, @tbl = @hist_table, @cid = @cid, @full_name = @full_name, @email = @email, @phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found) VALUES ('history.dbo.customer', 0);
+END
+
+/* Scan all other user tables for the subject's personal data */
+DECLARE @tbl_name sysname, @sch_name sysname;
+DECLARE @scan_sql nvarchar(max);
+
+DECLARE tbl_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name NOT LIKE 'customer'
+      AND t.name NOT LIKE '%_CT'
+      AND t.object_id NOT IN (SELECT history_table_id FROM sys.tables WHERE history_table_id IS NOT NULL);
+
+OPEN tbl_cursor;
+FETCH NEXT FROM tbl_cursor INTO @sch_name, @tbl_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @col_list nvarchar(max) = N'';
+    SELECT @col_list = @col_list + N'OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%'' + @full_name + N''%'' '
+                     + N'OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%'' + @email + N''%'' '
+                     + N'OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%'' + @phone + N''%'' '
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@sch_name) + '.' + QUOTENAME(@tbl_name))
+      AND c.system_type_id IN (167, 231, 175, 239, 35, 99, 241, 231); /* char/varchar/nchar/nvarchar/text/ntext */
+
+    IF @col_list <> N''
+    BEGIN
+        SET @scan_sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT @sch + ''.'' + @tbl, COUNT(*)
+            FROM ' + QUOTENAME(@sch_name) + N'.' + QUOTENAME(@tbl_name) + N'
+            WHERE 1=0 ' + @col_list;
+
+        EXEC sp_executesql @scan_sql,
+            N'@sch sysname, @tbl sysname, @full_name nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+            @sch = @sch_name, @tbl = @tbl_name, @full_name = @full_name, @email = @email, @phone = @phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found) VALUES (@sch_name + '.' + @tbl_name, 0);
+    END
+
+    FETCH NEXT FROM tbl_cursor INTO @sch_name, @tbl_name;
+END
+
+CLOSE tbl_cursor;
+DEALLOCATE tbl_cursor;
+
+SELECT object_name, rows_found FROM #results;
+
+DROP TABLE #results;
+```

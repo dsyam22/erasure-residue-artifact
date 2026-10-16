@@ -1,0 +1,19 @@
+COLUMN_NAME|DATA_TYPE
+-----------|---------
+__$start_lsn|binary
+__$end_lsn|binary
+__$seqval|binary
+__$operation|int
+__$update_mask|varbinary
+customer_id|int
+full_name|nvarchar
+email|nvarchar
+phone|nvarchar
+__$command_id|int
+member_id|int
+full_name|nvarchar
+email|nvarchar
+phone|nvarchar
+valid_from|datetime2
+valid_to|datetime2
+(16 rows affected)

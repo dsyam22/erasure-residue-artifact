@@ -1,0 +1,13 @@
+column_name|type_name|max_length|is_nullable
+-----------|---------|----------|-----------
+__$start_lsn|binary|10|0
+__$end_lsn|binary|10|1
+__$seqval|binary|10|0
+__$operation|int|4|0
+__$update_mask|varbinary|128|1
+customer_id|int|4|1
+full_name|nvarchar|200|1
+email|nvarchar|400|1
+phone|nvarchar|60|1
+__$command_id|int|4|1
+(10 rows affected)

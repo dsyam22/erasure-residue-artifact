@@ -1,0 +1,15 @@
+```sql
+-- SCRIPT
+-- Checks all user-table storage identified during inspection.
+-- This verifies query-visible rows only, not physical erasure.
+-- Transaction-log inspection was denied; log records, deallocated pages,
+-- and other non-query-visible remnants cannot be verified by this script.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM [llm_i8].[dbo].[customer]
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+```

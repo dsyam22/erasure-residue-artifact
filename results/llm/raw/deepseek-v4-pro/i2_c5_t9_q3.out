@@ -1,0 +1,5 @@
+table_name|has_customer_id|has_full_name|has_email|has_phone
+----------|---------------|-------------|---------|---------
+customer|1|1|1|1
+customer_history|1|1|1|1
+(2 rows affected)

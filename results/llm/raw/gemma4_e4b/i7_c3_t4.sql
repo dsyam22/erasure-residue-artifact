@@ -1,0 +1,23 @@
+SELECT
+    CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+    COUNT(T.customer_id) AS rows_found
+FROM
+    dbo.customer T
+WHERE
+    T.customer_id = 42
+    AND T.full_name = N'Subject_0000042'
+    AND T.email = N'subject42@example.invalid'
+    AND T.phone = N'+1-555-0000042'
+
+UNION ALL
+
+SELECT
+    CAST('reporting.customer_replica' AS NVARCHAR(128)) AS object_name,
+    COUNT(T.customer_id) AS rows_found
+FROM
+    reporting.customer_replica T
+WHERE
+    T.customer_id = 42
+    AND T.full_name = N'Subject_0000042'
+    AND T.email = N'subject42@example.invalid'
+    AND T.phone = N'+1-555-0000042';

@@ -1,0 +1,25 @@
+WITH CheckResults AS (
+    -- 1. Check the current primary table (dbo.customer)
+    -- Since the 'phone' column was dropped, no rows can possibly contain this phone number in this location.
+    SELECT
+        N'dbo.customer' AS object_name,
+        0 AS rows_found
+
+    UNION ALL
+
+    -- 2. Check the CDC Change Tracking Table (cdc.dbo_customer_CT)
+    -- This table retains the history/old value of the phone number before the column drop.
+    SELECT
+        N'cdc.dbo_customer_CT' AS object_name,
+        COUNT(1) AS rows_found
+    FROM
+        cdc.dbo_customer_CT
+    WHERE
+        phone = '+1-555-0000042'
+        AND customer_id = 42
+)
+SELECT
+    object_name,
+    rows_found
+FROM
+    CheckResults;

@@ -1,0 +1,2 @@
+retention_min,activity,trial,erased_at,min_to_insert_image_gone,min_to_delete_record_gone,cleanup_runs_after_eligible_no_removal,cleanup_runs_total,change_rows_left,timed_out
+1,1,1,2026-10-10 17:39:27,2.07,2.07,1,4,0,0

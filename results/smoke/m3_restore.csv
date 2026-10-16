@@ -1,0 +1,5 @@
+trial,sequence,subject_present,is_cdc_enabled,change_table_exists,change_rows_subject,cdc_jobs,temporal_retention_enabled
+1,R1_full_default,1,0,0,0,0,0
+1,R2_full_keep_cdc,1,1,1,1,0,0
+1,R3_full_log_stopat,1,0,0,0,0,1
+1,R4_full_log_end,0,0,0,0,0,1

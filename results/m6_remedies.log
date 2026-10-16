@@ -1,0 +1,168 @@
+Changed database context to 'master'.
+Changed database context to 'm6_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m6_lab_capture' started successfully.
+Job 'cdc.m6_lab_cleanup' started successfully.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESULT,1,A_copies_instance1_10subjects,ok:20
+RESULT,1,A_copies_instance2_10subjects,ok:20
+RESULT,1,B_reader_change_table,ok:20
+RESULT,1,B_reader_cdc_function,ok:20
+RESULT,1,B_reader_history_table,ok:10
+RESULT,1,B_reader_time_travel,ok:10
+RESULT,1,B_app_source_table,ok:990
+RESULT,1,B_app_change_table,error:229
+RESULT,1,B_app_cdc_function,ok:20
+RESULT,1,B_app_history_table,error:229
+RESULT,1,B_app_time_travel,error:229
+RESULT,1,C_delete_from_change_table,ok:2
+RESULT,1,C_subject1_rows_left,ok:0
+RESULT,1,C_other9_rows_left,ok:18
+RESULT,1,C_rows_left_total,ok:1008
+RESULT,1,C_net_changes_still_readable,ok:990
+RESULT,1,C_subject1_in_other_instance,ok:2
+RESULT,1,D_delete_history_versioning_on,error:13560
+RESULT,1,D_versioning_off,ok:
+RESULT,1,D_delete_history_versioning_off,ok:1
+RESULT,1,D_versioning_on_again,ok:
+RESULT,1,D_subject1_rows_left,ok:0
+RESULT,1,D_other9_rows_left,ok:9
+RESULT,1,D_table_is_temporal_again,ok:2
+RESULT,1,D_time_travel_subject1,ok:0
+RESULT,1,E_disable_instance2,ok:
+RESULT,1,E_instance2_table_exists,ok:0
+RESULT,1,E_drop_phone_column,ok:
+RESULT,1,E_phone_values_in_old_instance,ok:1008
+RESULT,1,E_new_instance,ok:
+RESULT,1,E_new_instance_captures_phone,ok:0
+RESULT,1,E_old_instance_rows_before_disable,ok:1008
+RESULT,1,E_disable_old_instance,ok:
+RESULT,1,E_old_instance_table_exists,ok:0
+RESULT,1,E_new_instance_rows,ok:0
+Changed database context to 'master'.
+Changed database context to 'm6_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m6_lab_capture' started successfully.
+Job 'cdc.m6_lab_cleanup' started successfully.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESULT,1,A_copies_instance1_10subjects,ok:20
+RESULT,1,A_copies_instance2_10subjects,ok:20
+RESULT,1,B_reader_change_table,ok:20
+RESULT,1,B_reader_cdc_function,ok:20
+RESULT,1,B_reader_history_table,ok:10
+RESULT,1,B_reader_time_travel,ok:10
+RESULT,1,B_app_source_table,ok:990
+RESULT,1,B_app_change_table,error:229
+RESULT,1,B_app_cdc_function,ok:20
+RESULT,1,B_app_history_table,error:229
+RESULT,1,B_app_time_travel,error:229
+RESULT,1,C_delete_from_change_table,ok:2
+RESULT,1,C_subject1_rows_left,ok:0
+RESULT,1,C_other9_rows_left,ok:18
+RESULT,1,C_rows_left_total,ok:1008
+RESULT,1,C_net_changes_still_readable,ok:990
+RESULT,1,C_subject1_in_other_instance,ok:2
+RESULT,1,D_delete_history_versioning_on,error:13560
+RESULT,1,D_versioning_off,ok:
+RESULT,1,D_delete_history_versioning_off,ok:1
+RESULT,1,D_versioning_on_again,ok:
+RESULT,1,D_subject1_rows_left,ok:0
+RESULT,1,D_other9_rows_left,ok:9
+RESULT,1,D_table_is_temporal_again,ok:2
+RESULT,1,D_time_travel_subject1,ok:0
+RESULT,1,E_disable_instance2,ok:
+RESULT,1,E_instance2_table_exists,ok:0
+RESULT,1,E_drop_phone_column,ok:
+RESULT,1,E_phone_values_in_old_instance,ok:1008
+RESULT,1,E_new_instance,ok:
+RESULT,1,E_new_instance_captures_phone,ok:0
+RESULT,1,E_old_instance_rows_before_disable,ok:1008
+RESULT,1,E_disable_old_instance,ok:
+RESULT,1,E_old_instance_table_exists,ok:0
+RESULT,1,E_new_instance_rows,ok:0
+Changed database context to 'master'.
+Changed database context to 'm6_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m6_lab_capture' started successfully.
+Job 'cdc.m6_lab_cleanup' started successfully.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESULT,2,A_copies_instance1_10subjects,ok:20
+RESULT,2,A_copies_instance2_10subjects,ok:20
+RESULT,2,B_reader_change_table,ok:20
+RESULT,2,B_reader_cdc_function,ok:20
+RESULT,2,B_reader_history_table,ok:10
+RESULT,2,B_reader_time_travel,ok:10
+RESULT,2,B_app_source_table,ok:990
+RESULT,2,B_app_change_table,error:229
+RESULT,2,B_app_cdc_function,ok:20
+RESULT,2,B_app_history_table,error:229
+RESULT,2,B_app_time_travel,error:229
+RESULT,2,C_delete_from_change_table,ok:2
+RESULT,2,C_subject1_rows_left,ok:0
+RESULT,2,C_other9_rows_left,ok:18
+RESULT,2,C_rows_left_total,ok:1008
+RESULT,2,C_net_changes_still_readable,ok:990
+RESULT,2,C_subject1_in_other_instance,ok:2
+RESULT,2,D_delete_history_versioning_on,error:13560
+RESULT,2,D_versioning_off,ok:
+RESULT,2,D_delete_history_versioning_off,ok:1
+RESULT,2,D_versioning_on_again,ok:
+RESULT,2,D_subject1_rows_left,ok:0
+RESULT,2,D_other9_rows_left,ok:9
+RESULT,2,D_table_is_temporal_again,ok:2
+RESULT,2,D_time_travel_subject1,ok:0
+RESULT,2,E_disable_instance2,ok:
+RESULT,2,E_instance2_table_exists,ok:0
+RESULT,2,E_drop_phone_column,ok:
+RESULT,2,E_phone_values_in_old_instance,ok:1008
+RESULT,2,E_new_instance,ok:
+RESULT,2,E_new_instance_captures_phone,ok:0
+RESULT,2,E_old_instance_rows_before_disable,ok:1008
+RESULT,2,E_disable_old_instance,ok:
+RESULT,2,E_old_instance_table_exists,ok:0
+RESULT,2,E_new_instance_rows,ok:0
+Changed database context to 'master'.
+Changed database context to 'm6_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m6_lab_capture' started successfully.
+Job 'cdc.m6_lab_cleanup' started successfully.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESULT,3,A_copies_instance1_10subjects,ok:20
+RESULT,3,A_copies_instance2_10subjects,ok:20
+RESULT,3,B_reader_change_table,ok:20
+RESULT,3,B_reader_cdc_function,ok:20
+RESULT,3,B_reader_history_table,ok:10
+RESULT,3,B_reader_time_travel,ok:10
+RESULT,3,B_app_source_table,ok:990
+RESULT,3,B_app_change_table,error:229
+RESULT,3,B_app_cdc_function,ok:20
+RESULT,3,B_app_history_table,error:229
+RESULT,3,B_app_time_travel,error:229
+RESULT,3,C_delete_from_change_table,ok:2
+RESULT,3,C_subject1_rows_left,ok:0
+RESULT,3,C_other9_rows_left,ok:18
+RESULT,3,C_rows_left_total,ok:1008
+RESULT,3,C_net_changes_still_readable,ok:990
+RESULT,3,C_subject1_in_other_instance,ok:2
+RESULT,3,D_delete_history_versioning_on,error:13560
+RESULT,3,D_versioning_off,ok:
+RESULT,3,D_delete_history_versioning_off,ok:1
+RESULT,3,D_versioning_on_again,ok:
+RESULT,3,D_subject1_rows_left,ok:0
+RESULT,3,D_other9_rows_left,ok:9
+RESULT,3,D_table_is_temporal_again,ok:2
+RESULT,3,D_time_travel_subject1,ok:0
+RESULT,3,E_disable_instance2,ok:
+RESULT,3,E_instance2_table_exists,ok:0
+RESULT,3,E_drop_phone_column,ok:
+RESULT,3,E_phone_values_in_old_instance,ok:1008
+RESULT,3,E_new_instance,ok:
+RESULT,3,E_new_instance_captures_phone,ok:0
+RESULT,3,E_old_instance_rows_before_disable,ok:1008
+RESULT,3,E_disable_old_instance,ok:
+RESULT,3,E_old_instance_table_exists,ok:0
+RESULT,3,E_new_instance_rows,ok:0

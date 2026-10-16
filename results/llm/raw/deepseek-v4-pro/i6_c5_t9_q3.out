@@ -1,0 +1,5 @@
+name|type_desc
+----|---------
+fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+(2 rows affected)

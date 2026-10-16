@@ -1,0 +1,31 @@
+/* Read-only verification: does the erased subject's original personal data still exist anywhere? */
+DECLARE @cid   int           = 42;
+DECLARE @name  nvarchar(400) = N'Subject_0000042';
+DECLARE @email nvarchar(400) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(400) = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#checked') IS NOT NULL DROP TABLE #checked;
+CREATE TABLE #checked (object_name sysname, rows_found bigint);
+
+/* dbo.customer */
+INSERT INTO #checked (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name   = @name
+   OR email       = @email
+   OR phone       = @phone;
+
+/* dbo.customer - per-column checks reported under the same object row */
+UPDATE #checked
+SET rows_found = rows_found
+             + (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = @cid)
+             + (SELECT COUNT(*) FROM dbo.customer WHERE full_name   = @name)
+             + (SELECT COUNT(*) FROM dbo.customer WHERE email       = @email)
+             + (SELECT COUNT(*) FROM dbo.customer WHERE phone       = @phone)
+WHERE object_name = 'dbo.customer';
+
+SELECT object_name, rows_found
+FROM #checked
+ORDER BY object_name;

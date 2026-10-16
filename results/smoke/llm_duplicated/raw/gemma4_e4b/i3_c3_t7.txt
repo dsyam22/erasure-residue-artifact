@@ -1,0 +1,57 @@
+```sql
+WITH CheckResults AS (
+    -- 1. dbo.customer (Primary Table)
+    SELECT
+        'dbo.customer' AS object_name,
+        (
+            SELECT COUNT(1)
+            FROM dbo.customer c
+            WHERE c.customer_id = 42
+               AND (c.full_name = 'Subject_0000042' OR c.email = 'subject42@example.invalid' OR c.phone = '+1-555-0000042')
+        ) AS rows_found
+
+    UNION ALL
+
+    -- 2. dbo.member (Primary Table)
+    SELECT
+        'dbo.member' AS object_name,
+        (
+            SELECT COUNT(1)
+            FROM dbo.member m
+            WHERE m.member_id = 42
+               AND (m.full_name = 'Subject_0000042' OR m.email = 'subject42@example.invalid' OR m.phone = '+1-555-0000042')
+        ) AS rows_found
+
+    UNION ALL
+
+    -- 3. cdc.dbo_customer_CT (Change Tracking Table - Customer)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        (
+            SELECT COUNT(1)
+            FROM cdc.dbo_customer_CT ct
+            WHERE ct.[customer_id] = 42
+               AND (ct.full_name = 'Subject_0000042' OR ct.email = 'subject42@example.invalid' OR ct.phone = '+1-555-0000042')
+        ) AS rows_found
+
+    UNION ALL
+
+    -- 4. dbo.member_history (Temporal History Table - Member)
+    SELECT
+        'dbo.member_history' AS object_name,
+        (
+            SELECT COUNT(1)
+            FROM dbo.member_history mhist
+            WHERE mhist.[member_id] = 42
+               AND (mhist.full_name = 'Subject_0000042' OR mhist.email = 'subject42@example.invalid' OR mhist.phone = '+1-555-0000042')
+        ) AS rows_found
+
+    UNION ALL
+
+    -- 5. dbo.customer (Placeholder for other potential data copies/tables not explicitly mentioned, but ensuring coverage of the original definition scope if required by the system.)
+    -- Since only cdc and history tables were specified as retention points, we skip this general check unless instructed otherwise.
+    -- If a generic 'data_copies' table existed containing PII, it would be included here. For adherence to listed objects, we stop at 4 checks.
+
+)
+SELECT * FROM CheckResults;
+```

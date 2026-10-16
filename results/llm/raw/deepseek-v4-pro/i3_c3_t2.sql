@@ -1,0 +1,59 @@
+WITH subject_data AS (
+    SELECT 
+        42 AS customer_id,
+        N'Subject_0000042' AS full_name,
+        N'subject42@example.invalid' AS email,
+        N'+1-555-0000042' AS phone
+)
+SELECT 
+    object_name,
+    SUM(rows_found) AS rows_found
+FROM (
+    SELECT 
+        N'dbo.customer' AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.customer c
+    CROSS JOIN subject_data s
+    WHERE c.customer_id = s.customer_id
+       OR c.full_name = s.full_name
+       OR c.email = s.email
+       OR c.phone = s.phone
+
+    UNION ALL
+
+    SELECT 
+        N'dbo.member' AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.member m
+    CROSS JOIN subject_data s
+    WHERE m.member_id = s.customer_id
+       OR m.full_name = s.full_name
+       OR m.email = s.email
+       OR m.phone = s.phone
+
+    UNION ALL
+
+    SELECT 
+        N'dbo.member_history' AS object_name,
+        COUNT(*) AS rows_found
+    FROM dbo.member_history mh
+    CROSS JOIN subject_data s
+    WHERE mh.member_id = s.customer_id
+       OR mh.full_name = s.full_name
+       OR mh.email = s.email
+       OR mh.phone = s.phone
+
+    UNION ALL
+
+    SELECT 
+        N'cdc.dbo_customer_CT' AS object_name,
+        COUNT(*) AS rows_found
+    FROM cdc.dbo_customer_CT ct
+    CROSS JOIN subject_data s
+    WHERE ct.customer_id = s.customer_id
+       OR ct.full_name = s.full_name
+       OR ct.email = s.email
+       OR ct.phone = s.phone
+) AS checks
+GROUP BY object_name
+ORDER BY object_name;

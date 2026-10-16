@@ -1,0 +1,2 @@
+Msg 6829, Level 16, State 1, Server 651334c31df8, Line 1
+FOR XML EXPLICIT and RAW modes currently do not support addressing binary data as URLs in column '___x0024_start_lsn'. Remove the column, or use the BINARY BASE64 mode, or create the URL directly using the 'dbobject/TABLE[@PK1="V1"]/@COLUMN' syntax.

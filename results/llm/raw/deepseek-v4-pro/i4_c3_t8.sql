@@ -1,0 +1,55 @@
+DECLARE @customer_id int = 42;
+DECLARE @member_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255),
+    rows_found int
+);
+
+-- dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- dbo.member
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = @member_id
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- dbo.member_history
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member_history', COUNT(*)
+FROM dbo.member_history
+WHERE member_id = @member_id
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- CDC change table cdc.dbo_customer_CT
+IF EXISTS (SELECT 1 FROM sys.tables t 
+           JOIN sys.schemas s ON t.schema_id = s.schema_id 
+           WHERE s.name = N'cdc' AND t.name = N'dbo_customer_CT')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+      AND (full_name = @full_name OR email = @email OR phone = @phone);
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

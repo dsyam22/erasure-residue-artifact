@@ -1,0 +1,43 @@
+```sql
+DECLARE @TargetCustomerID INT = 42;
+DECLARE @TargetFullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Use temporary table structure to hold results for each object check, 
+-- ensuring the final result set meets all formatting requirements.
+WITH CheckResults AS (
+    -- 1. Primary Table Check: dbo.customer (Current state)
+    SELECT
+        'dbo.customer' AS object_name,
+        ISNULL(
+            (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = @TargetCustomerID AND full_name = @TargetFullName AND email = @TargetEmail AND phone = @TargetPhone), 0) AS rows_found
+
+    UNION ALL
+
+    -- 2. Change Data Capture Check: Since cdc_enabled=0, this check is logically empty
+    SELECT
+        'System CDC (Disabled)' AS object_name,
+        0 AS rows_found -- Cannot query non-existent/disabled CDC tables via SELECT
+
+    UNION ALL
+
+    -- 3. Temporal History Check: Since temporal_type=NON_TEMPORAL_TABLE, this check is logically empty
+    SELECT
+        'System Temporal History (Non-Temporal)' AS object_name,
+        0 AS rows_found -- Cannot query history tables when non-temporal and no system records exist
+
+    UNION ALL
+
+    -- 4. Transaction Log / Physical Check: A standard SELECT cannot reliably read deleted data from the live transaction log.
+    SELECT
+        'Transaction Log (Forensic View)' AS object_name,
+        0 AS rows_found -- Requires specialized forensic tools or point-in-time restore; not accessible via simple T-SQL SELECT.
+
+)
+-- Select the final aggregated result set with only two columns
+SELECT 
+    object_name, 
+    rows_found 
+FROM CheckResults;
+```

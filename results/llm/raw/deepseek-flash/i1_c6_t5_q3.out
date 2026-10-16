@@ -1,0 +1,16 @@
+schema_name|object_name|column_name
+-----------|-----------|-----------
+cdc|captured_columns|column_name
+cdc|change_tables|role_name
+cdc|change_tables|index_name
+cdc|change_tables|filegroup_name
+cdc|dbo_customer_CT|customer_id
+cdc|dbo_customer_CT|full_name
+cdc|dbo_customer_CT|email
+cdc|dbo_customer_CT|phone
+cdc|index_columns|column_name
+dbo|customer|customer_id
+dbo|customer|full_name
+dbo|customer|email
+dbo|customer|phone
+(13 rows affected)

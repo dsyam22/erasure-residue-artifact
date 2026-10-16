@@ -1,0 +1,72 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @quote nchar(1) = NCHAR(39);
+
+DECLARE @id nvarchar(50) = N'42';
+DECLARE @full_name nvarchar(128) = N'Subject_0000042';
+DECLARE @email nvarchar(128) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(128) = N'+1-555-0000042';
+
+DECLARE @id_lit nvarchar(100) = N'N' + QUOTENAME(@id, @quote);
+DECLARE @full_name_lit nvarchar(200) = N'N' + QUOTENAME(@full_name, @quote);
+DECLARE @email_lit nvarchar(200) = N'N' + QUOTENAME(@email, @quote);
+DECLARE @phone_lit nvarchar(200) = N'N' + QUOTENAME(@phone, @quote);
+
+DECLARE @sql nvarchar(max);
+
+SET @sql = (
+    SELECT STRING_AGG(
+        CAST(
+            N'SELECT N' + QUOTENAME(s.name + N'.' + t.name, @quote) +
+            N' AS object_name, COUNT(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + ISNULL(p.check_sql, N'1=0')
+        AS nvarchar(max)),
+        N' UNION ALL '
+    )
+    FROM sys.tables t
+    JOIN sys.schemas s
+        ON t.schema_id = s.schema_id
+    CROSS APPLY (
+        SELECT STRING_AGG(
+            CAST(
+                CASE
+                    WHEN ty.name IN (N'tinyint', N'smallint', N'int', N'bigint',
+                                     N'decimal', N'numeric', N'money', N'smallmoney',
+                                     N'float', N'real')
+                        THEN QUOTENAME(c.name) + N' = ' + @id
+                    WHEN ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar',
+                                     N'text', N'ntext')
+                        THEN N'LTRIM(RTRIM(CAST(' + QUOTENAME(c.name) +
+                             N' AS nvarchar(max)))) IN (' +
+                             @full_name_lit + N', ' + @email_lit + N', ' +
+                             @phone_lit + N', ' + @id_lit + N')'
+                    ELSE NULL
+                END
+            AS nvarchar(max)),
+            N' OR '
+        ) AS check_sql
+        FROM sys.columns c
+        JOIN sys.types ty
+            ON ty.user_type_id = c.system_type_id
+           AND ty.user_type_id = ty.system_type_id
+        WHERE c.object_id = t.object_id
+          AND c.is_hidden = 0
+          AND ty.name IN (
+              N'tinyint', N'smallint', N'int', N'bigint', N'decimal', N'numeric',
+              N'money', N'smallmoney', N'float', N'real',
+              N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext'
+          )
+    ) p
+    WHERE t.is_ms_shipped = 0
+      AND t.type = N'U'
+);
+
+IF @sql IS NOT NULL AND @sql <> N''
+    EXEC sys.sp_executesql @sql;
+ELSE
+    SELECT CAST(NULL AS nvarchar(257)) AS object_name,
+           CAST(0 AS int) AS rows_found
+    WHERE 1 = 0;
+```

@@ -1,0 +1,40 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+reporting|customer_replica|customer_id|int|4|0
+reporting|customer_replica|full_name|nvarchar|200|0
+reporting|customer_replica|email|nvarchar|400|0
+reporting|customer_replica|phone|nvarchar|60|1
+(8 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+reporting|customer_replica|USER_TABLE
+(2 rows affected)
+schema_name|table_name|index_name|type_desc|is_unique|is_primary_key|has_filter|filter_definition
+-----------|----------|----------|---------|---------|--------------|----------|-----------------
+dbo|customer|PK__customer__CD65CB85B4A586A4|CLUSTERED|1|1|0|NULL
+reporting|customer_replica|PK__customer__CD65CB85FE77D161|CLUSTERED|1|1|0|NULL
+(2 rows affected)
+schema_name|table_name|total_rows
+-----------|----------|----------
+dbo|customer|99
+reporting|customer_replica|100
+(2 rows affected)
+schema_name|object_name|referenced_schema_name|referenced_entity_name
+-----------|-----------|----------------------|----------------------
+(0 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|email|nvarchar
+dbo|customer|full_name|nvarchar
+dbo|customer|phone|nvarchar
+reporting|customer_replica|customer_id|int
+reporting|customer_replica|email|nvarchar
+reporting|customer_replica|full_name|nvarchar
+reporting|customer_replica|phone|nvarchar
+(8 rows affected)

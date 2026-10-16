@@ -1,0 +1,20 @@
+Changed database context to 'erasure_lab'.
+--- Check timestamp (UTC) ---
+checked_at_utc
+--------------
+2026-10-10 15:39:38.0225575
+--- Retention configuration ---
+name history_retention_period history_retention_period_unit_desc
+---- ------------------------ ----------------------------------
+member 1 DAY
+--- Subject 42: direct read of the history table ---
+member_id full_name email phone valid_from valid_to
+--------- --------- ----- ----- ---------- --------
+42 Subject_000042 subject42@example.invalid +1-555-0042 2026-10-08 01:53:33.3011243 2026-10-08 01:53:33.3780013
+--- Subject 42: time-travel query on the source table ---
+member_id full_name email phone valid_from valid_to
+--------- --------- ----- ----- ---------- --------
+--- Total history rows ---
+history_rows
+------------
+1

@@ -1,0 +1,13 @@
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|captured_columns|USER_TABLE
+cdc|change_tables|USER_TABLE
+cdc|dbo_customer_CT|USER_TABLE
+cdc|ddl_history|USER_TABLE
+cdc|index_columns|USER_TABLE
+cdc|lsn_time_mapping|USER_TABLE
+dbo|customer|USER_TABLE
+dbo|member|USER_TABLE
+dbo|member_history|USER_TABLE
+dbo|systranschemas|USER_TABLE
+(10 rows affected)

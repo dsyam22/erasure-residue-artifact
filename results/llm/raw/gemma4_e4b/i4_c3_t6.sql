@@ -1,0 +1,85 @@
+WITH OriginalData AS (
+    -- Define the specific personal identifiers we are searching for
+    SELECT 
+        CAST(42 AS INT) AS CustomerID,
+        N'Subject_0000042' AS OriginalFullName,
+        N'subject42@example.invalid' AS OriginalEmail,
+        N'+1-555-0000042' AS OriginalPhone
+),
+
+-- 1. Check the main customer table (dbo.customer)
+CustomerCheck AS (
+    SELECT 
+        COUNT(T1.*) AS FoundCount
+    FROM dbo.customer T1
+    INNER JOIN OriginalData OD ON 1=1 -- Use cross join to check all combinations against original data
+    WHERE T1.customer_id = OD.CustomerID
+      AND (
+          T1.full_name = OD.OriginalFullName OR T1.full_name IS NULL AND OD.OriginalFullName IS NOT NULL) -- Check for exact match or if anonymization was incomplete/missed
+      AND (
+          T1.email = OD.OriginalEmail OR T1.email IS NULL AND OD.OriginalEmail IS NOT NULL)
+      AND (
+          ISNULL(T1.phone, '') = OD.OriginalPhone OR T1.phone IS NULL AND OD.OriginalPhone IS NOT NULL)
+),
+
+-- 2. Check the CDC change tracking table (cdc.dbo_customer_CT)
+CDCCheck AS (
+    SELECT 
+        COUNT(T1.*) AS FoundCount
+    FROM cdc.dbo_customer_CT T1
+    INNER JOIN OriginalData OD ON 1=1
+    WHERE T1.customer_id = CAST(OD.CustomerID AS INT)
+      AND (
+          ISNULL(T1.full_name, '') = OD.OriginalFullName OR T1.full_name IS NULL AND OD.OriginalFullName IS NOT NULL)
+      AND (
+          ISNULL(T1.email, '') = OD.OriginalEmail OR T1.email IS NULL AND OD.OriginalEmail IS NOT NULL)
+      AND (
+          ISNULL(T1.phone, '') = OD.OriginalPhone OR T1.phone IS NULL AND OD.OriginalPhone IS NOT NULL)
+),
+
+-- 3. Check the main member table (dbo.member) - Current state check
+MemberCurrentCheck AS (
+    SELECT 
+        COUNT(T1.*) AS FoundCount
+    FROM dbo.member T1
+    INNER JOIN OriginalData OD ON 1=1
+    WHERE T1.member_id = CAST((SELECT customer_id FROM dbo.customer WHERE customer_id = 42) AS INT) -- Assuming member_id correlates to customer_id for the subject
+      AND (
+          T1.full_name = OD.OriginalFullName OR T1.full_name IS NULL AND OD.OriginalFullName IS NOT NULL)
+      AND (
+          T1.email = OD.OriginalEmail OR T1.email IS NULL AND OD.OriginalEmail IS NOT NULL)
+      AND (
+          ISNULL(T1.phone, '') = OD.OriginalPhone OR T1.phone IS NULL AND OD.OriginalPhone IS NOT NULL)
+),
+
+-- 4. Check the member history table (dbo.member_history)
+MemberHistoryCheck AS (
+    SELECT 
+        COUNT(T1.*) AS FoundCount
+    FROM dbo.member_history T1
+    INNER JOIN OriginalData OD ON 1=1
+    WHERE T1.member_id = CAST((SELECT customer_id FROM dbo.customer WHERE customer_id = 42) AS INT) -- Subject's ID in history table
+      AND (
+          T1.full_name = OD.OriginalFullName OR T1.full_name IS NULL AND OD.OriginalFullName IS NOT NULL)
+      AND (
+          T1.email = OD.OriginalEmail OR T1.email IS NULL AND OD.OriginalEmail IS NOT NULL)
+      AND (
+          ISNULL(T1.phone, '') = OD.OriginalPhone OR T1.phone IS NULL AND OD.OriginalPhone IS NOT NULL)
+)
+
+-- Final result set aggregation
+SELECT 
+    'dbo.customer' AS object_name,
+    ISNULL(CC.FoundCount, 0) AS rows_found
+UNION ALL
+SELECT 
+    'cdc.dbo_customer_CT' AS object_name,
+    ISNULL(CDC.FoundCount, 0) AS rows_found
+UNION ALL
+SELECT 
+    'dbo.member' AS object_name,
+    ISNULL(MCC.FoundCount, 0) AS rows_found
+UNION ALL
+SELECT 
+    'dbo.member_history' AS object_name,
+    ISNULL(MHC.FoundCount, 0) AS rows_found;

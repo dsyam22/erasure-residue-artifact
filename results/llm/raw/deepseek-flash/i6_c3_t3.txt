@@ -1,0 +1,82 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @subject_phone nvarchar(100) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found int);
+
+/* Original table (phone column already dropped) */
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.customer') AND name = 'phone')
+BEGIN
+    INSERT INTO #results
+    EXEC sp_executesql N'
+        SELECT ''dbo.customer'', COUNT(*)
+        FROM dbo.customer
+        WHERE phone = @p',
+        N'@p nvarchar(100)', @p = @subject_phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results VALUES ('dbo.customer', 0);
+END
+
+/* CDC change table */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('cdc.dbo_customer_CT') AND name = 'phone')
+    BEGIN
+        INSERT INTO #results
+        EXEC sp_executesql N'
+            SELECT ''cdc.dbo_customer_CT'', COUNT(*)
+            FROM cdc.dbo_customer_CT
+            WHERE phone = @p',
+            N'@p nvarchar(100)', @p = @subject_phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results VALUES ('cdc.dbo_customer_CT', 0);
+    END
+END
+
+/* Scan all other tables/views in the database for any column that may hold the phone value */
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, c.name
+    FROM sys.columns c
+    JOIN sys.objects t ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.type IN ('U','V')
+      AND t.is_ms_shipped = 0
+      AND c.system_type_id IN (231, 239, 167, 175) /* nvarchar, nchar, varchar, char */
+      AND NOT (s.name = 'dbo' AND t.name = 'customer')
+      AND NOT (s.name = 'cdc' AND t.name = 'dbo_customer_CT');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results
+        SELECT @obj, COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + QUOTENAME(@column) + N' = @p';
+
+    EXEC sp_executesql @sql,
+        N'@obj sysname, @p nvarchar(100)',
+        @obj = @schema + N'.' + @table,
+        @p = @subject_phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+/* Aggregate per object */
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM #results
+GROUP BY object_name
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

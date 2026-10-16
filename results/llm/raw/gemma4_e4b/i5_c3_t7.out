@@ -1,0 +1,4 @@
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 22
+The multi-part identifier "T1.count_current" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 28
+The multi-part identifier "T2.count_history" could not be bound.

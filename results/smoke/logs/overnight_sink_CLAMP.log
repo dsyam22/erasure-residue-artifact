@@ -1,0 +1,12 @@
+=== 2026-10-10T17:39:02Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Msg 22832, Level 16, State 1, Server 651334c31df8, Procedure sys.sp_cdc_enable_table_internal, Line 733
+Could not update the metadata that indicates table [dbo].[subscriber] is enabled for Change Data Capture. The failure occurred when executing the command '[sys].[sp_cdc_add_job] @job_type = N'cleanup''. The error returned was 22836: 'Could not update the metadata for database m_s_CLAMP to indicate that a Change Data Capture job has been added. The failure occurred when executing the command 'msdb.dbo.sp_add_job'. The error returned was 1205: 'Transaction (Process ID 69) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.'. Use the action and error to determine the cause of the failure and resubmit the request.'. Use the action and error to determine the cause of the failure and resubmit the request.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 2
+Invalid object name 'cdc.dbo_subscriber_CT'.
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 10
+Invalid object name 'cdc.dbo_subscriber_CT'.
+RESULT,CLAMP,1,0,,,,,,,0,

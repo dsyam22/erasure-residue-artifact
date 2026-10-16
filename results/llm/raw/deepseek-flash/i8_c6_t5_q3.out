@@ -1,0 +1,4 @@
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+(1 rows affected)

@@ -1,0 +1,14 @@
+-- SCRIPT
+-- Checks the only discovered user table.
+-- Zero means no matching live rows, not verified physical erasure.
+-- Transaction logs and Query Store could not be inspected due to denied
+-- permissions. Deleted page contents, version stores and backups are
+-- also outside this check; complete database-wide erasure is unverified.
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR CHARINDEX(N'Subject_' + N'0000042', full_name) > 0
+   OR CHARINDEX(N'subject42' + N'@example.invalid', email) > 0
+   OR CHARINDEX(N'+1-555-' + N'0000042', phone) > 0;

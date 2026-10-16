@@ -1,0 +1,6 @@
+schema_name|table_name|column_name|type_name
+-----------|----------|-----------|---------
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+(3 rows affected)

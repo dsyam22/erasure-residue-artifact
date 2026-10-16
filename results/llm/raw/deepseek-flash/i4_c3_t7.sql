@@ -1,0 +1,39 @@
+SET NOCOUNT ON;
+
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+-- dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- dbo.member (current)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- dbo.member_history (temporal history)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.member_history', COUNT(*)
+FROM dbo.member_history
+WHERE member_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+-- cdc.dbo_customer_CT (CDC change table)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+SELECT object_name, rows_found FROM #results;
+
+DROP TABLE #results;

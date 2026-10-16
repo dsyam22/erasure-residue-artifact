@@ -1,0 +1,38 @@
+database_name|server_version|checked_at_utc
+-------------|--------------|--------------
+llm_i2|Microsoft SQL Server 2022 (RTM-CU27) (KB5104824) - 16.0.4295.3 (X64)
+	Aug 26 2026 11:02:22
+	Copyright (C) 2022 Microsoft Corporation
+	Developer Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>|2026-10-15 23:41:07.8161083
+schema_name|table_name|temporal_type_desc|history_table_id|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|approx_rows
+-----------|----------|------------------|----------------|--------------|-------------|-----------------|-------------------|-----------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|dbo|customer_history|0|0|99
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|NULL|0|0|1
+schema_name|object_name|type_desc|column_name|data_type|max_length
+-----------|-----------|---------|-----------|---------|----------
+dbo|customer|USER_TABLE|customer_id|int|4
+dbo|customer|USER_TABLE|full_name|nvarchar|200
+dbo|customer|USER_TABLE|email|nvarchar|400
+dbo|customer|USER_TABLE|phone|nvarchar|60
+dbo|customer_history|USER_TABLE|customer_id|int|4
+dbo|customer_history|USER_TABLE|full_name|nvarchar|200
+dbo|customer_history|USER_TABLE|email|nvarchar|400
+dbo|customer_history|USER_TABLE|phone|nvarchar|60
+schema_name|object_name|column_name|data_type
+-----------|-----------|-----------|---------
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|customer_history|full_name|nvarchar
+dbo|customer_history|email|nvarchar
+dbo|customer_history|phone|nvarchar
+schema_name|object_name|type_desc
+-----------|-----------|---------
+fk_name|child_table|parent_table
+-------|-----------|------------
+schema_name|table_name|is_enabled|change_tracking_state_desc
+-----------|----------|----------|--------------------------
+schema_name|table_name|is_track_columns_updated_on
+-----------|----------|---------------------------
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 90
+Invalid object name 'cdc.change_tables'.

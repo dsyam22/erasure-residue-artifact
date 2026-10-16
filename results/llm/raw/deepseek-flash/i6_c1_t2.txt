@@ -1,0 +1,66 @@
+```sql
+/* ============================================================
+   Erasure verification (read-only)
+   Subject: customer_id 42, full_name 'Subject_0000042',
+            email 'subject42@example.invalid', phone '+1-555-0000042'
+   Scope  : phone number only ('+1-555-0000042')
+   Name and email are legitimately retained.
+   ============================================================ */
+
+SET NOCOUNT ON;
+
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+DECLARE @phone_digits nvarchar(4000) = N'15550000042';
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results;
+CREATE TABLE #results (object_name sysname NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @obj sysname, @sql nvarchar(max);
+
+DECLARE obj_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN obj_cursor;
+FETCH NEXT FROM obj_cursor INTO @obj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'';
+
+    SELECT @sql = @sql
+        + N'SELECT N''' + REPLACE(@obj, N'''', N'''''') + N''' AS object_name,'
+        + N'COUNT_BIG(*) AS rows_found FROM ' + @obj
+        + N' WHERE ' + QUOTENAME(c.name)
+        + N' COLLATE Latin1_General_100_BIN2 LIKE N''%' + REPLACE(@phone, N'''', N'''''') + N'%'''
+        + N' OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE('
+        + N'CONVERT(nvarchar(max), ' + QUOTENAME(c.name) + N'),'
+        + N'N''-'', N''''), N'' '', N''''), N''('', N''''), N'')'', N''''),'
+        + N'N''+'', N''''), N''.'', N'''')'
+        + N' LIKE N''%' + REPLACE(@phone_digits, N'''', N'''''') + N'%'''
+        + N' UNION ALL '
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = OBJECT_ID(@obj)
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar',
+                          N'text', N'ntext', N'sysname');
+
+    IF @sql <> N''
+    BEGIN
+        SET @sql = LEFT(@sql, LEN(@sql) - LEN(N' UNION ALL '));
+        INSERT INTO #results (object_name, rows_found) EXEC sp_executesql @sql;
+    END
+
+    FETCH NEXT FROM obj_cursor INTO @obj;
+END
+
+CLOSE obj_cursor;
+DEALLOCATE obj_cursor;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

@@ -1,0 +1,5 @@
+scale,replica_identity,method,trial,seed,src_rows_readable,insert_records_readable,erase_records,erase_records_readable,subjects_readable,wal_held_bytes,max_slot_wal_keep_size,changes_consumed,readable_after_consume
+1000,default,DELETE,1,1001,0,100,100,0,100,213296,-1,1108,0
+1000,default,UPDATE,1,1001,0,100,100,0,100,228856,-1,1108,0
+1000,full,DELETE,1,1001,0,100,100,100,100,219712,-1,1108,0
+1000,full,UPDATE,1,1001,0,100,100,100,100,236104,-1,1108,0

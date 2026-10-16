@@ -1,0 +1,30 @@
+database_name
+-------------
+llm_i7
+(1 rows affected)
+schema_name|table_name|type_desc|create_date|modify_date|row_count
+-----------|----------|---------|-----------|-----------|---------
+dbo|customer|USER_TABLE|2026-10-10 19:08:27.180|2026-10-10 19:08:27.180|99
+reporting|customer_replica|USER_TABLE|2026-10-10 19:08:27.223|2026-10-10 19:08:27.223|100
+(2 rows affected)
+schema_name|table_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed
+-----------|----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------
+dbo|customer|1|customer_id|int|4|10|0|0|0|0
+dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0
+dbo|customer|3|email|nvarchar|400|0|0|0|0|0
+dbo|customer|4|phone|nvarchar|60|0|0|1|0|0
+reporting|customer_replica|1|customer_id|int|4|10|0|0|0|0
+reporting|customer_replica|2|full_name|nvarchar|200|0|0|0|0|0
+reporting|customer_replica|3|email|nvarchar|400|0|0|0|0|0
+reporting|customer_replica|4|phone|nvarchar|60|0|0|1|0|0
+(8 rows affected)
+foreign_key_name|parent_schema|parent_table|referenced_schema|referenced_table|constraint_column_id|parent_column|referenced_column
+----------------|-------------|------------|-----------------|----------------|--------------------|-------------|-----------------
+(0 rows affected)
+table_name|customer_id|full_name|email|phone
+----------|-----------|---------|-----|-----
+(0 rows affected)
+table_name|customer_id|full_name|email|phone
+----------|-----------|---------|-----|-----
+reporting.customer_replica|42|Subject_0000042|subject42@example.invalid|+1-555-0000042
+(1 rows affected)

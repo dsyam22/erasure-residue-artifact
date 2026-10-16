@@ -1,0 +1,139 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found bigint NOT NULL
+);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check dbo.customer_history (temporal history table)
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check system-versioned temporal current/history via FOR SYSTEM_TIME ALL
+-- This covers both current and history rows in one query.
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer (FOR SYSTEM_TIME ALL)', COUNT(*)
+FROM dbo.customer FOR SYSTEM_TIME ALL
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check CDC change tables if they exist
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'customer_CT' AND is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_sql nvarchar(max) = N'
+        SELECT N''cdc.dbo_customer_CT'', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = @customer_id
+           OR full_name = @full_name
+           OR email = @email
+           OR phone = @phone';
+    INSERT INTO #results (object_name, rows_found)
+    EXEC sp_executesql @cdc_sql,
+         N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+         @customer_id, @full_name, @email, @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END
+
+-- Check any other tables that might contain copies of this personal data.
+-- We will search all user tables for columns named full_name, email, phone.
+DECLARE @table_schema nvarchar(128);
+DECLARE @table_name nvarchar(128);
+DECLARE @full_name_col nvarchar(128);
+DECLARE @email_col nvarchar(128);
+DECLARE @phone_col nvarchar(128);
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name AS schema_name, t.name AS table_name,
+       c_full.name AS full_name_col,
+       c_email.name AS email_col,
+       c_phone.name AS phone_col
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+LEFT JOIN sys.columns c_full ON c_full.object_id = t.object_id AND c_full.name = 'full_name'
+LEFT JOIN sys.columns c_email ON c_email.object_id = t.object_id AND c_email.name = 'email'
+LEFT JOIN sys.columns c_phone ON c_phone.object_id = t.object_id AND c_phone.name = 'phone'
+WHERE (c_full.name IS NOT NULL OR c_email.name IS NOT NULL OR c_phone.name IS NOT NULL)
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')
+  AND NOT (s.name = 'dbo' AND t.name = 'customer_history')
+  AND t.temporal_type <> 1; -- exclude system-versioned history tables (they are handled separately)
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_schema, @table_name, @full_name_col, @email_col, @phone_col;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @where_clause nvarchar(max) = N'';
+    IF @full_name_col IS NOT NULL
+        SET @where_clause = @where_clause + N' OR ' + QUOTENAME(@full_name_col) + N' = @full_name';
+    IF @email_col IS NOT NULL
+        SET @where_clause = @where_clause + N' OR ' + QUOTENAME(@email_col) + N' = @email';
+    IF @phone_col IS NOT NULL
+        SET @where_clause = @where_clause + N' OR ' + QUOTENAME(@phone_col) + N' = @phone';
+
+    -- Remove leading ' OR '
+    IF LEN(@where_clause) > 0
+        SET @where_clause = STUFF(@where_clause, 1, 4, N'');
+
+    DECLARE @sql nvarchar(max) = N'
+        SELECT @obj_name, COUNT(*)
+        FROM ' + QUOTENAME(@table_schema) + N'.' + QUOTENAME(@table_name) + N'
+        WHERE ' + @where_clause;
+
+    DECLARE @obj_name nvarchar(255) = @table_schema + N'.' + @table_name;
+    DECLARE @cnt bigint;
+
+    EXEC sp_executesql @sql,
+         N'@obj_name nvarchar(255), @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+         @obj_name, @full_name, @email, @phone;
+
+    -- sp_executesql cannot directly return scalar into variable for COUNT with output parameter in this manner,
+    -- so we use a different approach: insert into #results directly.
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj_name, COUNT(*)
+        FROM ' + QUOTENAME(@table_schema) + N'.' + QUOTENAME(@table_name) + N'
+        WHERE ' + @where_clause;
+
+    EXEC sp_executesql @sql,
+         N'@obj_name nvarchar(255), @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+         @obj_name, @full_name, @email, @phone;
+
+    FETCH NEXT FROM table_cursor INTO @table_schema, @table_name, @full_name_col, @email_col, @phone_col;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

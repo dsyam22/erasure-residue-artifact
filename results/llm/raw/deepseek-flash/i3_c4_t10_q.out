@@ -1,0 +1,13 @@
+schema_name|table_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+dbo|customer|4|phone|nvarchar|60|1
+dbo|member|1|member_id|int|4|0
+dbo|member|2|full_name|nvarchar|200|0
+dbo|member|3|email|nvarchar|400|0
+dbo|member|4|phone|nvarchar|60|1
+dbo|member|5|valid_from|datetime2|8|0
+dbo|member|6|valid_to|datetime2|8|0
+(10 rows affected)

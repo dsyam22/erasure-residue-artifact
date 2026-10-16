@@ -1,0 +1,45 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE|CHARACTER_MAXIMUM_LENGTH
+------------|----------|-----------|---------|------------------------
+dbo|customer|full_name|nvarchar|100
+dbo|customer|email|nvarchar|200
+dbo|customer|phone|nvarchar|30
+dbo|member|full_name|nvarchar|100
+dbo|member|email|nvarchar|200
+dbo|member|phone|nvarchar|30
+dbo|member_history|full_name|nvarchar|100
+dbo|member_history|email|nvarchar|200
+dbo|member_history|phone|nvarchar|30
+cdc|change_tables|role_name|nvarchar|128
+cdc|change_tables|index_name|nvarchar|128
+cdc|change_tables|filegroup_name|nvarchar|128
+cdc|captured_columns|column_name|nvarchar|128
+cdc|index_columns|column_name|nvarchar|128
+cdc|dbo_customer_CT|full_name|nvarchar|100
+cdc|dbo_customer_CT|email|nvarchar|200
+cdc|dbo_customer_CT|phone|nvarchar|30
+(17 rows affected)
+TargetTable|ColumnCount
+-----------|-----------
+dbo.customer|4
+dbo.member|6
+(2 rows affected)
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME
+------------|----------|-----------
+dbo|customer|email
+dbo|customer|full_name
+dbo|customer|phone
+dbo|member|email
+dbo|member|full_name
+dbo|member|phone
+dbo|member_history|email
+dbo|member_history|full_name
+dbo|member_history|phone
+cdc|change_tables|filegroup_name
+cdc|change_tables|index_name
+cdc|change_tables|role_name
+cdc|captured_columns|column_name
+cdc|index_columns|column_name
+cdc|dbo_customer_CT|email
+cdc|dbo_customer_CT|full_name
+cdc|dbo_customer_CT|phone
+(17 rows affected)

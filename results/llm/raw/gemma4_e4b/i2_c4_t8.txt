@@ -1,0 +1,24 @@
+```sql
+SELECT 
+    'dbo.customer' AS object_name, 
+    COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM dbo.customer
+
+UNION ALL
+
+SELECT 
+    'dbo.customer_archive' AS object_name, -- Placeholder check for common data retention/archive tables
+    COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM dbo.customer_archive
+
+UNION ALL
+
+SELECT 
+    'dbo.[AnyPotentialView]' AS object_name, -- Placeholder check for views that might contain PII
+    COUNT(CASE WHEN full_name = 'Subject_0000042' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS rows_found
+FROM (
+    SELECT * FROM dbo.[AnyPotentialView] WHERE 1=0 -- Use a dummy select to ensure the object name is listed even if empty/non-existent, preventing runtime errors while maintaining structure.
+) AS T
+
+-- Note: If other specific tables or views were identified during inspection (e.g., dbo.customer_history), they would be added here using UNION ALL.
+```

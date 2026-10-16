@@ -1,0 +1,61 @@
+schema_name|table_name|temporal_type_desc|history_schema|history_table|ledger_type_desc
+-----------|----------|------------------|--------------|-------------|----------------
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|member_history|NON_LEDGER_TABLE
+dbo|member_history|HISTORY_TABLE|NULL|NULL|NON_LEDGER_TABLE
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+cdc|captured_columns|column_name|sysname|256|0
+cdc|change_tables|role_name|sysname|256|1
+cdc|change_tables|index_name|sysname|256|1
+cdc|change_tables|filegroup_name|sysname|256|1
+cdc|dbo_customer_CT|customer_id|int|4|1
+cdc|dbo_customer_CT|full_name|nvarchar|200|1
+cdc|dbo_customer_CT|email|nvarchar|400|1
+cdc|dbo_customer_CT|phone|nvarchar|60|1
+cdc|index_columns|column_name|sysname|256|0
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|customer|phone|nvarchar|60|1
+dbo|member|member_id|int|4|0
+dbo|member|full_name|nvarchar|200|0
+dbo|member|email|nvarchar|400|0
+dbo|member|phone|nvarchar|60|1
+dbo|member_history|member_id|int|4|0
+dbo|member_history|full_name|nvarchar|200|0
+dbo|member_history|email|nvarchar|400|0
+dbo|member_history|phone|nvarchar|60|1
+(21 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+cdc|captured_columns|masking_function|nvarchar
+cdc|dbo_customer_CT|email|nvarchar
+cdc|dbo_customer_CT|full_name|nvarchar
+cdc|ddl_history|ddl_command|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|full_name|nvarchar
+dbo|member|email|nvarchar
+dbo|member|full_name|nvarchar
+dbo|member_history|email|nvarchar
+dbo|member_history|full_name|nvarchar
+(10 rows affected)
+schema_name|table_name|feature
+-----------|----------|-------
+dbo|customer|cdc_enabled
+(1 rows affected)
+referencing_schema|referencing_object|type_desc|referenced_schema_name|referenced_entity_name
+------------------|------------------|---------|----------------------|----------------------
+(0 rows affected)
+fk_name|child_table|parent_table
+-------|-----------|------------
+(0 rows affected)
+Msg 300, Level 14, State 1, Server 651334c31df8, Line 71
+VIEW SERVER PERFORMANCE STATE permission was denied on object 'server', database 'master'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 71
+The user does not have permission to perform this action.
+table_name|rows_total|rows_id42
+----------|----------|---------
+customer|100|1
+member|100|1
+(2 rows affected)

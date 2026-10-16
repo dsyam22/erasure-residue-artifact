@@ -1,0 +1,14 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME|DATA_TYPE
+------------|----------|-----------|---------
+cdc|captured_columns|column_name|nvarchar
+cdc|change_tables|filegroup_name|nvarchar
+cdc|change_tables|index_name|nvarchar
+cdc|change_tables|role_name|nvarchar
+cdc|dbo_customer_CT|email|nvarchar
+cdc|dbo_customer_CT|full_name|nvarchar
+cdc|dbo_customer_CT|phone|nvarchar
+cdc|index_columns|column_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|full_name|nvarchar
+dbo|customer|phone|nvarchar
+(11 rows affected)

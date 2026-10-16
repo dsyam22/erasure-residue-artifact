@@ -1,0 +1,86 @@
+SET NOCOUNT ON;
+
+DECLARE @name_lit  nvarchar(200) = N'Subject_0000042';
+DECLARE @email_lit nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone_lit nvarchar(200) = N'+1-555-0000042';
+DECLARE @cust_id   int           = 42;
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @oid    int,
+        @schema sysname,
+        @table  sysname,
+        @obj    nvarchar(300),
+        @cond   nvarchar(max),
+        @sql    nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @oid, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj  = @schema + N'.' + @table;
+    SET @cond = NULL;
+
+    -- Build the per-row match predicate for this table.
+    -- String columns: match any of the subject's original text values (case-insensitive by collation).
+    -- customer_id columns: match the subject's integer key.
+    SELECT @cond = STRING_AGG(CAST(x.expr AS nvarchar(max)), N' OR ')
+    FROM (
+        SELECT N'CHARINDEX(N''' + @name_lit + N''', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0' AS expr
+        FROM sys.columns AS c
+        JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT N'CHARINDEX(N''' + @email_lit + N''', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+        FROM sys.columns AS c
+        JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT N'CHARINDEX(N''' + @phone_lit + N''', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+        FROM sys.columns AS c
+        JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        UNION ALL
+        SELECT QUOTENAME(c.name) + N' = ' + CAST(@cust_id AS nvarchar(20))
+        FROM sys.columns AS c
+        JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @oid
+          AND c.name = N'customer_id'
+          AND ty.name = N'int'
+    ) AS x;
+
+    SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT @o, '
+             + CASE WHEN @cond IS NULL
+                    THEN N'CAST(0 AS bigint)'
+                    ELSE N'(SELECT COUNT_BIG(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                       + N' WHERE ' + @cond + N')'
+               END
+             + N';';
+
+    EXEC sys.sp_executesql @sql, N'@o nvarchar(300)', @o = @obj;
+
+    FETCH NEXT FROM tbl_cur INTO @oid, @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

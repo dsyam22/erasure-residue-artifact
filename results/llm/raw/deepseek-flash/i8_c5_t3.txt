@@ -1,0 +1,65 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @results TABLE (
+    object_name sysname,
+    rows_found int
+);
+
+-- Check dbo.customer
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check all string columns across all user tables in the database
+-- (excluding dbo.customer which is already checked above)
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name, c.name
+FROM sys.columns c
+JOIN sys.tables t ON c.object_id = t.object_id
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE t.is_ms_shipped = 0
+  AND ty.name IN ('nvarchar', 'varchar', 'nchar', 'char', 'text', 'ntext')
+  AND NOT (s.name = 'dbo' AND t.name = 'customer');
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO @results (object_name, rows_found) '
+             + N'SELECT ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N', COUNT(*) '
+             + N'FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N' '
+             + N'WHERE ' + QUOTENAME(@column) + N' LIKE N''%'' + @p_full_name + N''%'' '
+             + N'   OR ' + QUOTENAME(@column) + N' LIKE N''%'' + @p_email + N''%'' '
+             + N'   OR ' + QUOTENAME(@column) + N' LIKE N''%'' + @p_phone + N''%'';';
+
+    EXEC sp_executesql @sql,
+        N'@p_full_name nvarchar(200), @p_email nvarchar(200), @p_phone nvarchar(200)',
+        @p_full_name = @full_name,
+        @p_email = @email,
+        @p_phone = @phone;
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;
+```

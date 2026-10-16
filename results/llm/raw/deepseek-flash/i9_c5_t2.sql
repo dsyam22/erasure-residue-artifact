@@ -1,0 +1,18 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(100) = N'Subject_0000042';
+DECLARE @em nvarchar(200) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(50) = N'+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM (
+    SELECT N'dbo.customer' AS object_name,
+           COUNT(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = @cid
+       OR full_name = @fn
+       OR email = @em
+       OR phone = @ph
+) AS x;

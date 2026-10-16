@@ -1,0 +1,42 @@
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check dbo.member (dynamically handling if it is a system-versioned temporal table to check history)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE object_id = OBJECT_ID('dbo.member') AND temporal_type = 2)
+BEGIN
+    EXEC sp_executesql N'
+    INSERT INTO #results (object_name, rows_found)
+    SELECT ''dbo.member'', COUNT(*)
+    FROM dbo.member FOR SYSTEM_TIME ALL
+    WHERE member_id = 42 
+       OR full_name = ''Subject_0000042'' 
+       OR email = ''subject42@example.invalid'' 
+       OR phone = ''+1-555-0000042'';
+    ';
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.member', COUNT(*)
+    FROM dbo.member
+    WHERE member_id = 42 
+       OR full_name = 'Subject_0000042' 
+       OR email = 'subject42@example.invalid' 
+       OR phone = '+1-555-0000042';
+END
+
+SELECT object_name, rows_found 
+FROM #results;
+
+DROP TABLE #results;

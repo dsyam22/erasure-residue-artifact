@@ -1,0 +1,35 @@
+database_name|is_cdc_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on|can_view_definition|can_select_database
+-------------|--------------|-----------------------------|-----------------------------|-------------------|-------------------
+llm_i9|0|OFF|0|1|1
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|history_retention_period|history_retention_period_unit_desc|is_tracked_by_cdc|is_memory_optimized|ledger_type_desc|is_dropped_ledger_table|filestream_data_space_id|is_track_columns_updated_on|period_start_column_id|period_end_column_id|can_select
+-----------|----------|---------|------------------|-------------------|------------------|------------------------|----------------------------------|-----------------|-------------------|----------------|-----------------------|------------------------|---------------------------|----------------------|--------------------|----------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|-1|INFINITE|0|0|NON_LEDGER_TABLE|0|NULL|NULL|5|6|1
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|NULL|NULL|0|0|NON_LEDGER_TABLE|0|NULL|NULL|NULL|NULL|1
+(2 rows affected)
+schema_name|object_name|object_type|column_id|column_name|type_schema_name|declared_type|base_type|max_length|precision|scale|collation_name|is_nullable|is_computed|computed_definition|is_hidden|generated_always_type_desc|encryption_type_desc|is_masked
+-----------|-----------|-----------|---------|-----------|----------------|-------------|---------|----------|---------|-----|--------------|-----------|-----------|-------------------|---------|--------------------------|--------------------|---------
+dbo|customer|USER_TABLE|1|customer_id|sys|int|int|4|10|0|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|USER_TABLE|2|full_name|sys|nvarchar|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|USER_TABLE|3|email|sys|nvarchar|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|USER_TABLE|4|phone|sys|nvarchar|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer|USER_TABLE|5|valid_from|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|AS_ROW_START|NULL|0
+dbo|customer|USER_TABLE|6|valid_to|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|AS_ROW_END|NULL|0
+dbo|customer_history|USER_TABLE|1|customer_id|sys|int|int|4|10|0|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|USER_TABLE|2|full_name|sys|nvarchar|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|USER_TABLE|3|email|sys|nvarchar|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|USER_TABLE|4|phone|sys|nvarchar|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|USER_TABLE|5|valid_from|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+dbo|customer_history|USER_TABLE|6|valid_to|sys|datetime2|datetime2|8|27|7|NULL|0|0|NULL|0|NOT_APPLICABLE|NULL|0
+(12 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+name|type_desc|physical_name|state_desc
+----|---------|-------------|----------
+llm_i9|ROWS|/var/opt/mssql/data/llm_i9.mdf|ONLINE
+llm_i9_log|LOG|/var/opt/mssql/data/llm_i9_log.ldf|ONLINE
+(2 rows affected)

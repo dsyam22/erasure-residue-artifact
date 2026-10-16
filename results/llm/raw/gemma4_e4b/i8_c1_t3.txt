@@ -1,0 +1,18 @@
+```sql
+DECLARE @Object NVARCHAR(100) = 'dbo.customer';
+DECLARE @Count INT;
+
+-- Calculate the number of rows matching the subject's data in dbo.customer
+SELECT @Count = COUNT(*) 
+FROM dbo.customer 
+WHERE 
+    customer_id = 42 
+AND full_name = 'Subject_0000042' 
+AND email = 'subject42@example.invalid' 
+AND phone = '+1-555-0000042';
+
+-- Return the required result set structure
+SELECT 
+    object_name, 
+    rows_found = @Count;
+```

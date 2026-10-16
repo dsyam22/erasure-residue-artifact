@@ -1,0 +1,107 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @subject_customer_id int = 42;
+DECLARE @subject_full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @subject_email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @subject_phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+-- Check dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @subject_customer_id
+   OR full_name = @subject_full_name
+   OR email = @subject_email
+   OR phone = @subject_phone;
+
+-- Check temporal history table if it exists (system-versioned table)
+IF OBJECT_ID(N'dbo.customer_history', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @subject_customer_id
+       OR full_name = @subject_full_name
+       OR email = @subject_email
+       OR phone = @subject_phone;
+END
+
+-- Check any other tables in the database that have columns matching the subject's
+-- personal data field names. This dynamically scans all user tables for columns
+-- named like the personal data fields and searches for matching values.
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+DECLARE @checked bit = 0;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT DISTINCT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name <> 'customer'
+      AND t.name <> 'customer_history'
+      AND EXISTS (
+          SELECT 1
+          FROM sys.columns c
+          WHERE c.object_id = t.object_id
+            AND c.name IN ('customer_id','full_name','email','phone')
+      );
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @obj, COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ';
+
+    DECLARE @where nvarchar(max) = N'';
+
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id
+               WHERE s.name=@schema AND t.name=@table AND c.name='customer_id')
+        SET @where = @where + N'customer_id = @cid OR ';
+
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id
+               WHERE s.name=@schema AND t.name=@table AND c.name='full_name')
+        SET @where = @where + N'full_name = @fname OR ';
+
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id
+               WHERE s.name=@schema AND t.name=@table AND c.name='email')
+        SET @where = @where + N'email = @email OR ';
+
+    IF EXISTS (SELECT 1 FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id
+               WHERE s.name=@schema AND t.name=@table AND c.name='phone')
+        SET @where = @where + N'phone = @phone OR ';
+
+    IF @where <> N''
+    BEGIN
+        SET @where = LEFT(@where, LEN(@where) - 3); -- remove trailing ' OR '
+        SET @sql = @sql + @where + N';';
+
+        SET @obj_name = @schema + N'.' + @table;
+
+        EXEC sp_executesql @sql,
+            N'@obj sysname, @cid int, @fname nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+            @obj = @obj_name,
+            @cid = @subject_customer_id,
+            @fname = @subject_full_name,
+            @email = @subject_email,
+            @phone = @subject_phone;
+    END
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,5 @@
+SELECT
+    'dbo.customer' AS object_name,
+    CAST(COUNT(1) AS INT) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42;

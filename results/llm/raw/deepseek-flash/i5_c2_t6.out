@@ -1,0 +1,32 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+dbo.customer|0
+dbo.customer_archive|0
+dbo.customer_audit|0
+dbo.customer_audit_trail|0
+dbo.customer_backup|0
+dbo.customer_delta|0
+dbo.customer_history|1
+dbo.customer_legacy|0
+dbo.customer_stage|0
+dbo.customer_staging|0
+
+(10 rows affected)

@@ -1,0 +1,26 @@
+schema_name|object_name|type_desc|temporal_type_desc|history_retention_period|is_tracked_by_cdc|is_memory_optimized
+-----------|-----------|---------|------------------|------------------------|-----------------|-------------------
+dbo|customer|USER_TABLE|NON_TEMPORAL_TABLE|NULL|1|0
+(1 rows affected)
+schema_name|object_name|column_id|column_name|data_type|max_length|is_nullable
+-----------|-----------|---------|-----------|---------|----------|-----------
+dbo|customer|1|customer_id|int|4|0
+dbo|customer|2|full_name|nvarchar|200|0
+dbo|customer|3|email|nvarchar|400|0
+dbo|customer|4|phone|nvarchar|60|1
+(4 rows affected)
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 36
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i1'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 36
+The user does not have permission to perform this action.
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|sp_batchinsert_1285579618|SQL_STORED_PROCEDURE
+cdc|sp_insdel_1285579618|SQL_STORED_PROCEDURE
+cdc|sp_upd_1285579618|SQL_STORED_PROCEDURE
+(5 rows affected)
+fk_name|child_schema|child_table|parent_schema|parent_table
+-------|------------|-----------|-------------|------------
+(0 rows affected)

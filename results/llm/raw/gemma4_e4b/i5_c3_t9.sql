@@ -1,0 +1,22 @@
+WITH ObjectChecks AS (
+    -- 1. Check the current state of the primary table (dbo.customer)
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(customer_id) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        customer_id = 42
+
+    UNION ALL
+
+    -- 2. Check the Temporal History Table (dbo.customer_history), where deleted data resides
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(customer_id) AS rows_found
+    FROM
+        dbo.customer_history
+    WHERE
+        customer_id = 42
+)
+SELECT * FROM ObjectChecks;

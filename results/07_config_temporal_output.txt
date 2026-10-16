@@ -1,0 +1,28 @@
+Changed database context to 'erasure_lab'.
+--- Run timestamp (UTC) ---
+run_started_utc
+---------------
+2026-10-08 02:04:04.7332710
+--- BEFORE: history rows per subject ---
+member_id history_rows
+--------- ------------
+42 1
+77 1
+=== PART A: manual purge of subject 77 ===
+=== PART B: re-enable versioning with a 1 DAY retention period ===
+--- Retention configuration now ---
+name temporal_type_desc history_retention_period history_retention_period_unit_desc
+---- ------------------ ------------------------ ----------------------------------
+member SYSTEM_VERSIONED_TEMPORAL_TABLE 1 DAY
+--- AFTER: history rows per subject (77 should be gone, 42 still present) ---
+member_id history_rows
+--------- ------------
+42 1
+--- Subject 77 through a time-travel query ---
+member_id full_name email phone valid_from valid_to
+--------- --------- ----- ----- ---------- --------
+77 REDACTED redacted@example.invalid NULL 2026-10-08 01:53:38.1287282 9999-12-31 23:59:59.9999999
+--- Subject 42 history row (note valid_to; the retention clock runs from it) ---
+member_id full_name email valid_to
+--------- --------- ----- --------
+42 Subject_000042 subject42@example.invalid 2026-10-08 01:53:33.3780013

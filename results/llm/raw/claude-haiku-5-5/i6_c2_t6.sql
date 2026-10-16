@@ -1,0 +1,64 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #scan
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @object_id int,
+        @tbl       nvarchar(400),
+        @cond      nvarchar(max),
+        @sql       nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id,
+           QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables AS t
+    ORDER BY t.schema_id, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @object_id, @tbl;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @cond = NULL;
+
+    -- Build a predicate over every character column of this table,
+    -- matching the subject's phone in formatted and digits-only forms.
+    SELECT @cond = STRING_AGG(
+               CAST(
+                   N'(' + QUOTENAME(c.name) + N' LIKE N''%+1-555-0000042%'''
+                 + N' OR ' + QUOTENAME(c.name) + N' LIKE N''%5550000042%'')'
+               AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types   AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @object_id
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar');
+
+    IF @cond IS NULL
+    BEGIN
+        INSERT #scan (object_name, rows_found)
+        VALUES (REPLACE(REPLACE(@tbl, N'[', N''), N']', N''), 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT #scan (object_name, rows_found) '
+                 + N'SELECT N''' + REPLACE(REPLACE(REPLACE(@tbl, N'[', N''), N']', N''), N'''', N'''''') + N''', '
+                 + N'COUNT_BIG(*) FROM ' + @tbl
+                 + N' WHERE ' + @cond + N';';
+        EXEC sys.sp_executesql @sql;
+    END;
+
+    FETCH NEXT FROM tbl_cur INTO @object_id, @tbl;
+END;
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+
+DROP TABLE #scan;

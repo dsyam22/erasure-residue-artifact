@@ -1,0 +1,2 @@
+Msg 4191, Level 16, State 9, Server 651334c31df8, Line 40
+Cannot resolve collation conflict for charindex operation.

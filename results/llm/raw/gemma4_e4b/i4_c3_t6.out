@@ -1,0 +1,12 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 13
+Incorrect syntax near '*'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 28
+Incorrect syntax near '*'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 43
+Incorrect syntax near '*'.
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 46
+Incorrect syntax near the keyword 'AS'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 58
+Incorrect syntax near '*'.
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 61
+Incorrect syntax near the keyword 'AS'.

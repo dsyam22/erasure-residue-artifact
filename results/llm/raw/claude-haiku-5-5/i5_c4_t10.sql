@@ -1,0 +1,60 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid    int,
+        @schema sysname,
+        @table  sysname,
+        @obj    nvarchar(400),
+        @pred   nvarchar(max),
+        @sql    nvarchar(max),
+        @cnt    bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @oid, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred = NULL;
+
+    -- Build a predicate that matches any string column containing the subject's original personal data
+    SELECT @pred = STRING_AGG(
+            CAST(
+                N'(CHARINDEX(N''Subject_0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+              + N' OR CHARINDEX(N''subject42@example.invalid'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+              + N' OR CHARINDEX(N''+1-555-0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+            AS nvarchar(max)), N' OR ')
+    FROM sys.columns c
+    WHERE c.object_id = @oid
+      AND TYPE_NAME(c.user_type_id) IN (N'varchar', N'nvarchar', N'char', N'nchar');
+
+    IF @pred IS NULL
+        SET @cnt = 0;
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql, N'@n bigint OUTPUT', @n = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found) VALUES (@obj, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl INTO @oid, @schema, @table;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;

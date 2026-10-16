@@ -1,0 +1,46 @@
+SET NOCOUNT ON;
+
+DECLARE @fn nvarchar(200) = N'Subject_0000042',
+        @em nvarchar(200) = N'subject42@example.invalid',
+        @ph nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @sql nvarchar(max);
+
+-- One COUNT(*) branch per user table that has character columns.
+-- A row is counted if any character column equals one of the subject's original values.
+SELECT @sql = STRING_AGG(
+        CAST(
+            N'SELECT N''' + REPLACE(s.name, N'''', N'''''') + N'.' + REPLACE(t.name, N'''', N'''''') + N''' AS object_name, '
+          + N'COUNT(*) AS rows_found FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+          + N' WHERE ' + x.pred
+          AS nvarchar(max)),
+        N' UNION ALL ')
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+CROSS APPLY (
+    SELECT
+        STRING_AGG(CAST(QUOTENAME(c.name) + N' IN (@fn, @em, @ph)' AS nvarchar(max)), N' OR ') AS pred,
+        COUNT(*) AS n
+    FROM sys.columns AS c
+    JOIN sys.types AS ty
+        ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = t.object_id
+      AND ty.name IN (N'varchar', N'nvarchar', N'char', N'nchar')
+) AS x
+WHERE x.n > 0;
+
+IF @sql IS NULL
+BEGIN
+    SELECT CAST(NULL AS nvarchar(256)) AS object_name, CAST(NULL AS bigint) AS rows_found WHERE 1 = 0;
+    RETURN;
+END;
+
+SET @sql = N'SELECT object_name, rows_found FROM (' + @sql + N') AS r ORDER BY object_name;';
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@fn nvarchar(200), @em nvarchar(200), @ph nvarchar(50)',
+    @fn = @fn,
+    @em = @em,
+    @ph = @ph;

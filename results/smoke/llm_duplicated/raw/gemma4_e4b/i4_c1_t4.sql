@@ -1,0 +1,24 @@
+WITH CustomerCheck AS (
+    -- Check dbo.customer for any remaining original personal data
+    SELECT 
+        'dbo.customer' AS object_name,
+        CAST(COUNT(DISTINCT customer_id) AS INT) AS rows_found
+    FROM 
+        dbo.customer
+    WHERE 
+        full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+),
+MemberCheck AS (
+    -- Check dbo.member for any remaining original personal data
+    SELECT 
+        'dbo.member' AS object_name,
+        CAST(COUNT(DISTINCT member_id) AS INT) AS rows_found
+    FROM 
+        dbo.member
+    WHERE 
+        full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042'
+)
+-- Combine the results into a single required result set
+SELECT object_name, rows_found FROM CustomerCheck
+UNION ALL
+SELECT object_name, rows_found FROM MemberCheck;

@@ -1,0 +1,4 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 15
+Incorrect syntax near 'subject42@example.invalid'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 28
+Incorrect syntax near ','.

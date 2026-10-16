@@ -1,0 +1,7 @@
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(CASE WHEN phone = '+1-555-0000042' THEN 1 END) AS rows_found
+UNION ALL
+SELECT
+    'cdc.dbo_customer_CT' AS object_name,
+    COUNT(CASE WHEN phone = '+1-555-0000042' THEN 1 END) AS rows_found;

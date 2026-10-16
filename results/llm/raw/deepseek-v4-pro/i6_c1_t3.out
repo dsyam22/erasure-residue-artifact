@@ -1,0 +1,22 @@
+Msg 4145, Level 15, State 1, Server 651334c31df8, Line 6
+An expression of non-boolean type specified in a context where a condition is expected, near ','.
+
+(1 rows affected)
+Msg 4145, Level 15, State 1, Server 651334c31df8, Line 5
+An expression of non-boolean type specified in a context where a condition is expected, near ','.
+
+(1 rows affected)
+
+(1 rows affected)
+Msg 4145, Level 15, State 1, Server 651334c31df8, Line 5
+An expression of non-boolean type specified in a context where a condition is expected, near ','.
+
+(1 rows affected)
+Msg 4145, Level 15, State 1, Server 651334c31df8, Line 5
+An expression of non-boolean type specified in a context where a condition is expected, near ','.
+cdc.ddl_history|0
+cdc.index_columns|0
+cdc.lsn_time_mapping|0
+dbo.systranschemas|0
+
+(4 rows affected)

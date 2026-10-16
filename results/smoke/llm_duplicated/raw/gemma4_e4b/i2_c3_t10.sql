@@ -1,0 +1,15 @@
+WITH ObjectChecks AS (
+    -- 1. Check the main operational table (dbo.customer)
+    SELECT 'dbo.customer' AS object_name, COUNT(CASE WHEN full_name = N'Subject_0000042' OR email = N'subject42@example.invalid' THEN 1 END) AS rows_found
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- 2. Check the temporal history table (dbo.customer_history)
+    SELECT 'dbo.customer_history' AS object_name, COUNT(CASE WHEN full_name = N'Subject_0000042' OR email = N'subject42@example.invalid' THEN 1 END) AS rows_found
+    FROM dbo.customer_history
+
+    -- Note: CDC tables are skipped as cdc_enabled=0, and no other downstream copies were provided in the schema definition.
+)
+SELECT object_name, rows_found
+FROM ObjectChecks;

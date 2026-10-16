@@ -1,0 +1,15 @@
+table_name|column_name
+----------|-----------
+customer|customer_id
+customer|full_name
+customer|email
+customer|phone
+customer|valid_from
+customer|valid_to
+customer_history|customer_id
+customer_history|full_name
+customer_history|email
+customer_history|phone
+customer_history|valid_from
+customer_history|valid_to
+(12 rows affected)

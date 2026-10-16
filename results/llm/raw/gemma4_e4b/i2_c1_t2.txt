@@ -1,0 +1,15 @@
+```sql
+WITH SearchResults AS (
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(T1.customer_id) AS rows_found
+    FROM
+    dbo.customer T1
+    WHERE
+        -- Check for matches against the subject's original identifying data points
+        T1.full_name = N'Subject_0000042' OR
+        T1.email = N'subject42@example.invalid' OR
+        T1.phone = N'+1-555-0000042'
+)
+SELECT object_name, rows_found FROM SearchResults;
+```

@@ -1,0 +1,62 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @p1 nvarchar(100) = N'%+1-555-0000042%';
+DECLARE @p2 nvarchar(100) = N'%5550000042%';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @object_id int, @schema sysname, @table sysname;
+DECLARE @cond nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @cond = NULL;
+    SET @n = 0;
+
+    SELECT @cond = STRING_AGG(CAST(
+            '(CAST(' + QUOTENAME(c.name) + ' AS nvarchar(max)) LIKE @p1 OR CAST('
+            + QUOTENAME(c.name) + ' AS nvarchar(max)) LIKE @p2)' AS nvarchar(max)), ' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @object_id
+      AND ty.name IN ('char', 'varchar', 'nchar', 'nvarchar', 'text', 'ntext', 'xml');
+
+    IF @cond IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @cond + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@p1 nvarchar(100), @p2 nvarchar(100), @n bigint OUTPUT',
+            @p1 = @p1, @p2 = @p2, @n = @n OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, @n);
+
+    FETCH NEXT FROM tbl_cur INTO @object_id, @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

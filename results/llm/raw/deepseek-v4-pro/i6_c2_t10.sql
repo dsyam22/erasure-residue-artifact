@@ -1,0 +1,113 @@
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current dbo.customer table for phone column existence and data
+IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('dbo.customer') 
+      AND name = 'phone'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', COUNT(*)
+    FROM dbo.customer
+    WHERE customer_id = @customer_id
+      AND phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    VALUES ('dbo.customer', 0);
+END
+
+-- Check CDC capture instance for phone data
+IF EXISTS (
+    SELECT 1 
+    FROM cdc.change_tables 
+    WHERE capture_instance = 'dbo_customer'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+      AND phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    VALUES ('cdc.dbo_customer_CT', 0);
+END
+
+-- Check system-versioned temporal history table if applicable
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables 
+    WHERE name = 'customer' 
+      AND temporal_type = 2
+)
+BEGIN
+    DECLARE @history_table NVARCHAR(255);
+    SELECT @history_table = SCHEMA_NAME(history_table.schema_id) + '.' + history_table.name
+    FROM sys.tables 
+    WHERE name = 'customer' 
+      AND temporal_type = 2;
+
+    IF @history_table IS NOT NULL
+    BEGIN
+        DECLARE @sql NVARCHAR(MAX) = 
+            'INSERT INTO #results (object_name, rows_found) ' +
+            'SELECT ''' + @history_table + ''', COUNT(*) ' +
+            'FROM ' + @history_table + ' ' +
+            'WHERE customer_id = ' + CAST(@customer_id AS NVARCHAR(10)) + ' ' +
+            'AND phone = ''' + @phone + '''';
+
+        EXEC sp_executesql @sql;
+    END
+END
+
+-- Check for any other tables containing phone-like columns
+DECLARE @table_name NVARCHAR(255);
+DECLARE @column_name NVARCHAR(255);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    SCHEMA_NAME(t.schema_id) + '.' + t.name AS table_name,
+    c.name AS column_name
+FROM sys.tables t
+JOIN sys.columns c ON t.object_id = c.object_id
+WHERE c.name = 'phone'
+  AND SCHEMA_NAME(t.schema_id) + '.' + t.name NOT IN ('dbo.customer', 'cdc.dbo_customer_CT');
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_name, @column_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @check_sql NVARCHAR(MAX) = 
+        'INSERT INTO #results (object_name, rows_found) ' +
+        'SELECT ''' + @table_name + ''', COUNT(*) ' +
+        'FROM ' + @table_name + ' ' +
+        'WHERE customer_id = ' + CAST(@customer_id AS NVARCHAR(10)) + ' ' +
+        'AND ' + @column_name + ' = ''' + @phone + '''';
+
+    EXEC sp_executesql @check_sql;
+
+    FETCH NEXT FROM table_cursor INTO @table_name, @column_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

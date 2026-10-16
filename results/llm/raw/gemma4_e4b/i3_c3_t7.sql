@@ -1,0 +1,35 @@
+-- Define variables for readability and scope management (optional but good practice)
+DECLARE @TargetCustomerID INT = 42;
+DECLARE @TargetFullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Use UNION ALL to combine the results from checking every relevant location into a single result set.
+SELECT
+    'dbo.customer' AS object_name,
+    COUNT(CASE WHEN c.customer_id = @TargetCustomerID AND c.full_name = @TargetFullName THEN 1 END) AS rows_found
+FROM dbo.customer c
+
+UNION ALL
+
+-- Check the CDC change table for customer data
+SELECT
+    'cdc.dbo_customer_CT' AS object_name,
+    COUNT(CASE WHEN ct.customer_id = @TargetCustomerID AND ct.full_name = @TargetFullName THEN 1 END)
+FROM cdc.dbo_customer_CT ct
+
+UNION ALL
+
+-- Check the current state of the member table (though deletion was performed)
+SELECT
+    'dbo.member' AS object_name,
+    COUNT(CASE WHEN m.member_id = @TargetCustomerID AND m.full_name = @TargetFullName THEN 1 END)
+FROM dbo.member m
+
+UNION ALL
+
+-- Check the history table for member data (Temporal History)
+SELECT
+    'dbo.member_history' AS object_name,
+    COUNT(CASE WHEN mh.member_id = @TargetCustomerID AND mh.full_name = @TargetFullName THEN 1 END)
+FROM dbo.member_history mh;

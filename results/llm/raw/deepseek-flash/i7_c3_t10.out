@@ -1,0 +1,4 @@
+cdc.change_tables|0
+dbo.customer|0
+reporting.customer_replica|1
+temporal.history_tables|0

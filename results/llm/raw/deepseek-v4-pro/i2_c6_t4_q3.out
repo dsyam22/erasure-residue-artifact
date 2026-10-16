@@ -1,0 +1,5 @@
+table_name|column_name
+----------|-----------
+customer|customer_id
+customer_history|customer_id
+(2 rows affected)

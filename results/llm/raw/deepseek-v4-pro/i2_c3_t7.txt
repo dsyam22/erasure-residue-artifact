@@ -1,0 +1,132 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @CustomerId INT = 42;
+DECLARE @FullName NVARCHAR(255) = N'Subject_0000042';
+DECLARE @Email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @Phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(255),
+    rows_found BIGINT
+);
+
+-- Check current table dbo.customer
+INSERT INTO #Results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @CustomerId
+   OR full_name = @FullName
+   OR email = @Email
+   OR phone = @Phone;
+
+-- Check history table dbo.customer_history
+INSERT INTO #Results (object_name, rows_found)
+SELECT N'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @CustomerId
+   OR full_name = @FullName
+   OR email = @Email
+   OR phone = @Phone;
+
+-- Check system-versioned temporal history (same as above, but explicitly via FOR SYSTEM_TIME ALL)
+INSERT INTO #Results (object_name, rows_found)
+SELECT N'dbo.customer (FOR SYSTEM_TIME ALL)', COUNT(*)
+FROM dbo.customer FOR SYSTEM_TIME ALL
+WHERE customer_id = @CustomerId
+   OR full_name = @FullName
+   OR email = @Email
+   OR phone = @Phone;
+
+-- Check if CDC is enabled (should be 0 per config, but verify capture instance existence)
+IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.name = 'customer' AND t.is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdcSql NVARCHAR(MAX) = N'
+        SELECT N''cdc.dbo_customer_CT'', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = @CustomerId
+           OR full_name = @FullName
+           OR email = @Email
+           OR phone = @Phone';
+    INSERT INTO #Results (object_name, rows_found)
+    EXEC sp_executesql @cdcSql, N'@CustomerId INT, @FullName NVARCHAR(255), @Email NVARCHAR(255), @Phone NVARCHAR(255)',
+                       @CustomerId, @FullName, @Email, @Phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #Results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END;
+
+-- Check for any change tracking side tables (if change tracking is enabled)
+IF EXISTS (SELECT 1 FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID('dbo.customer'))
+BEGIN
+    -- Change tracking side tables are internal; we cannot query them directly.
+    -- We can check CHANGETABLE for changes, but not for current data.
+    -- Since data is deleted, no rows should be returned for the specific key.
+    DECLARE @ctSql NVARCHAR(MAX) = N'
+        SELECT N''CHANGETABLE(CHANGES dbo.customer, NULL)'', COUNT(*)
+        FROM CHANGETABLE(CHANGES dbo.customer, NULL) AS CT
+        WHERE CT.customer_id = @CustomerId';
+    INSERT INTO #Results (object_name, rows_found)
+    EXEC sp_executesql @ctSql, N'@CustomerId INT', @CustomerId;
+END
+ELSE
+BEGIN
+    INSERT INTO #Results (object_name, rows_found)
+    SELECT N'CHANGETABLE(CHANGES dbo.customer, NULL)', 0;
+END;
+
+-- Check if there are any other user tables that might contain copies of this data
+-- (e.g., audit tables, backup tables, staging tables). We'll search for tables with similar column names.
+DECLARE @tableName NVARCHAR(255);
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE (t.name LIKE '%customer%' OR t.name LIKE '%audit%' OR t.name LIKE '%backup%' OR t.name LIKE '%staging%')
+      AND NOT (s.name = 'dbo' AND t.name = 'customer')
+      AND t.temporal_type = 0; -- exclude temporal tables already checked
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @tableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @sql NVARCHAR(MAX) = N'
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@tableName) AND name IN (''customer_id'', ''full_name'', ''email'', ''phone''))
+        BEGIN
+            DECLARE @cols NVARCHAR(MAX) = '''';
+            SELECT @cols = @cols + CASE WHEN @cols = '''' THEN '''' ELSE '' OR '' END + QUOTENAME(name) + '' = @Value''
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(@tableName)
+              AND name IN (''customer_id'', ''full_name'', ''email'', ''phone'');
+            DECLARE @query NVARCHAR(MAX) = ''SELECT COUNT(*) FROM '' + @tableName + '' WHERE '' + @cols;
+            INSERT INTO #Results (object_name, rows_found)
+            SELECT @tableName, (SELECT COUNT(*) FROM ' + @tableName + ' WHERE ' + 
+                STUFF((SELECT '' OR '' + QUOTENAME(c.name) + '' = @'' + c.name
+                       FROM sys.columns c
+                       WHERE c.object_id = OBJECT_ID(@tableName)
+                         AND c.name IN (''customer_id'', ''full_name'', ''email'', ''phone'')
+                       FOR XML PATH('''')), 1, 4, '''') + '');
+        END
+        ELSE
+        BEGIN
+            INSERT INTO #Results (object_name, rows_found)
+            SELECT @tableName, 0;
+        END';
+
+    EXEC sp_executesql @sql, N'@tableName NVARCHAR(255)', @tableName;
+    FETCH NEXT FROM table_cursor INTO @tableName;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;
+```

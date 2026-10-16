@@ -1,0 +1,13 @@
+name
+----
+captured_columns
+change_tables
+customer
+dbo_customer_CT
+ddl_history
+index_columns
+lsn_time_mapping
+member
+member_history
+systranschemas
+(10 rows affected)

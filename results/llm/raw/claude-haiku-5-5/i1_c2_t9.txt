@@ -1,0 +1,32 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email     nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone     nvarchar(50)  = N'+1-555-0000042';
+
+-- Objects in scope: the live table and the CDC change table (CDC retains
+-- pre-delete values of captured columns, so it can hold the erased data).
+-- Temporal is NON_TEMPORAL for dbo.customer, so no history table is involved.
+SELECT
+    checked.object_name,
+    checked.rows_found
+FROM (
+    SELECT
+        N'dbo.customer' AS object_name,
+        (SELECT COUNT(*)
+         FROM dbo.customer AS c
+         WHERE c.full_name = @full_name
+            OR c.email     = @email
+            OR c.phone     = @phone) AS rows_found
+    UNION ALL
+    SELECT
+        N'cdc.dbo_customer_CT' AS object_name,
+        (SELECT COUNT(*)
+         FROM cdc.dbo_customer_CT AS ct
+         WHERE ct.full_name = @full_name
+            OR ct.email     = @email
+            OR ct.phone     = @phone) AS rows_found
+) AS checked
+ORDER BY checked.object_name;
+```

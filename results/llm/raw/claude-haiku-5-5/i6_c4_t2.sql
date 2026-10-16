@@ -1,0 +1,50 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #scan_results
+(
+    object_name sysname NOT NULL,
+    rows_found  int     NOT NULL
+);
+
+DECLARE @sql nvarchar(max) = N'';
+
+SELECT @sql = STRING_AGG(
+    CAST(
+        CASE
+            WHEN p.predicate_sql IS NULL
+            THEN N'INSERT INTO #scan_results (object_name, rows_found) VALUES (N'''
+                 + REPLACE(s.name + N'.' + t.name, N'''', N'''''')
+                 + N''', 0);' + NCHAR(13) + NCHAR(10)
+            ELSE N'INSERT INTO #scan_results (object_name, rows_found) SELECT N'''
+                 + REPLACE(s.name + N'.' + t.name, N'''', N'''''')
+                 + N''', COUNT(*) FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+                 + N' WHERE ' + p.predicate_sql + N';' + NCHAR(13) + NCHAR(10)
+        END
+        AS nvarchar(max)),
+    N'')
+FROM sys.tables t
+JOIN sys.schemas s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CAST(
+            N'CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%555-0000042%'''
+          + N' OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) LIKE N''%5550000042%'''
+        AS nvarchar(max)),
+        N' OR ') AS predicate_sql
+    FROM sys.columns c
+    WHERE c.object_id = t.object_id
+      AND c.system_type_id IN (35, 99, 167, 175, 231, 239, 241) -- text, ntext, varchar, char, nvarchar, nchar, xml
+) p
+WHERE t.is_ms_shipped = 0;
+
+EXEC sys.sp_executesql @sql;
+
+SELECT
+    object_name,
+    rows_found
+FROM #scan_results
+ORDER BY object_name;
+
+DROP TABLE #scan_results;

@@ -1,0 +1,20 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+cdc.captured_columns|0
+cdc.dbo_customer_CT|1
+dbo.customer|0
+sys.columns|1
+sys.columns (CDC)|1
+sys.tables (temporal)|0
+
+(6 rows affected)

@@ -1,0 +1,3 @@
+scale,method,trial,seed,load_captured_rows,erase_records_captured,src_rows_readable,ct_copies,ct_subjects,hist_copies,hist_subjects,timetravel_subjects,cdc_retention_min,temporal_retention,load_capture_wait_s,erase_capture_wait_s
+1000,DELETE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,6
+1000,UPDATE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,4

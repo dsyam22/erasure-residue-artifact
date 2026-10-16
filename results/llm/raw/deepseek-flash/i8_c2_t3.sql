@@ -1,0 +1,93 @@
+/* Read-only verification script: checks whether the erased subject's original
+   personal data still exists anywhere in the current database.
+   Returns exactly one result set: object_name, rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email      nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone      nvarchar(64)  = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#checked') IS NOT NULL DROP TABLE #checked;
+
+CREATE TABLE #checked
+(
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+/* ---------------------------------------------------------------------------
+   1. Base table dbo.customer
+   --------------------------------------------------------------------------- */
+IF OBJECT_ID('dbo.customer', 'U') IS NOT NULL
+BEGIN
+    INSERT INTO #checked (object_name, rows_found)
+    SELECT N'dbo.customer',
+           COUNT_BIG(*)
+    FROM dbo.customer
+    WHERE customer_id = @customer_id
+       OR full_name   = @full_name
+       OR email       = @email
+       OR phone       = @phone;
+END
+
+/* ---------------------------------------------------------------------------
+   2. Any other user table in the database that contains one or more columns
+      whose name matches the personal-data column names.  Each matching table
+      is counted once (as one object_name row) with the number of rows that
+      contain any of the subject's values.
+   --------------------------------------------------------------------------- */
+DECLARE @schema sysname, @table sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT DISTINCT s.name, t.name
+    FROM sys.tables AS t
+    INNER JOIN sys.schemas AS s
+        ON s.schema_id = t.schema_id
+    INNER JOIN sys.columns AS c
+        ON c.object_id = t.object_id
+    WHERE t.is_ms_shipped = 0
+      AND t.name <> N'customer'
+      AND c.name IN (N'customer_id', N'full_name', N'email', N'phone');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #checked (object_name, rows_found)
+        SELECT N''' + REPLACE(@schema + N'.' + @table, N'''', N'''''') + N''',
+               COUNT_BIG(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE ' + STUFF(
+            (
+                SELECT N' OR ' + QUOTENAME(c2.name) + N' = @p_' + c2.name
+                FROM sys.columns AS c2
+                WHERE c2.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+                  AND c2.name IN (N'customer_id', N'full_name', N'email', N'phone')
+                FOR XML PATH(''), TYPE
+            ).value('.', 'nvarchar(max)'), 1, 4, N'') + N';';
+
+    EXEC sp_executesql @sql,
+        N'@p_customer_id int, @p_full_name nvarchar(200), @p_email nvarchar(320), @p_phone nvarchar(64)',
+        @p_customer_id = @customer_id,
+        @p_full_name   = @full_name,
+        @p_email       = @email,
+        @p_phone       = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+/* ---------------------------------------------------------------------------
+   Final single result set.
+   --------------------------------------------------------------------------- */
+SELECT object_name, rows_found
+FROM #checked
+ORDER BY object_name;
+
+DROP TABLE #checked;

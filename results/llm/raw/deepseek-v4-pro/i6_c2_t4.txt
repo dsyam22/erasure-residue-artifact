@@ -1,0 +1,57 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current dbo.customer table (phone column no longer exists, so no rows can contain it)
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', 0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('dbo.customer')
+      AND c.name = 'phone'
+);
+
+-- Check CDC capture instance for dbo_customer
+IF EXISTS (
+    SELECT 1
+    FROM cdc.change_tables ct
+    WHERE ct.capture_instance = 'dbo_customer'
+)
+BEGIN
+    DECLARE @cdc_sql NVARCHAR(MAX);
+    SET @cdc_sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT ''cdc.dbo_customer_CT'', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = @customer_id
+          AND phone = @phone;
+    ';
+    EXEC sp_executesql @cdc_sql, N'@customer_id INT, @phone NVARCHAR(50)', @customer_id, @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END;
+
+-- Check sys.columns for any remaining phone column in dbo.customer
+INSERT INTO #results (object_name, rows_found)
+SELECT 'sys.columns (phone in dbo.customer)', COUNT(*)
+FROM sys.columns c
+WHERE c.object_id = OBJECT_ID('dbo.customer')
+  AND c.name = 'phone';
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

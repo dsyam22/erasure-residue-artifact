@@ -1,0 +1,32 @@
+WITH CheckResults AS (
+    -- 1. Checking CDC Table for dbo.customer (cdc.dbo_customer_CT)
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        CAST(COUNT(CASE WHEN customer_id = 42 AND full_name LIKE '%Subject%0000042%' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS INT) AS rows_found
+    FROM cdc.dbo_customer_CT
+
+    UNION ALL
+
+    -- 2. Checking dbo.customer (The primary table, though deleted from)
+    SELECT
+        'dbo.customer' AS object_name,
+        CAST(COUNT(CASE WHEN customer_id = 42 AND full_name LIKE '%Subject%0000042%' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM dbo.customer
+
+    UNION ALL
+
+    -- 3. Checking dbo.member (The current active version of the member data)
+    SELECT
+        'dbo.member' AS object_name,
+        CAST(COUNT(CASE WHEN member_id = 42 AND full_name LIKE '%Subject%0000042%' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM dbo.member
+
+    UNION ALL
+
+    -- 4. Checking dbo.member_history (The System Versioned History Table)
+    SELECT
+        'dbo.member_history' AS object_name,
+        CAST(COUNT(CASE WHEN member_id = 42 AND full_name LIKE '%Subject%0000042%' AND email = 'subject42@example.invalid' AND phone = '+1-555-0000042' THEN 1 END) AS INT)
+    FROM dbo.member_history
+)
+SELECT object_name, rows_found FROM CheckResults ORDER BY object_name;

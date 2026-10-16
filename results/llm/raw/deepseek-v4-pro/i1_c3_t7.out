@@ -1,0 +1,14 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+<other_copies>|0
+<temporal_history_table>|0
+cdc.dbo_customer_CT|2
+dbo.customer|0
+
+(4 rows affected)

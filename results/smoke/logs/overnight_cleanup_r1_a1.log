@@ -1,0 +1,11 @@
+=== 2026-10-10T17:39:02Z m4_cleanup DB=m_c_r1_a1 RET=1 ACTIVITY=1 TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_c_r1_a1'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_c_r1_a1_capture' started successfully.
+Job 'cdc.m_c_r1_a1_cleanup' started successfully.
+Job 'cdc.m_c_r1_a1_cleanup' started successfully.
+Job 'cdc.m_c_r1_a1_cleanup' started successfully.
+Job 'cdc.m_c_r1_a1_cleanup' started successfully.
+Job 'cdc.m_c_r1_a1_cleanup' started successfully.
+RESULT,1,1,1,2026-10-10 17:39:27,2.07,2.07,1,4,0,0

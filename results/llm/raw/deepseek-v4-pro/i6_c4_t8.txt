@@ -1,0 +1,16 @@
+```sql
+SELECT 
+    'dbo.customer' AS object_name,
+    SUM(CASE 
+            WHEN customer_id = 42 
+                 AND (
+                     full_name = N'Subject_0000042' 
+                     OR email = 'subject42@example.invalid'
+                     OR full_name LIKE N'%+1-555-0000042%'
+                     OR email LIKE '%+1-555-0000042%'
+                 )
+            THEN 1 
+            ELSE 0 
+        END) AS rows_found
+FROM dbo.customer;
+```

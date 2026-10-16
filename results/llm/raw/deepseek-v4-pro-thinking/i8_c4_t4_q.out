@@ -1,0 +1,7 @@
+database_name|object_type|schema_name|object_name|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_identity|is_computed|temporal_type|temporal_type_desc|history_table_schema|history_table_name|is_tracked_by_cdc|row_count
+-------------|-----------|-----------|-----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|-------------|------------------|--------------------|------------------|-----------------|---------
+llm_i8|USER_TABLE|dbo|customer|1|customer_id|int|4|10|0|0|0|0|0|NON_TEMPORAL_TABLE|NULL|NULL|0|99
+llm_i8|USER_TABLE|dbo|customer|2|full_name|nvarchar|200|0|0|0|0|0|0|NON_TEMPORAL_TABLE|NULL|NULL|0|99
+llm_i8|USER_TABLE|dbo|customer|3|email|nvarchar|400|0|0|0|0|0|0|NON_TEMPORAL_TABLE|NULL|NULL|0|99
+llm_i8|USER_TABLE|dbo|customer|4|phone|nvarchar|60|0|0|1|0|0|0|NON_TEMPORAL_TABLE|NULL|NULL|0|99
+(4 rows affected)

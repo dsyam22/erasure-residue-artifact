@@ -1,0 +1,54 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(500) NOT NULL,
+    rows_found int NOT NULL
+);
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+DECLARE @schema sysname, @table sysname, @fullname nvarchar(500), @sql nvarchar(max);
+
+DECLARE hist_cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, ht.name
+FROM sys.tables AS t
+JOIN sys.tables AS ht ON t.history_table_id = ht.object_id
+JOIN sys.schemas AS s ON ht.schema_id = s.schema_id
+WHERE t.object_id IN (OBJECT_ID(N'dbo.customer'), OBJECT_ID(N'dbo.member'));
+
+OPEN hist_cur;
+FETCH NEXT FROM hist_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @fullname = @schema + N'.' + @table;
+    SET @sql = N'INSERT INTO #results (object_name, rows_found)
+SELECT @objname, COUNT(*)
+FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+WHERE full_name = N''Subject_0000042''
+   OR email = N''subject42@example.invalid''
+   OR phone = N''+1-555-0000042'';';
+
+    EXEC sys.sp_executesql @sql, N'@objname nvarchar(500)', @objname = @fullname;
+
+    FETCH NEXT FROM hist_cur INTO @schema, @table;
+END
+
+CLOSE hist_cur;
+DEALLOCATE hist_cur;
+
+SELECT object_name, rows_found FROM #results ORDER BY object_name;
+
+DROP TABLE #results;

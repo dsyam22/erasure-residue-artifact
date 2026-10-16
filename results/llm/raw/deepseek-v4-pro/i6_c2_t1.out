@@ -1,0 +1,37 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(0 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+cdc.captured_columns.column_name|0
+cdc.captured_columns.column_type|0
+cdc.captured_columns.masking_function|0
+cdc.change_tables.capture_instance|0
+cdc.change_tables.filegroup_name|0
+cdc.change_tables.index_name|0
+cdc.change_tables.role_name|0
+cdc.dbo_customer_CT|1
+cdc.ddl_history.ddl_command|0
+cdc.index_columns.column_name|0
+dbo.customer|0
+
+(11 rows affected)

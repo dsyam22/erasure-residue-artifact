@@ -1,0 +1,6 @@
+table_name|COLUMN_NAME
+----------|-----------
+dbo.customer|customer_id
+dbo.customer|full_name
+dbo.customer|email
+(3 rows affected)

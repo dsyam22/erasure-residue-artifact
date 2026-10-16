@@ -1,0 +1,31 @@
+
+(1 rows affected)
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 1
+Incorrect syntax near the keyword 'TABLE'.
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+Msg 1087, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the table variable "@results".
+dbo.customer|0
+
+(1 rows affected)

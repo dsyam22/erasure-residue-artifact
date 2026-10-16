@@ -1,0 +1,61 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #subject_patterns (v nvarchar(200) NOT NULL);
+INSERT INTO #subject_patterns (v) VALUES
+    (N'Subject_0000042'),
+    (N'subject42@example.invalid'),
+    (N'+1-555-0000042');
+
+CREATE TABLE #scan_results (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema_name sysname, @table_name sysname, @object_id int;
+DECLARE @objname nvarchar(300), @cond nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE table_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN table_cur;
+FETCH NEXT FROM table_cur INTO @schema_name, @table_name, @object_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @cond = NULL;
+    SET @cnt = 0;
+    SET @objname = CAST(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) AS nvarchar(300));
+    -- strip brackets for display
+    SET @objname = CAST(@schema_name + N'.' + @table_name AS nvarchar(300));
+
+    -- Build a predicate: any string column contains any subject pattern
+    SELECT @cond = STRING_AGG(
+            CAST(N'CHARINDEX(N''' + REPLACE(p.v, N'''', N'''''') + N''', '
+                 + QUOTENAME(c.name) + N' COLLATE Latin1_General_100_CI_AI) > 0' AS nvarchar(max)),
+            N' OR ')
+    FROM sys.columns AS c
+    CROSS JOIN #subject_patterns AS p
+    WHERE c.object_id = @object_id
+      AND c.system_type_id IN (167, 175, 231, 239);  -- varchar, char, nvarchar, nchar
+
+    IF @cond IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)
+                 + N' WHERE ' + @cond + N';';
+        EXEC sys.sp_executesql @sql, N'@n bigint OUTPUT', @n = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan_results (object_name, rows_found) VALUES (@objname, @cnt);
+
+    FETCH NEXT FROM table_cur INTO @schema_name, @table_name, @object_id;
+END
+
+CLOSE table_cur;
+DEALLOCATE table_cur;
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;

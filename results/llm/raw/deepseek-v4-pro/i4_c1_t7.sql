@@ -1,0 +1,24 @@
+DECLARE @results TABLE (object_name nvarchar(255), rows_found int);
+
+-- Check dbo.customer for original personal data
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (full_name = 'Subject_0000042'
+       OR email = 'subject42@example.invalid'
+       OR phone = '+1-555-0000042');
+
+-- Check dbo.member for original personal data
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = 42
+  AND (full_name = 'Subject_0000042'
+       OR email = 'subject42@example.invalid'
+       OR phone = '+1-555-0000042');
+
+-- Return exactly one result set
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

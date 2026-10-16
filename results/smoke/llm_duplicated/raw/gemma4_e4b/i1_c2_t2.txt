@@ -1,0 +1,29 @@
+```sql
+DECLARE @customer_count INT;
+DECLARE @cdc_history_count INT;
+
+-- Check the current dbo.customer table
+SELECT @customer_count = COUNT(1)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND full_name = 'Subject_0000042'
+  AND email = 'subject42@example.invalid'
+  AND phone = '+1-555-0000042';
+
+-- Check the CDC history table (cdc.dbo_customer_CT)
+SELECT @cdc_history_count = COUNT(1)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42
+  AND full_name = 'Subject_0000042'
+  AND email = 'subject42@example.invalid'
+  AND phone = '+1-555-0000042';
+
+-- Return the results in the required single result set format
+SELECT 
+    CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+    @customer_count AS rows_found
+UNION ALL
+SELECT 
+    CAST('cdc.dbo_customer_CT' AS NVARCHAR(128)),
+    @cdc_history_count;
+```

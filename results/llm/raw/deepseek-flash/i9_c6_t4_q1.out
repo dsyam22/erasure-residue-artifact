@@ -1,0 +1,9 @@
+table_name|column_name|data_type
+----------|-----------|---------
+customer|full_name|nvarchar
+customer|email|nvarchar
+customer|phone|nvarchar
+customer_history|full_name|nvarchar
+customer_history|email|nvarchar
+customer_history|phone|nvarchar
+(6 rows affected)

@@ -1,0 +1,67 @@
+SET NOCOUNT ON;
+
+-- Subject's original personal data (read-only check)
+DECLARE @fn nvarchar(4000) = N'Subject_0000042';
+DECLARE @em nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(4000) = N'+1-555-0000042';
+DECLARE @id int = 42;
+
+DECLARE @results TABLE (object_name nvarchar(260) NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @schema sysname, @table sysname, @oid int, @obj nvarchar(260);
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = @schema + N'.' + @table;
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build predicate: any character column equal to a原 value, or customer_id = 42
+    SELECT @pred = STRING_AGG(CONVERT(nvarchar(max), x.p), N' OR ')
+    FROM (
+        SELECT QUOTENAME(c.name) + N' IN (@fn, @em, @ph)' AS p
+        FROM sys.columns AS c
+        WHERE c.object_id = @oid
+          AND c.system_type_id IN (167, 175, 231, 239)  -- varchar, char, nvarchar, nchar
+        UNION ALL
+        SELECT QUOTENAME(c.name) + N' = @id'
+        FROM sys.columns AS c
+        WHERE c.object_id = @oid
+          AND c.name = N'customer_id'
+          AND c.system_type_id = 56                     -- int
+    ) AS x;
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@fn nvarchar(4000), @em nvarchar(4000), @ph nvarchar(4000), @id int, @c bigint OUTPUT',
+             @fn = @fn, @em = @em, @ph = @ph, @id = @id, @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO @results (object_name, rows_found) VALUES (@obj, @cnt);
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

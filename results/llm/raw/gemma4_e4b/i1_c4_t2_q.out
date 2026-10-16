@@ -1,0 +1,15 @@
+TableName|ColumnName|DataType|MaxLength|IsNullable
+---------|----------|--------|---------|----------
+customer|customer_id|int|4|0
+customer|full_name|nvarchar|200|0
+customer|email|nvarchar|400|0
+customer|phone|nvarchar|60|1
+systranschemas|tabid|int|4|0
+systranschemas|startlsn|binary|10|0
+systranschemas|endlsn|binary|10|0
+systranschemas|typeid|int|4|0
+(8 rows affected)
+object_id|name|index_id|type|type_desc|is_unique|data_space_id|ignore_dup_key|is_primary_key|is_unique_constraint|fill_factor|is_padded|is_disabled|is_hypothetical|is_ignored_in_optimization|allow_row_locks|allow_page_locks|has_filter|filter_definition|compression_delay|suppress_dup_key_messages|auto_created|optimize_for_sequential_key
+---------|----|--------|----|---------|---------|-------------|--------------|--------------|--------------------|-----------|---------|-----------|---------------|--------------------------|---------------|----------------|----------|-----------------|-----------------|-------------------------|------------|---------------------------
+901578250|PK__customer__CD65CB8586DFDB6E|1|1|CLUSTERED|1|1|0|1|0|0|0|0|0|0|1|1|0|NULL|NULL|0|0|0
+(1 rows affected)

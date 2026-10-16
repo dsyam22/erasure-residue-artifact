@@ -1,0 +1,51 @@
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @mid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+-- dbo.customer current
+INSERT @results
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE (customer_id = @cid OR full_name = @name OR email = @email OR phone = @phone)
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+-- dbo.member current
+INSERT @results
+SELECT 'dbo.member',
+       COUNT(*)
+FROM dbo.member
+WHERE (member_id = @mid OR full_name = @name OR email = @email OR phone = @phone)
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+-- dbo.member_history (temporal history)
+INSERT @results
+SELECT 'dbo.member_history',
+       COUNT(*)
+FROM dbo.member_history
+WHERE (member_id = @mid OR full_name = @name OR email = @email OR phone = @phone)
+  AND (full_name = @name OR email = @email OR phone = @phone);
+
+-- CDC change table for dbo.customer
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT @results
+    SELECT 'cdc.dbo_customer_CT',
+           COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE (customer_id = @cid OR full_name = @name OR email = @email OR phone = @phone)
+      AND (full_name = @name OR email = @email OR phone = @phone);
+END
+ELSE
+BEGIN
+    INSERT @results SELECT 'cdc.dbo_customer_CT', 0;
+END
+
+SELECT object_name, rows_found
+FROM @results;

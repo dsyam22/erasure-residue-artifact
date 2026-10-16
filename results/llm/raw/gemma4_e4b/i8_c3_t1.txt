@@ -1,0 +1,23 @@
+```sql
+WITH SearchResults AS (
+    -- 1. Check the primary table where data was deleted
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(*) AS row_count
+    FROM
+        dbo.customer
+    WHERE
+        full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+)
+-- Combine results into the required single output set
+SELECT
+    object_name,
+    ISNULL(row_count, 0) AS rows_found
+FROM
+    SearchResults
+
+-- Note: Given that CDC is disabled (cdc_enabled=0) and the table is non-temporal,
+-- no system checks for cdc history or temporal history are required/possible.
+```

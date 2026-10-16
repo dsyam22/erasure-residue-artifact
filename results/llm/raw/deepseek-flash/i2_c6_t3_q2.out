@@ -1,0 +1,5 @@
+schema_name|object_name|object_type
+-----------|-----------|-----------
+dbo|customer|USER_TABLE
+dbo|customer_history|USER_TABLE
+(2 rows affected)

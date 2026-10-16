@@ -1,0 +1,19 @@
+```sql
+-- SCRIPT
+SELECT object_name, rows_found
+FROM (
+    SELECT CAST(N'dbo.customer' AS nvarchar(256)) AS object_name,
+           CAST(0 AS int) AS rows_found   -- phone column was dropped, so no phone values can be stored here
+    UNION ALL
+    SELECT CAST(N'cdc.dbo_customer_CT' AS nvarchar(256)),
+           CAST(COUNT(*) AS int)
+    FROM cdc.dbo_customer_CT
+    WHERE phone = N'+1-555-0000042'
+    UNION ALL
+    SELECT CAST(N'cdc.ddl_history' AS nvarchar(256)),
+           CAST(COUNT(*) AS int)
+    FROM cdc.ddl_history
+    WHERE ddl_command LIKE N'%+1-555-0000042%'
+) AS results
+ORDER BY object_name;
+```

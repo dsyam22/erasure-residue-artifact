@@ -1,0 +1,73 @@
+```sql
+-- SCRIPT
+-- Checks the accessible, current logical contents of the discovered tables.
+-- Only the original phone number is in scope; retained names/emails are not hits.
+-- Each matching row is counted once, even if multiple columns contain the phone.
+-- This does not establish erasure from backups, transaction logs, or deallocated pages.
+
+SELECT N'dbo.customer' AS object_name, COUNT_BIG(*) AS rows_found
+FROM [llm_i6].[dbo].[customer] AS t
+WHERE EXISTS
+(
+    SELECT 1
+    FROM (VALUES (t.full_name), (t.email)) AS v(value)
+    WHERE CHARINDEX(N'+1-555-0000042', v.value) > 0
+)
+
+UNION ALL
+
+-- Scan the raw CDC table, including all operations and retained history.
+SELECT N'cdc.dbo_customer_CT', COUNT_BIG(*)
+FROM [llm_i6].[cdc].[dbo_customer_CT] AS t
+WHERE EXISTS
+(
+    SELECT 1
+    FROM (VALUES (t.full_name), (t.email), (t.phone)) AS v(value)
+    WHERE CHARINDEX(N'+1-555-0000042', v.value) > 0
+)
+
+UNION ALL
+
+SELECT N'cdc.captured_columns', COUNT_BIG(*)
+FROM [llm_i6].[cdc].[captured_columns] AS t
+WHERE EXISTS
+(
+    SELECT 1
+    FROM (VALUES
+        (CONVERT(nvarchar(max), t.column_name)),
+        (CONVERT(nvarchar(max), t.column_type)),
+        (CONVERT(nvarchar(max), t.masking_function))
+    ) AS v(value)
+    WHERE CHARINDEX(N'+1-555-0000042', v.value) > 0
+)
+
+UNION ALL
+
+SELECT N'cdc.change_tables', COUNT_BIG(*)
+FROM [llm_i6].[cdc].[change_tables] AS t
+WHERE EXISTS
+(
+    SELECT 1
+    FROM (VALUES
+        (CONVERT(nvarchar(max), t.capture_instance)),
+        (CONVERT(nvarchar(max), t.role_name)),
+        (CONVERT(nvarchar(max), t.index_name)),
+        (CONVERT(nvarchar(max), t.filegroup_name))
+    ) AS v(value)
+    WHERE CHARINDEX(N'+1-555-0000042', v.value) > 0
+)
+
+UNION ALL
+
+SELECT N'cdc.ddl_history', COUNT_BIG(*)
+FROM [llm_i6].[cdc].[ddl_history] AS t
+WHERE CHARINDEX(N'+1-555-0000042', t.ddl_command) > 0
+
+UNION ALL
+
+SELECT N'cdc.index_columns', COUNT_BIG(*)
+FROM [llm_i6].[cdc].[index_columns] AS t
+WHERE CHARINDEX(N'+1-555-0000042', t.column_name) > 0
+
+ORDER BY object_name;
+```

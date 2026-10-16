@@ -1,0 +1,65 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #results
+(
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+-- Live table: rows still holding the erased subject's data
+INSERT INTO #results (object_name, rows_found)
+SELECT
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR email     = N'subject42@example.invalid'
+   OR phone     = N'+1-555-0000042'
+   OR full_name = N'Subject_0000042';
+
+-- CDC change tables: captured history may still hold the original values
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    DECLARE @capture_instance sysname;
+    DECLARE @ct_name nvarchar(300);
+    DECLARE @sql nvarchar(max);
+    DECLARE @n bigint;
+
+    DECLARE cdc_cursor CURSOR LOCAL FAST_FORWARD FOR
+        SELECT capture_instance
+        FROM cdc.change_tables;
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @capture_instance;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @ct_name = N'cdc.' + QUOTENAME(@capture_instance + N'_CT');
+        SET @sql = N'SELECT @n_out = COUNT(*) FROM ' + @ct_name + N'
+                     WHERE customer_id = 42
+                        OR email     = N''subject42@example.invalid''
+                        OR phone     = N''+1-555-0000042''
+                        OR full_name = N''Subject_0000042'';';
+
+        SET @n = 0;
+        EXEC sp_executesql @sql, N'@n_out bigint OUTPUT', @n_out = @n OUTPUT;
+
+        INSERT INTO #results (object_name, rows_found)
+        VALUES (N'cdc.' + @capture_instance + N'_CT', ISNULL(@n, 0));
+
+        FETCH NEXT FROM cdc_cursor INTO @capture_instance;
+    END
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+SELECT
+    object_name,
+    rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

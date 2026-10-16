@@ -1,0 +1,73 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @v1 nvarchar(200) = N'Subject_0000042';
+DECLARE @v2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @v3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #scan
+(
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema  sysname,
+        @table   sysname,
+        @objid   int,
+        @full    nvarchar(300),
+        @pred    nvarchar(max),
+        @sql     nvarchar(max),
+        @cnt     bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @objid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @full = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred = NULL;
+    SET @cnt  = 0;
+
+    SELECT @pred = STRING_AGG(
+               CAST(N'(CHARINDEX(@p1, ' + QUOTENAME(c.name) + N') > 0 OR '
+                  + N'CHARINDEX(@p2, ' + QUOTENAME(c.name) + N') > 0 OR '
+                  + N'CHARINDEX(@p3, ' + QUOTENAME(c.name) + N') > 0)' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @objid
+      AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + @full
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sp_executesql
+             @sql,
+             N'@p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200), @cnt bigint OUTPUT',
+             @p1 = @v1, @p2 = @v2, @p3 = @v3, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @objid;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+
+DROP TABLE #scan;
+```

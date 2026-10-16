@@ -1,0 +1,70 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @fn nvarchar(100) = N'Subject_0000042',
+        @em nvarchar(255) = N'subject42@example.invalid',
+        @ph nvarchar(50)  = N'+1-555-0000042',
+        @subject_id int   = 42;
+
+CREATE TABLE #results
+(
+    object_name sysname NOT NULL PRIMARY KEY,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @obj_q nvarchar(300), @obj_name nvarchar(300), @obj_id int,
+        @pred nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name),
+           s.name + N'.' + t.name,
+           t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @obj_q, @obj_name, @obj_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    -- Character columns (varchar, nvarchar, char, nchar) compared to the subject's original values
+    SELECT @pred = STRING_AGG(CAST(QUOTENAME(c.name) + N' IN (@fn, @em, @ph)' AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = @obj_id
+      AND c.system_type_id IN (167, 175, 231, 239);
+
+    -- Integer customer_id equal to the subject's id
+    IF EXISTS (SELECT 1 FROM sys.columns AS c
+               WHERE c.object_id = @obj_id AND c.name = N'customer_id' AND c.system_type_id = 56)
+    BEGIN
+        SET @pred = CASE WHEN @pred IS NULL
+                         THEN N'[customer_id] = @subject_id'
+                         ELSE @pred + N' OR [customer_id] = @subject_id' END;
+    END;
+
+    SET @n = 0;
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n_out = COUNT_BIG(*) FROM ' + @obj_q + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql
+             @sql,
+             N'@fn nvarchar(100), @em nvarchar(255), @ph nvarchar(50), @subject_id int, @n_out bigint OUTPUT',
+             @fn = @fn, @em = @em, @ph = @ph, @subject_id = @subject_id, @n_out = @n OUTPUT;
+    END;
+
+    INSERT INTO #results (object_name, rows_found) VALUES (@obj_name, ISNULL(@n, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @obj_q, @obj_name, @obj_id;
+END;
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

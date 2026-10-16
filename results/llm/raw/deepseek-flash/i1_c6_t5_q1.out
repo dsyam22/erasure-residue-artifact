@@ -1,0 +1,8 @@
+object_name|column_name|data_type
+-----------|-----------|---------
+captured_columns|object_id|int
+captured_columns|column_name|sysname
+captured_columns|column_id|int
+captured_columns|column_type|sysname
+captured_columns|column_ordinal|int
+(5 rows affected)

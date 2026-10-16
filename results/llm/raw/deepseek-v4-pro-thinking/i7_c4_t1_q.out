@@ -1,0 +1,32 @@
+database_name|server_name|inspected_at
+-------------|-----------|------------
+llm_i7|651334c31df8|2026-10-13 21:28:12.970
+(1 rows affected)
+schema_name|table_name|object_id|row_count|temporal_type|temporal_type_desc|history_table_id|history_table_name
+-----------|----------|---------|---------|-------------|------------------|----------------|------------------
+dbo|customer|901578250|99|0|NON_TEMPORAL_TABLE|NULL|NULL
+reporting|customer_replica|933578364|100|0|NON_TEMPORAL_TABLE|NULL|NULL
+(2 rows affected)
+schema_name|table_name|table_object_id|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_computed|is_identity|generated_always_type|generated_always_type_desc|computed_column_definition
+-----------|----------|---------------|---------|-----------|---------|----------|---------|-----|-----------|-----------|-----------|---------------------|--------------------------|--------------------------
+dbo|customer|901578250|1|customer_id|int|4|10|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|901578250|2|full_name|nvarchar|200|0|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|901578250|3|email|nvarchar|400|0|0|0|0|0|0|NOT_APPLICABLE|NULL
+dbo|customer|901578250|4|phone|nvarchar|60|0|0|1|0|0|0|NOT_APPLICABLE|NULL
+reporting|customer_replica|933578364|1|customer_id|int|4|10|0|0|0|0|0|NOT_APPLICABLE|NULL
+reporting|customer_replica|933578364|2|full_name|nvarchar|200|0|0|0|0|0|0|NOT_APPLICABLE|NULL
+reporting|customer_replica|933578364|3|email|nvarchar|400|0|0|0|0|0|0|NOT_APPLICABLE|NULL
+reporting|customer_replica|933578364|4|phone|nvarchar|60|0|0|1|0|0|0|NOT_APPLICABLE|NULL
+(8 rows affected)
+foreign_key_name|parent_schema|parent_table|parent_column|referenced_schema|referenced_table|referenced_column|delete_referential_action_desc|update_referential_action_desc
+----------------|-------------|------------|-------------|-----------------|----------------|-----------------|------------------------------|------------------------------
+(0 rows affected)
+schema_name|object_name|type_desc|definition|parent_id|trigger_parent_schema|trigger_parent_table
+-----------|-----------|---------|----------|---------|---------------------|--------------------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|default_constraint_name|definition
+-----------|----------|-----------------------|----------
+(0 rows affected)

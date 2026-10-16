@@ -1,0 +1,67 @@
+```sql
+SET NOCOUNT ON;
+
+/*
+Read-only erasure verification for subject customer_id 42.
+Searches every user table (including temporal history tables) in every
+character-type column for the subject's original name, email and phone.
+Returns one row per table checked; rows_found = 0 where nothing was found.
+*/
+
+CREATE TABLE #scan
+(
+    object_name nvarchar(300) NOT NULL PRIMARY KEY,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj nvarchar(300),
+        @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build one OR-predicate per character column, matching any of the three personal values
+    SELECT @pred = STRING_AGG(
+        CAST(
+            N'(' +
+            N'CHARINDEX(N''Subject_0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0 OR ' +
+            N'CHARINDEX(N''subject42@example.invalid'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0 OR ' +
+            N'CHARINDEX(N''+1-555-0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) COLLATE Latin1_General_CI_AS) > 0' +
+            N')'
+            AS nvarchar(max)),
+        N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@obj)
+      AND c.system_type_id IN (167, 175, 231, 239);  -- varchar, char, nvarchar, nchar
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan (object_name, rows_found)
+    VALUES (@obj, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan
+ORDER BY object_name;
+```

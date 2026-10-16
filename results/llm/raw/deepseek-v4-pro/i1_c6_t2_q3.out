@@ -1,0 +1,17 @@
+schema_name|table_name|column_name|is_cdc_enabled
+-----------|----------|-----------|--------------
+cdc|dbo_customer_CT|__$command_id|NULL
+cdc|dbo_customer_CT|__$end_lsn|NULL
+cdc|dbo_customer_CT|__$operation|NULL
+cdc|dbo_customer_CT|__$seqval|NULL
+cdc|dbo_customer_CT|__$start_lsn|NULL
+cdc|dbo_customer_CT|__$update_mask|NULL
+cdc|dbo_customer_CT|customer_id|NULL
+cdc|dbo_customer_CT|email|NULL
+cdc|dbo_customer_CT|full_name|NULL
+cdc|dbo_customer_CT|phone|NULL
+dbo|customer|customer_id|NULL
+dbo|customer|email|NULL
+dbo|customer|full_name|NULL
+dbo|customer|phone|NULL
+(14 rows affected)

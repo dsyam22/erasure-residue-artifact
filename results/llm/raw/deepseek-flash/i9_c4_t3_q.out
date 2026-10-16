@@ -1,0 +1,21 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable|column_id
+-----------|----------|-----------|---------|----------|-----------|---------
+dbo|customer|customer_id|int|4|0|1
+dbo|customer|full_name|nvarchar|200|0|2
+dbo|customer|email|nvarchar|400|0|3
+dbo|customer|phone|nvarchar|60|1|4
+dbo|customer|valid_from|datetime2|8|0|5
+dbo|customer|valid_to|datetime2|8|0|6
+(6 rows affected)
+index_name|type_desc|is_unique|column_name
+----------|---------|---------|-----------
+PK__customer__CD65CB85A4ACD6EC|CLUSTERED|1|customer_id
+(1 rows affected)
+schema_name|object_name|view_name|type_desc
+-----------|-----------|---------|---------
+(0 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|customer_history|USER_TABLE
+(2 rows affected)

@@ -1,0 +1,5 @@
+dbo.customer|1
+cdc_change_table_check|0
+downstream_copies_check|0
+
+(3 rows affected)

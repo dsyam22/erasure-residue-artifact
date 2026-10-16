@@ -1,0 +1,6 @@
+dbo.customer|0
+System CDC (Disabled)|0
+System Temporal History (Non-Temporal)|0
+Transaction Log (Forensic View)|0
+
+(4 rows affected)

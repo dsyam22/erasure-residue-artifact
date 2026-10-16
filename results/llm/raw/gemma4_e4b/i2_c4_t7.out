@@ -1,0 +1,8 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 61
+Incorrect syntax near ')'.
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 62
+Incorrect syntax near the keyword 'AND'.
+Msg 156, Level 15, State 1, Server 651334c31df8, Line 63
+Incorrect syntax near the keyword 'AND'.
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 67
+Incorrect syntax near ' + name + '.

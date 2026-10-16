@@ -1,0 +1,4 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 23
+Invalid column name 'is_ledger_table'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 13
+Invalid column name 'is_ledger_table'.

@@ -1,0 +1,28 @@
+SELECT
+    T1.object_name,
+    T1.rows_found
+FROM
+(
+    -- Check dbo.customer (Although deleted, we check residual copies)
+    SELECT
+        'dbo.customer' AS object_name,
+        CAST((SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42 OR full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042') AS INT) AS rows_found
+    UNION ALL
+
+    -- Check CDC Change Tracking Table for dbo.customer
+    SELECT
+        'cdc.dbo_customer_CT' AS object_name,
+        CAST((SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE customer_id = 42 OR full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042') AS INT) AS rows_found
+    UNION ALL
+
+    -- Check dbo.member (Main table)
+    SELECT
+        'dbo.member' AS object_name,
+        CAST((SELECT COUNT(*) FROM dbo.member WHERE member_id = 42 OR full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042') AS INT) AS rows_found
+    UNION ALL
+
+    -- Check dbo.member_history (Temporal History Table)
+    SELECT
+        'dbo.member_history' AS object_name,
+        CAST((SELECT COUNT(*) FROM dbo.member_history WHERE member_id = 42 OR full_name = 'Subject_0000042' OR email = 'subject42@example.invalid' OR phone = '+1-555-0000042') AS INT) AS rows_found
+) AS T1;

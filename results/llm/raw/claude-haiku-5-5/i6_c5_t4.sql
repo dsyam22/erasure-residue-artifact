@@ -1,0 +1,36 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @p nvarchar(100) = N'%+1-555-0000042%';
+DECLARE @sql nvarchar(max) = N'';
+
+CREATE TABLE #r (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  int           NOT NULL
+);
+
+SELECT @sql += N'INSERT INTO #r (object_name, rows_found) SELECT N'
+    + QUOTENAME(s.name + N'.' + t.name, N'''')
+    + N', COUNT(*) FROM ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    + CASE WHEN x.cond IS NULL
+           THEN N' WHERE 1 = 0;'
+           ELSE N' WHERE ' + x.cond + N';'
+      END + CHAR(10)
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+OUTER APPLY (
+    SELECT STRING_AGG(CAST(QUOTENAME(c.name) + N' LIKE @p' AS nvarchar(max)), N' OR ') AS cond
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = t.object_id
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext')
+) AS x;
+
+IF @sql <> N''
+    EXEC sys.sp_executesql @sql, N'@p nvarchar(100)', @p = @p;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;
+
+DROP TABLE #r;

@@ -1,0 +1,54 @@
+SELECT object_name, rows_found
+FROM (
+    SELECT 'cdc.dbo_customer_CT' AS object_name,
+           COUNT(*) AS rows_found
+    FROM cdc.dbo_customer_CT
+    WHERE phone = '+1-555-0000042'
+       OR phone LIKE '%555-0000042%'
+       OR phone LIKE '%5550000042%'
+
+    UNION ALL
+
+    SELECT 'dbo.customer',
+           COUNT(*)
+    FROM dbo.customer
+    WHERE full_name LIKE '%555-0000042%'
+       OR email LIKE '%555-0000042%'
+
+    UNION ALL
+
+    SELECT 'cdc.ddl_history',
+           COUNT(*)
+    FROM cdc.ddl_history
+    WHERE ddl_command LIKE '%555-0000042%'
+       OR ddl_command LIKE '%5550000042%'
+
+    UNION ALL
+
+    SELECT 'cdc.captured_columns',
+           COUNT(*)
+    FROM cdc.captured_columns
+    WHERE column_name LIKE '%555-0000042%'
+
+    UNION ALL
+
+    SELECT 'cdc.change_tables',
+           COUNT(*)
+    FROM cdc.change_tables
+    WHERE capture_instance LIKE '%555-0000042%'
+
+    UNION ALL
+
+    SELECT 'cdc.index_columns',
+           COUNT(*)
+    FROM cdc.index_columns
+    WHERE column_name LIKE '%555-0000042%'
+
+    UNION ALL
+
+    SELECT 'dbo.systranschemas',
+           COUNT(*)
+    FROM dbo.systranschemas
+    WHERE CAST(tabid AS nvarchar(4000)) LIKE '%555-0000042%'
+) AS checks
+ORDER BY object_name;

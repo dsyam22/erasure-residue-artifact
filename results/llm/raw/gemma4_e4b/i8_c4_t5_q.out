@@ -1,0 +1,13 @@
+COLUMN_NAME|DATA_TYPE|CHARACTER_MAXIMUM_LENGTH|IS_NULLABLE
+-----------|---------|------------------------|-----------
+customer_id|int|NULL|NO
+full_name|nvarchar|100|NO
+email|nvarchar|200|NO
+phone|nvarchar|30|YES
+(4 rows affected)
+TABLE_SCHEMA|TABLE_NAME
+------------|----------
+dbo|customer
+(1 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 26
+Invalid object name 'sys_objects'.

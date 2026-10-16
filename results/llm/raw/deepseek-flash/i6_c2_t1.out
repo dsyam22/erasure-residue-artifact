@@ -1,0 +1,7 @@
+
+(1 rows affected)
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 1
+Must declare the scalar variable "@p".
+dbo.customer|0
+
+(1 rows affected)

@@ -1,0 +1,33 @@
+WITH CheckResults AS (
+    -- 1. Check the current state of dbo.customer
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(customer_id) AS rows_found
+    FROM
+        dbo.customer
+    WHERE
+        customer_id = 42
+        OR full_name LIKE 'Subject_0000042%'
+        OR email LIKE 'subject42@example.invalid'
+        OR phone LIKE '+1-555-0000042%'
+
+    UNION ALL
+
+    -- 2. Check the temporal history table (dbo.customer_history)
+    SELECT
+        'dbo.customer_history' AS object_name,
+        COUNT(customer_id) AS rows_found
+    FROM
+        dbo.customer_history
+    WHERE
+        customer_id = 42
+        OR full_name LIKE 'Subject_0000042%'
+        OR email LIKE 'subject42@example.invalid'
+        OR phone LIKE '+1-555-0000042%'
+)
+
+SELECT
+    object_name,
+    rows_found
+FROM
+    CheckResults;

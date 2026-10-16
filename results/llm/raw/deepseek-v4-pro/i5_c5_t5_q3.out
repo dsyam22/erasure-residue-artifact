@@ -1,0 +1,5 @@
+table_name|has_customer_id_int|has_full_name_nvarchar|has_email_nvarchar|has_phone_nvarchar
+----------|-------------------|----------------------|------------------|------------------
+customer|1|1|1|1
+customer_history|1|1|1|1
+(2 rows affected)

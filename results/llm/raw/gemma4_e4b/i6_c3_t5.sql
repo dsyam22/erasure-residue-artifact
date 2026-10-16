@@ -1,0 +1,5 @@
+SELECT 'dbo.customer' AS object_name, 0 AS rows_found
+UNION ALL
+SELECT 'cdc.dbo_customer_CT' AS object_name, COUNT(CASE WHEN [phone] = '+1-555-0000042' THEN 1 END)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42;

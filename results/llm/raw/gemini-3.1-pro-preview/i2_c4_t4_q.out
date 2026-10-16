@@ -1,0 +1,15 @@
+table_name|temporal_type_desc|history_table_name|history_schema_name
+----------|------------------|------------------|-------------------
+customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|customer_history|dbo
+(1 rows affected)
+schema_name|table_name|column_name
+-----------|----------|-----------
+dbo|customer|customer_id
+dbo|customer|full_name
+dbo|customer|email
+dbo|customer|phone
+dbo|customer_history|customer_id
+dbo|customer_history|full_name
+dbo|customer_history|email
+dbo|customer_history|phone
+(8 rows affected)

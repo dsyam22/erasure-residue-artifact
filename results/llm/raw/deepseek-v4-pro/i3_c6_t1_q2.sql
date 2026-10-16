@@ -1,0 +1,7 @@
+-- QUERY
+SELECT t.name AS table_name, c.name AS column_name, ty.name AS type_name, c.max_length, c.is_nullable
+FROM sys.tables t
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+WHERE t.name IN ('customer','member','member_history','dbo_customer_CT','captured_columns','change_tables','ddl_history','index_columns','lsn_time_mapping','systranschemas')
+ORDER BY t.name, c.column_id;

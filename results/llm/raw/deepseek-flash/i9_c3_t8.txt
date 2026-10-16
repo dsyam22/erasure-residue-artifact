@@ -1,0 +1,81 @@
+```sql
+/* Read-only verification of residual personal data for customer_id 42.
+   Returns exactly one result set: object_name, rows_found. */
+
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @fn nvarchar(200) = N'Subject_0000042';
+DECLARE @em nvarchar(200) = N'subject42@example.invalid';
+DECLARE @ph nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+/* 1) Current table */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+/* 2) Temporal history table (SYSTEM_VERSIONED, INFINITE retention) */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer_history',
+       COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @fn
+   OR email = @em
+   OR phone = @ph;
+
+/* 3) CDC change tables, if CDC is enabled on the database */
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = DB_NAME() AND is_cdc_enabled = 1)
+BEGIN
+    DECLARE @cdc_sql nvarchar(max) = N'';
+    SELECT @cdc_sql = @cdc_sql + N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT ''cdc.'' + ct.capture_instance,
+               COUNT(*)
+        FROM cdc.' + QUOTENAME(ct.capture_instance) + N' AS c
+        WHERE c.customer_id = @cid
+           OR c.full_name = @fn
+           OR c.email = @em
+           OR c.phone = @ph;'
+    FROM cdc.change_tables AS ct
+    INNER JOIN sys.tables AS t
+        ON t.object_id = ct.source_object_id
+    WHERE t.name = 'customer'
+      AND SCHEMA_NAME(t.schema_id) = 'dbo';
+
+    IF @cdc_sql <> N''
+        EXEC sp_executesql @cdc_sql,
+             N'@cid int, @fn nvarchar(200), @em nvarchar(200), @ph nvarchar(200), @results TABLE (object_name sysname, rows_found bigint) READONLY',
+             @cid, @fn, @em, @ph, @results;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    VALUES ('cdc.dbo_customer_CT (CDC disabled)', 0);
+END
+
+/* 4) Change tracking side table, if change tracking is enabled on the table */
+IF EXISTS (SELECT 1 FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID('dbo.customer'))
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT 'sys.change_tracking_42 (dbo.customer)',
+           COUNT(*)
+    FROM sys.dbo_customer_CT
+    WHERE customer_id = @cid;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    VALUES ('sys.change_tracking_42 (dbo.customer)', 0);
+END
+
+SELECT object_name, rows_found
+FROM @results;
+```

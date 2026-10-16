@@ -1,0 +1,7 @@
+SELECT
+    'dbo.customer' AS object_name,
+    CAST(COUNT(1) AS INT) AS rows_found
+UNION ALL
+SELECT
+    'reporting.customer_replica' AS object_name,
+    CAST(COUNT(1) AS INT) AS rows_found;

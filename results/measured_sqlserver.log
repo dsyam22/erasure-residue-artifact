@@ -1,0 +1,973 @@
+=== 2026-10-10T16:53:01Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:53:15Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:53:28Z m2_drift TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1,1,0,100,0,0,1,101
+=== 2026-10-10T16:53:46Z m3_restore TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.030 seconds (204.557 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.021 seconds (292.224 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.017 seconds (360.983 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+RESULT,1,R1_full_default,1,0,0,0,0,0
+RESULT,1,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,1,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,1,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T16:55:01Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:55:13Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,2,1002,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:55:27Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,3,1003,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:55:40Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,4,1004,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:55:55Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,5,1005,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:56:10Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,6,1006,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:56:23Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,7,1007,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:56:37Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,8,1008,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:56:50Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,9,1009,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:57:03Z m1_residue SCALE=1000 METHOD=DELETE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,DELETE,10,1010,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:57:17Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,1,1001,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:57:32Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,2,1002,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:57:47Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,3,1003,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:57:59Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,4,1004,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:58:14Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,5,1005,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:58:28Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,6,1006,1000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T16:58:40Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,7,1007,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:58:55Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,8,1008,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:59:10Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,9,1009,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:59:25Z m1_residue SCALE=1000 METHOD=UPDATE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000,UPDATE,10,1010,1000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T16:59:40Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,1,1001,100000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T16:59:55Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,2,1002,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:00:11Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,3,1003,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:00:26Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,4,1004,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:00:41Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,5,1005,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:00:54Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,6,1006,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:01:08Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,7,1007,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:01:24Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,8,1008,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:01:39Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,9,1009,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:01:51Z m1_residue SCALE=100000 METHOD=DELETE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,DELETE,10,1010,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:02:05Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,1,1001,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:02:20Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,2,1002,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:02:37Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,3,1003,100000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:02:50Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,4,1004,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:03:04Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,5,1005,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:03:18Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,6,1006,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:03:34Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,7,1007,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:03:47Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,8,1008,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:04:02Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,9,1009,100000,100,0,200,100,100,100,100,4320,-1,2,4
+=== 2026-10-10T17:04:15Z m1_residue SCALE=100000 METHOD=UPDATE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,100000,UPDATE,10,1010,100000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:04:31Z m2_drift TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1,1,0,100,0,0,1,101
+=== 2026-10-10T17:04:50Z m2_drift TRIAL=2 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,2,1,0,100,0,0,1,101
+=== 2026-10-10T17:05:09Z m2_drift TRIAL=3 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,3,1,0,100,0,0,1,101
+=== 2026-10-10T17:05:27Z m2_drift TRIAL=4 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,4,1,0,100,0,0,1,101
+=== 2026-10-10T17:05:45Z m2_drift TRIAL=5 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,5,1,0,100,0,0,1,101
+=== 2026-10-10T17:06:04Z m2_drift TRIAL=6 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,6,1,0,100,0,0,1,101
+=== 2026-10-10T17:06:22Z m2_drift TRIAL=7 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,7,1,0,100,0,0,1,101
+=== 2026-10-10T17:06:40Z m2_drift TRIAL=8 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,8,1,0,100,0,0,1,101
+=== 2026-10-10T17:06:59Z m2_drift TRIAL=9 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,9,1,0,100,0,0,1,101
+=== 2026-10-10T17:07:17Z m2_drift TRIAL=10 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,10,1,0,100,0,0,1,101
+=== 2026-10-10T17:07:35Z m3_restore TRIAL=1 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.025 seconds (245.468 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+RESULT,1,R1_full_default,1,0,0,0,0,0
+RESULT,1,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,1,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,1,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:07:58Z m3_restore TRIAL=2 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.022 seconds (278.941 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.015 seconds (409.114 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+RESULT,2,R1_full_default,1,0,0,0,0,0
+RESULT,2,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,2,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,2,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:08:20Z m3_restore TRIAL=3 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.022 seconds (278.941 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+RESULT,3,R1_full_default,1,0,0,0,0,0
+RESULT,3,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,3,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,3,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:08:43Z m3_restore TRIAL=4 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.021 seconds (292.224 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.009 seconds (681.857 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.017 seconds (360.983 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.022 seconds (278.941 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+RESULT,4,R1_full_default,1,0,0,0,0,0
+RESULT,4,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,4,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,4,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:09:05Z m3_restore TRIAL=5 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.025 seconds (245.468 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+RESULT,5,R1_full_default,1,0,0,0,0,0
+RESULT,5,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,5,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,5,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:09:28Z m3_restore TRIAL=6 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.022 seconds (278.941 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (13.281 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (22.135 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (22.135 MB/sec).
+RESULT,6,R1_full_default,1,0,0,0,0,0
+RESULT,6,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,6,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,6,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:09:50Z m3_restore TRIAL=7 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.025 seconds (245.468 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+RESULT,7,R1_full_default,1,0,0,0,0,0
+RESULT,7,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,7,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,7,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:10:12Z m3_restore TRIAL=8 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.025 seconds (245.468 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.003 seconds (22.135 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.015 seconds (409.114 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (22.135 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (16.601 MB/sec).
+RESULT,8,R1_full_default,1,0,0,0,0,0
+RESULT,8,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,8,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,8,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:10:35Z m3_restore TRIAL=9 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.020 seconds (306.835 MB/sec).
+Processed 10 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 10 pages in 0.004 seconds (18.554 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.010 seconds (613.671 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 10 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 10 pages in 0.005 seconds (14.843 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.012 seconds (511.393 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 10 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 10 pages in 0.003 seconds (24.739 MB/sec).
+RESULT,9,R1_full_default,1,0,0,0,0,0
+RESULT,9,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,9,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,9,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:10:57Z m3_restore TRIAL=10 ===
+Changed database context to 'master'.
+Changed database context to 'm_bk'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_bk_capture' started successfully.
+Job 'cdc.m_bk_cleanup' started successfully.
+Processed 784 pages for database 'm_bk', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP DATABASE successfully processed 786 pages in 0.023 seconds (266.813 MB/sec).
+Processed 9 pages for database 'm_bk', file 'm_bk_log' on file 1.
+BACKUP LOG successfully processed 9 pages in 0.005 seconds (14.062 MB/sec).
+Changed database context to 'master'.
+Processed 784 pages for database 'm_bk_r1', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r1', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.015 seconds (409.114 MB/sec).
+Processed 784 pages for database 'm_bk_r2', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r2', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE DATABASE successfully processed 786 pages in 0.013 seconds (472.055 MB/sec).
+Processed 784 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.011 seconds (557.883 MB/sec).
+Processed 0 pages for database 'm_bk_r3', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r3', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.003 seconds (23.437 MB/sec).
+Processed 784 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 2 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+RESTORE DATABASE successfully processed 786 pages in 0.018 seconds (340.928 MB/sec).
+Processed 0 pages for database 'm_bk_r4', file 'm_bk' on file 1.
+Processed 9 pages for database 'm_bk_r4', file 'm_bk_log' on file 1.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+RESTORE LOG successfully processed 9 pages in 0.004 seconds (17.578 MB/sec).
+RESULT,10,R1_full_default,1,0,0,0,0,0
+RESULT,10,R2_full_keep_cdc,1,1,1,1,0,0
+RESULT,10,R3_full_log_stopat,1,0,0,0,0,1
+RESULT,10,R4_full_log_end,0,0,0,0,0,1
+=== 2026-10-10T17:20:23Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,1,1001,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:20:56Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,2,1002,1000000,100,0,200,100,100,100,100,4320,-1,2,0
+=== 2026-10-10T17:21:21Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,3,1003,1000000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:21:52Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,4,1004,1000000,100,0,200,100,100,100,100,4320,-1,2,0
+=== 2026-10-10T17:22:16Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,5,1005,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:22:46Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,6,1006,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:23:15Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,7,1007,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:23:45Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,8,1008,1000000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:24:15Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,9,1009,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:24:43Z m1_residue SCALE=1000000 METHOD=DELETE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,DELETE,10,1010,1000000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:25:13Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=1 SEED=1001 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,1,1001,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:25:41Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=2 SEED=1002 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,2,1002,1000000,100,0,200,100,100,100,100,4320,-1,2,0
+=== 2026-10-10T17:26:06Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=3 SEED=1003 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,3,1003,1000000,100,0,200,100,100,100,100,4320,-1,0,0
+=== 2026-10-10T17:26:33Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=4 SEED=1004 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,4,1004,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:27:03Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=5 SEED=1005 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,5,1005,1000000,100,0,200,100,100,100,100,4320,-1,0,0
+=== 2026-10-10T17:27:26Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=6 SEED=1006 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,6,1006,1000000,100,0,200,100,100,100,100,4320,-1,2,0
+=== 2026-10-10T17:27:52Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=7 SEED=1007 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,7,1007,1000000,100,0,200,100,100,100,100,4320,-1,0,0
+=== 2026-10-10T17:28:15Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=8 SEED=1008 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,8,1008,1000000,100,0,200,100,100,100,100,4320,-1,2,6
+=== 2026-10-10T17:28:45Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=9 SEED=1009 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,9,1009,1000000,100,0,200,100,100,100,100,4320,-1,0,6
+=== 2026-10-10T17:29:14Z m1_residue SCALE=1000000 METHOD=UPDATE TRIAL=10 SEED=1010 ===
+Changed database context to 'master'.
+Changed database context to 'm_trial'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_trial_capture' started successfully.
+Job 'cdc.m_trial_cleanup' started successfully.
+RESULT,1000000,UPDATE,10,1010,1000000,100,0,200,100,100,100,100,4320,-1,2,0

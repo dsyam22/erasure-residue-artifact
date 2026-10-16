@@ -1,0 +1,6 @@
+object_name|matching_rows
+-----------|-------------
+dbo.customer|1
+dbo.member|1
+dbo.member_history|1
+(3 rows affected)

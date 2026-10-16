@@ -1,0 +1,44 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+-- Check every user table / text column in the database for the subject's phone number.
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max), @cnt int;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, c.name
+    FROM sys.columns c
+    JOIN sys.tables t ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE c.system_type_id IN (167, 231, 175, 239)  -- varchar, nvarchar, char, nchar
+      AND t.is_ms_shipped = 0;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'SELECT @c = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE ' + QUOTENAME(@column) + N' LIKE N''%'' + @p + N''%'';';
+    SET @cnt = 0;
+    EXEC sp_executesql @sql, N'@p nvarchar(100), @c int OUTPUT', @p = @phone, @c = @cnt OUTPUT;
+
+    IF @cnt > 0
+        INSERT INTO @results (object_name, rows_found)
+        VALUES (QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'.' + QUOTENAME(@column), @cnt);
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+-- Report the scoped column that was dropped, plus any residual hits.
+SELECT object_name, rows_found
+FROM @results
+UNION ALL
+SELECT 'dbo.customer.phone', 0
+WHERE NOT EXISTS (SELECT 1 FROM @results);
+```

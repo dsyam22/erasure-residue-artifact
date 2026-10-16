@@ -1,0 +1,28 @@
+schema_name|table_name|object_id|temporal_type_desc|history_table_id|history_schema|history_table|is_tracked_by_cdc|change_tracking_enabled|is_memory_optimized|is_filetable
+-----------|----------|---------|------------------|----------------|--------------|-------------|-----------------|-----------------------|-------------------|------------
+dbo|customer|901578250|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|dbo|customer_history|0|0|0|0
+dbo|customer_history|933578364|HISTORY_TABLE|NULL|NULL|NULL|0|0|0|0
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length|type_desc
+-----------|----------|-----------|---------|----------|---------
+dbo|customer|customer_id|int|4|USER_TABLE
+dbo|customer|full_name|nvarchar|200|USER_TABLE
+dbo|customer|email|nvarchar|400|USER_TABLE
+dbo|customer|phone|nvarchar|60|USER_TABLE
+dbo|customer_history|customer_id|int|4|USER_TABLE
+dbo|customer_history|full_name|nvarchar|200|USER_TABLE
+dbo|customer_history|email|nvarchar|400|USER_TABLE
+dbo|customer_history|phone|nvarchar|60|USER_TABLE
+(8 rows affected)
+fk_name|parent_schema|parent_table|referenced_schema|referenced_table|delete_referential_action_desc|update_referential_action_desc
+-------|-------------|------------|-----------------|----------------|------------------------------|------------------------------
+(0 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+dbo|customer_history|0
+(2 rows affected)
+database_name|is_cdc_enabled|is_read_committed_snapshot_on|recovery_model_desc|is_auto_close_on|is_temporal_history_retention_enabled
+-------------|--------------|-----------------------------|-------------------|----------------|-------------------------------------
+llm_i9|0|0|FULL|0|1
+(1 rows affected)

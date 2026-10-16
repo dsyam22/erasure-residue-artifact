@@ -1,0 +1,7 @@
+cdc.captured_columns|0
+cdc.change_tables|0
+cdc.dbo_customer_CT|2
+cdc.index_columns|0
+dbo.customer|0
+dbo.member|0
+dbo.member_history|1

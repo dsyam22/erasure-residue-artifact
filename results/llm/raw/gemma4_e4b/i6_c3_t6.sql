@@ -1,0 +1,10 @@
+SELECT 'dbo.customer' AS object_name, 0 AS rows_found
+UNION ALL
+-- Check the Change Data Capture table where historical data (including potentially dropped columns) might be preserved.
+SELECT 'cdc.dbo_customer_CT', 
+    ISNULL(
+        COUNT(CASE WHEN [phone] = '+1-555-0000042' THEN 1 END), 
+        0
+    )
+FROM cdc.dbo_customer_CT
+WHERE customer_id = 42;

@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 86
+Invalid column name 'base_server_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 87
+Invalid column name 'base_database_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 88
+Invalid column name 'base_schema_name'.

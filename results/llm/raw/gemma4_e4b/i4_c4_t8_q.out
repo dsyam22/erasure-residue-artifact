@@ -1,0 +1,17 @@
+Inspection_Area|table_name|column_name|data_type|is_nullable
+---------------|----------|-----------|---------|-----------
+Potential PII Tables Check (System/Schema)|[dbo].[member_history]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[dbo].[systranschemas]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[change_tables]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[ddl_history]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[lsn_time_mapping]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[captured_columns]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[index_columns]|NULL|NULL|Exists
+Potential PII Tables Check (System/Schema)|[cdc].[dbo_customer_CT]|NULL|NULL|Exists
+Table Structure Check (PII Columns)|customer|full_name|nvarchar|NO
+Table Structure Check (PII Columns)|customer|email|nvarchar|NO
+Table Structure Check (PII Columns)|customer|phone|nvarchar|YES
+Table Structure Check (PII Columns)|member|full_name|nvarchar|NO
+Table Structure Check (PII Columns)|member|email|nvarchar|NO
+Table Structure Check (PII Columns)|member|phone|nvarchar|YES
+(14 rows affected)

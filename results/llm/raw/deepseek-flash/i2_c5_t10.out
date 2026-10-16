@@ -1,0 +1,4 @@
+Msg 137, Level 15, State 1, Server 651334c31df8, Line 86
+Must declare the scalar variable "@obj_name".
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 90
+Must declare the scalar variable "@obj_name".

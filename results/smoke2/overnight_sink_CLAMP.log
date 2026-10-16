@@ -1,0 +1,11 @@
+=== 2026-10-10T17:49:38Z m5_sink DB=m_s_CLAMP CONSUMER=CLAMP TRIAL=1 (attempt 1) ===
+Changed database context to 'master'.
+Changed database context to 'm_s_CLAMP'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.m_s_CLAMP_capture' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+Job 'cdc.m_s_CLAMP_cleanup' started successfully.
+RESULT,CLAMP,1,100,0,2.10,0,0,10,1,0,0

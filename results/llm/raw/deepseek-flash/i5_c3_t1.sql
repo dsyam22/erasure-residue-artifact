@@ -1,0 +1,75 @@
+/* Read-only verification: is the erased subject's personal data still present? */
+DECLARE @cid int = 42;
+DECLARE @name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+/* Current table */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* Temporal history table */
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @cid
+   OR full_name = @name
+   OR email = @email
+   OR phone = @phone;
+
+/* Any other user table in the database that has columns matching the subject's data scope */
+DECLARE @sql nvarchar(max) = N'';
+DECLARE @tbl sysname, @sch sysname, @col sysname;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT DISTINCT s.name, t.name
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+JOIN sys.columns c ON c.object_id = t.object_id
+WHERE t.is_ms_shipped = 0
+  AND c.name IN ('customer_id','full_name','email','phone')
+  AND NOT (s.name = 'dbo' AND t.name IN ('customer','customer_history'));
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @sch, @tbl;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @pred nvarchar(max) = N'';
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@sch)+'.'+QUOTENAME(@tbl)) AND name = 'customer_id')
+        SET @pred = @pred + N'OR ' + QUOTENAME('customer_id') + N' = @cid ';
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@sch)+'.'+QUOTENAME(@tbl)) AND name = 'full_name')
+        SET @pred = @pred + N'OR ' + QUOTENAME('full_name') + N' = @name ';
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@sch)+'.'+QUOTENAME(@tbl)) AND name = 'email')
+        SET @pred = @pred + N'OR ' + QUOTENAME('email') + N' = @email ';
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@sch)+'.'+QUOTENAME(@tbl)) AND name = 'phone')
+        SET @pred = @pred + N'OR ' + QUOTENAME('phone') + N' = @phone ';
+
+    IF LEN(@pred) > 0
+    BEGIN
+        SET @pred = STUFF(@pred, 1, 3, N''); /* remove leading OR */
+        SET @sql = @sql + N'INSERT INTO #results (object_name, rows_found) SELECT '
+                 + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl) + N', COUNT(*) FROM '
+                 + QUOTENAME(@sch) + N'.' + QUOTENAME(@tbl)
+                 + N' WHERE ' + @pred + N';' + CHAR(10);
+    END
+
+    FETCH NEXT FROM cur INTO @sch, @tbl;
+END
+CLOSE cur;
+DEALLOCATE cur;
+
+IF LEN(@sql) > 0
+    EXEC sp_executesql @sql,
+        N'@cid int, @name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+        @cid = @cid, @name = @name, @email = @email, @phone = @phone;
+
+SELECT object_name, rows_found FROM #results ORDER BY object_name;
+
+DROP TABLE #results;

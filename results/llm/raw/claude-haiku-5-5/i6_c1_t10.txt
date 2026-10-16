@@ -1,0 +1,70 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #hits (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj int;
+DECLARE @where nvarchar(max), @sql nvarchar(max), @cnt bigint, @objname nvarchar(300);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @obj;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @objname = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @where = N'';
+
+    -- Build a predicate over every character-type column of this table.
+    SELECT @where = @where
+        + CASE WHEN @where = N'' THEN N'' ELSE N' OR ' END
+        + N'(' + expr + N' LIKE N''%555-0000042%'''
+        + N' OR ' + expr + N' LIKE N''%5550000042%'')'
+    FROM (
+        SELECT
+            CASE WHEN ty.name = N'xml'
+                 THEN N'CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))'
+                 ELSE QUOTENAME(c.name)
+            END AS expr,
+            c.column_id
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @obj
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'xml')
+    ) AS cols
+    ORDER BY cols.column_id;
+
+    IF @where = N''
+    BEGIN
+        INSERT INTO #hits (object_name, rows_found) VALUES (@objname, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT_BIG(*) FROM ' + @objname
+                 + N' WHERE ' + @where + N';';
+        SET @cnt = 0;
+        EXEC sp_executesql @sql, N'@n bigint OUTPUT', @n = @cnt OUTPUT;
+        INSERT INTO #hits (object_name, rows_found) VALUES (@objname, @cnt);
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @obj;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #hits
+ORDER BY object_name;
+
+DROP TABLE #hits;
+```

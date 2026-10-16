@@ -1,0 +1,23 @@
+-- Read-only verification: SELECT only, one result set, no messages.
+-- Counts rows still containing the erased subject's original personal data
+-- (full_name, email, phone) in every object that holds customer data.
+SET NOCOUNT ON;
+
+SELECT v.object_name,
+       v.rows_found
+FROM (
+    SELECT N'dbo.customer' AS object_name,
+           (SELECT COUNT(*)
+            FROM dbo.customer c
+            WHERE c.full_name = N'Subject_0000042'
+               OR c.email     = N'subject42@example.invalid'
+               OR c.phone     = N'+1-555-0000042') AS rows_found
+    UNION ALL
+    SELECT N'dbo.customer_history' AS object_name,
+           (SELECT COUNT(*)
+            FROM dbo.customer_history h
+            WHERE h.full_name = N'Subject_0000042'
+               OR h.email     = N'subject42@example.invalid'
+               OR h.phone     = N'+1-555-0000042') AS rows_found
+) AS v
+ORDER BY v.object_name;

@@ -1,0 +1,7 @@
+schema_name|table_name|column_name|data_type|potential_data_category
+-----------|----------|-----------|---------|-----------------------
+dbo|customer|customer_id|int|Identifier
+dbo|customer|email|nvarchar|Potential Text/PII
+dbo|customer|full_name|nvarchar|Potential Text/PII
+dbo|customer|phone|nvarchar|Potential Text/PII
+(4 rows affected)

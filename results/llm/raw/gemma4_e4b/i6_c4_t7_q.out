@@ -1,0 +1,13 @@
+COLUMN_NAME|DATA_TYPE|CHARACTER_MAXIMUM_LENGTH|IS_NULLABLE
+-----------|---------|------------------------|-----------
+customer_id|int|NULL|NO
+full_name|nvarchar|100|NO
+email|nvarchar|200|NO
+(3 rows affected)
+customer_id|full_name|email
+-----------|---------|-----
+42|Subject_0000042|subject42@example.invalid
+(1 rows affected)
+customer_id|full_name|email
+-----------|---------|-----
+(0 rows affected)

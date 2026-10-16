@@ -1,0 +1,67 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @n1 nvarchar(200) = N'Subject_0000042';
+DECLARE @n2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @n3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build a predicate testing every character-typed column of this table
+    SELECT @pred = STRING_AGG(CAST(
+            N'(CHARINDEX(@n1, ' + QUOTENAME(c.name) + N') > 0 OR '
+          + N'CHARINDEX(@n2, ' + QUOTENAME(c.name) + N') > 0 OR '
+          + N'CHARINDEX(@n3, ' + QUOTENAME(c.name) + N') > 0)'
+          AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'sysname');
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cOut = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE (' + @pred + N');';
+
+        EXEC sys.sp_executesql
+             @sql,
+             N'@n1 nvarchar(200), @n2 nvarchar(200), @n3 nvarchar(200), @cOut bigint OUTPUT',
+             @n1 = @n1, @n2 = @n2, @n3 = @n3, @cOut = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

@@ -1,0 +1,28 @@
+```sql
+WITH ObjectChecks AS (
+    -- Check 1: The primary table (dbo.customer)
+    SELECT
+        N'dbo.customer' AS object_name,
+        CAST(COUNT(T.customer_id) AS INT) AS rows_found
+    FROM
+        dbo.customer T
+    WHERE
+        T.full_name = 'Subject_0000042'
+        AND T.email = 'subject42@example.invalid'
+        AND T.phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- Check 2: The CDC Change Table (cdc.dbo_customer_CT)
+    SELECT
+        N'cdc.dbo_customer_CT' AS object_name,
+        CAST(COUNT(T.customer_id) AS INT) AS rows_found
+    FROM
+        cdc.dbo_customer_CT T
+    WHERE
+        T.full_name = 'Subject_0000042'
+        AND T.email = 'subject42@example.invalid'
+        AND T.phone = '+1-555-0000042'
+)
+SELECT object_name, rows_found FROM ObjectChecks;
+```

@@ -1,0 +1,60 @@
+database_name|collation_name
+-------------|--------------
+llm_i6|SQL_Latin1_General_CP1_CI_AS
+(1 rows affected)
+schema_name|object_name|type|type_desc|create_date|modify_date
+-----------|-----------|----|---------|-----------|-----------
+cdc|fn_cdc_get_all_changes_dbo_customer|IF|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:21.573|2026-10-10 19:08:21.573
+cdc|fn_cdc_get_net_changes_dbo_customer|IF|SQL_INLINE_TABLE_VALUED_FUNCTION|2026-10-10 19:08:21.577|2026-10-10 19:08:21.577
+dbo|customer|U |USER_TABLE|2026-10-10 19:08:21.073|2026-10-10 19:08:33.570
+(3 rows affected)
+schema_name|object_name|object_type|column_id|column_name|data_type|max_length|precision|scale|is_nullable|is_computed|collation_name
+-----------|-----------|-----------|---------|-----------|---------|----------|---------|-----|-----------|-----------|--------------
+dbo|customer|USER_TABLE|1|customer_id|int|4|10|0|0|0|NULL
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0|0|0|0|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0|0|0|0|SQL_Latin1_General_CP1_CI_AS
+(3 rows affected)
+schema_name|object_name|column_name|data_type|max_length|collation_name
+-----------|-----------|-----------|---------|----------|--------------
+(0 rows affected)
+schema_name|object_name|object_type|definition
+-----------|-----------|-----------|----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+(2 rows affected)
+schema_name|object_name|constraint_name|constraint_type|definition
+-----------|-----------|---------------|---------------|----------
+(0 rows affected)
+schema_name|object_name|column_name|computed_column_definition
+-----------|-----------|-----------|--------------------------
+(0 rows affected)
+schema_name|object_name|index_name|filter_definition
+-----------|-----------|----------|-----------------
+(0 rows affected)
+schema_name|object_name|column_name|property_name|property_value
+-----------|-----------|-----------|-------------|--------------
+(0 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|100
+(1 rows affected)

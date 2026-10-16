@@ -1,0 +1,20 @@
+```sql
+WITH CheckResults AS (
+    -- Checking dbo.customer for residual PII data
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT(T.customer_id) AS rows_found
+    FROM
+        dbo.customer T
+    WHERE
+        -- Using OR logic to catch the subject if any one piece of PII remains
+        T.full_name = N'Subject_0000042'
+        OR T.email = N'subject42@example.invalid'
+        OR T.phone = N'+1-555-0000042'
+)
+SELECT
+    object_name,
+    rows_found
+FROM
+    CheckResults;
+```

@@ -1,0 +1,4 @@
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 41
+Must declare the scalar variable "@member_id".
+Msg 137, Level 15, State 2, Server 651334c31df8, Line 55
+Must declare the scalar variable "@member_id".

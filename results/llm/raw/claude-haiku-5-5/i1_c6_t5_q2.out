@@ -1,0 +1,16 @@
+schema_name|table_name|column_name|type_name
+-----------|----------|-----------|---------
+cdc|captured_columns|column_name|sysname
+cdc|change_tables|role_name|sysname
+cdc|change_tables|index_name|sysname
+cdc|change_tables|filegroup_name|sysname
+cdc|dbo_customer_CT|customer_id|int
+cdc|dbo_customer_CT|full_name|nvarchar
+cdc|dbo_customer_CT|email|nvarchar
+cdc|dbo_customer_CT|phone|nvarchar
+cdc|index_columns|column_name|sysname
+dbo|customer|customer_id|int
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+(13 rows affected)

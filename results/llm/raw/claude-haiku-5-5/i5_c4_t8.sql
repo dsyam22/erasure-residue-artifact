@@ -1,0 +1,63 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #r (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @name nvarchar(300);
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @qname nvarchar(400);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @name  = @schema + N'.' + @table;
+    SET @qname = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @pred  = NULL;
+
+    -- Build a match predicate over every character column of this table
+    SELECT @pred = STRING_AGG(
+        CONCAT(
+            N'CAST(', QUOTENAME(c.name), N' AS nvarchar(max)) LIKE N''%subject42@example.invalid%'' OR ',
+            N'CAST(', QUOTENAME(c.name), N' AS nvarchar(max)) LIKE N''%Subject[_]0000042%'' OR ',
+            N'CAST(', QUOTENAME(c.name), N' AS nvarchar(max)) LIKE N''%+1-555-0000042%'''
+        ),
+        N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@qname)
+      AND c.system_type_id IN (167, 231, 175, 239);  -- varchar, nvarchar, char, nchar
+
+    -- The erased subject's key is also in scope for the customer table
+    IF @schema = N'dbo' AND @table = N'customer'
+        SET @pred = CONCAT(N'customer_id = 42',
+                           CASE WHEN @pred IS NULL THEN N'' ELSE N' OR ' + @pred END);
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #r (object_name, rows_found) VALUES (@name, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'INSERT INTO #r (object_name, rows_found) '
+                 + N'SELECT N''' + REPLACE(@name, N'''', N'''''') + N''', COUNT_BIG(*) '
+                 + N'FROM ' + @qname + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql;
+    END
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;

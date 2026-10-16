@@ -1,0 +1,85 @@
+```sql
+/* Read-only verification: is the erased subject's personal data still stored anywhere? */
+
+DECLARE @cid int = 42;
+DECLARE @nm  nvarchar(200) = N'Subject_0000042';
+DECLARE @em  nvarchar(320) = N'subject42@example.invalid';
+DECLARE @ph  nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @hits TABLE (object_name sysname, rows_found bigint);
+
+/* 1. Live table dbo.customer */
+INSERT INTO @hits (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @cid
+   OR full_name = @nm
+   OR email = @em
+   OR phone = @ph;
+
+/* 2. Temporal history table dbo.customer_history */
+IF OBJECT_ID(N'dbo.customer_history', N'U') IS NOT NULL
+    INSERT INTO @hits (object_name, rows_found)
+    SELECT 'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @cid
+       OR full_name = @nm
+       OR email = @em
+       OR phone = @ph;
+
+/* 3. Scan every other base table in the database for the subject's values.
+      Covers CDC change tables, downstream copies, staging/audit tables, etc.
+      Only nvarchar/varchar/char/nchar columns that can hold the values are searched. */
+DECLARE @schema sysname, @table sysname, @col sysname, @sql nvarchar(max);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.name NOT IN (N'customer', N'customer_history')
+      AND t.is_ms_shipped = 0;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE col_cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT c.name
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+          AND ty.name IN (N'nvarchar', N'varchar', N'nchar', N'char', N'ntext', N'text');
+
+    OPEN col_cur;
+    FETCH NEXT FROM col_cur INTO @col;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'INSERT INTO @hits (object_name, rows_found) SELECT '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N', COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE CAST(' + QUOTENAME(@col) + N' AS nvarchar(max)) IN (@nm, @em, @ph)'
+                 + N' OR CAST(' + QUOTENAME(@col) + N' AS nvarchar(max)) LIKE N''%'' + @nm + N''%''';
+
+        EXEC sp_executesql
+            @sql,
+            N'@nm nvarchar(200), @em nvarchar(320), @ph nvarchar(50), @hits dbo.placeholder READONLY',
+            @nm = @nm, @em = @em, @ph = @ph;
+
+        FETCH NEXT FROM col_cur INTO @col;
+    END
+
+    CLOSE col_cur;
+    DEALLOCATE col_cur;
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM @hits
+ORDER BY object_name;
+```

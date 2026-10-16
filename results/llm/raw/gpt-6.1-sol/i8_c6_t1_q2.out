@@ -1,0 +1,56 @@
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|PK__customer__CD65CB85E787FACC|PRIMARY_KEY_CONSTRAINT
+(2 rows affected)
+name|recovery_model_desc|is_cdc_enabled|is_broker_enabled
+----|-------------------|--------------|-----------------
+llm_i8|FULL|0|1
+(1 rows affected)
+name|internal_type_desc|parent_schema|parent_object
+----|------------------|-------------|-------------
+sqlagent_jobs|CONTAINED_FEATURES|NULL|NULL
+sqlagent_jobsteps|CONTAINED_FEATURES|NULL|NULL
+sqlagent_job_history|CONTAINED_FEATURES|NULL|NULL
+sqlagent_jobsteps_logs|CONTAINED_FEATURES|NULL|NULL
+plan_persist_query_text|QUERY_DISK_STORE_QUERY_TEXT|NULL|NULL
+plan_persist_query|QUERY_DISK_STORE_QUERY|NULL|NULL
+plan_persist_plan|QUERY_DISK_STORE_PLAN|NULL|NULL
+plan_persist_runtime_stats|QUERY_DISK_STORE_RUNTIME_STATS|NULL|NULL
+plan_persist_runtime_stats_interval|QUERY_DISK_STORE_RUNTIME_STATS_INTERVAL|NULL|NULL
+plan_persist_context_settings|QUERY_CONTEXT_SETTINGS|NULL|NULL
+plan_persist_query_hints|QUERY_DISK_STORE_QUERY_HINTS|NULL|NULL
+plan_persist_query_template_parameterization|QUERY_DISK_STORE_QUERY_TEMPLATE_PARAMETERIZATION|NULL|NULL
+plan_persist_wait_stats|QUERY_DISK_STORE_WAIT_STATS|NULL|NULL
+persistent_version_store|CONTAINED_FEATURES|NULL|NULL
+persistent_version_store_long_term|CONTAINED_FEATURES|NULL|NULL
+db_ledger_blocks|CONTAINED_FEATURES|NULL|NULL
+db_ledger_transactions|CONTAINED_FEATURES|NULL|NULL
+backup_metadata_store|CONTAINED_FEATURES|NULL|NULL
+plan_persist_plan_feedback|QUERY_DISK_STORE_PLAN_FEEDBACK|NULL|NULL
+plan_persist_query_variant|PLAN_PERSIST_QUERY_VARIANT_TABLE|NULL|NULL
+ledger_tables_history_internal|CONTAINED_FEATURES|NULL|NULL
+ledger_tables_history_internal_history|CONTAINED_FEATURES|NULL|NULL
+ledger_columns_history_internal|CONTAINED_FEATURES|NULL|NULL
+ledger_columns_history_internal_history|CONTAINED_FEATURES|NULL|NULL
+db_ledger_digest_locations|CONTAINED_FEATURES|NULL|NULL
+plan_persist_replicas|QUERY_DISK_STORE_REPLICAS|NULL|NULL
+plan_persist_plan_forcing_locations|QUERY_DISK_STORE_PLAN_FORCING_LOCATIONS|NULL|NULL
+plan_persist_runtime_stats_v2|QUERY_DISK_STORE_RUNTIME_STATS_V2|NULL|NULL
+plan_persist_wait_stats_v2|QUERY_DISK_STORE_WAIT_STATS_V2|NULL|NULL
+wpr_bucket_table|CONTAINED_FEATURES|NULL|NULL
+queue_messages_1977058079|QUEUE_MESSAGES|dbo|QueryNotificationErrorsQueue
+queue_messages_2009058193|QUEUE_MESSAGES|dbo|EventNotificationErrorsQueue
+queue_messages_2041058307|QUEUE_MESSAGES|dbo|ServiceBrokerQueue
+filestream_tombstone_2073058421|FILESTREAM_TOMBSTONE|NULL|NULL
+syscommittab|TRACKED_COMMITTED_TRANSACTIONS|NULL|NULL
+filetable_updates_2105058535|FILETABLE_UPDATES|NULL|NULL
+(36 rows affected)
+name|type_desc|is_disabled
+----|---------|-----------
+PK__customer__CD65CB85E787FACC|CLUSTERED|0
+(1 rows affected)
+fulltext_installed|can_view_database_state|can_view_server_state
+------------------|-----------------------|---------------------
+0|0|NULL
+(1 rows affected)

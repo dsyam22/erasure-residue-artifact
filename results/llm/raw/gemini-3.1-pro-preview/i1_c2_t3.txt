@@ -1,0 +1,7 @@
+```sql
+SELECT 'dbo.customer' AS object_name, 
+       (SELECT COUNT(*) FROM dbo.customer WHERE customer_id = 42) AS rows_found
+UNION ALL
+SELECT 'cdc.dbo_customer_CT' AS object_name, 
+       (SELECT COUNT(*) FROM cdc.dbo_customer_CT WHERE customer_id = 42) AS rows_found;
+```

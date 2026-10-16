@@ -1,0 +1,117 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(500),
+    rows_found int
+);
+
+-- Check main table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check for change data capture tables (if any exist)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE '%cdc%' OR is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_table nvarchar(500);
+    DECLARE cdc_cursor CURSOR FOR
+        SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.is_tracked_by_cdc = 1
+           OR t.name LIKE '%cdc%';
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @cdc_table;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @sql nvarchar(max) = N'INSERT INTO #results (object_name, rows_found) SELECT @obj, COUNT(*) FROM ' + @cdc_table + N' WHERE CAST([__$start_lsn] AS nvarchar(50)) IS NOT NULL AND (CAST([customer_id] AS nvarchar(50)) = ''42'' OR CAST([full_name] AS nvarchar(max)) = N''Subject_0000042'' OR CAST([email] AS nvarchar(max)) = N''subject42@example.invalid'' OR CAST([phone] AS nvarchar(max)) = N''+1-555-0000042'')';
+        EXEC sp_executesql @sql, N'@obj nvarchar(500)', @obj = @cdc_table;
+        FETCH NEXT FROM cdc_cursor INTO @cdc_table;
+    END
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+-- Check for temporal history tables
+IF EXISTS (SELECT 1 FROM sys.tables WHERE temporal_type = 1)
+BEGIN
+    DECLARE @hist_table nvarchar(500);
+    DECLARE hist_cursor CURSOR FOR
+        SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.temporal_type = 1;
+
+    OPEN hist_cursor;
+    FETCH NEXT FROM hist_cursor INTO @hist_table;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT @obj, COUNT(*) FROM ' + @hist_table + N' WHERE customer_id = 42 OR full_name = N''Subject_0000042'' OR email = N''subject42@example.invalid'' OR phone = N''+1-555-0000042''';
+        EXEC sp_executesql @sql, N'@obj nvarchar(500)', @obj = @hist_table;
+        FETCH NEXT FROM hist_cursor INTO @hist_table;
+    END
+
+    CLOSE hist_cursor;
+    DEALLOCATE hist_cursor;
+END
+
+-- Check all other user tables for possible copies (excluding the main table and system tables)
+DECLARE @table_name nvarchar(500);
+DECLARE table_cursor CURSOR FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name <> 'customer'
+      AND t.is_ms_shipped = 0
+      AND t.temporal_type = 0
+      AND t.is_tracked_by_cdc = 0;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    DECLARE @col_list nvarchar(max) = N'';
+    
+    SELECT @col_list = @col_list + CASE WHEN @col_list = N'' THEN N'' ELSE N' OR ' END + 
+           N'CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = @val42 OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = @valName OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = @valEmail OR CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max)) = @valPhone'
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID(@table_name)
+      AND c.system_type_id IN (56, 127, 167, 175, 231, 239, 61, 60, 106, 108, 34, 35, 36, 48, 52, 58, 59, 62, 98, 99, 104, 122, 165, 173, 189, 241);
+
+    IF @col_list <> N''
+    BEGIN
+        SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT @obj, COUNT(*) FROM ' + @table_name + N' WHERE ' + @col_list;
+        EXEC sp_executesql @sql, 
+            N'@obj nvarchar(500), @val42 nvarchar(max), @valName nvarchar(max), @valEmail nvarchar(max), @valPhone nvarchar(max)',
+            @obj = @table_name,
+            @val42 = N'42',
+            @valName = N'Subject_0000042',
+            @valEmail = N'subject42@example.invalid',
+            @valPhone = N'+1-555-0000042';
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found) VALUES (@table_name, 0);
+    END
+
+    FETCH NEXT FROM table_cursor INTO @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

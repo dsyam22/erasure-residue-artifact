@@ -1,0 +1,44 @@
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 4
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i4'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 4
+The user does not have permission to perform this action.
+schema_name|object_name|type_desc|column_id|column_name|data_type|max_length|is_nullable
+-----------|-----------|---------|---------|-----------|---------|----------|-----------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|5|customer_id|int|4|1
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|6|full_name|nvarchar|200|1
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|7|email|nvarchar|400|1
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|8|phone|nvarchar|60|1
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|4|customer_id|int|4|1
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|5|full_name|nvarchar|200|1
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|6|email|nvarchar|400|1
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|7|phone|nvarchar|60|1
+dbo|customer|USER_TABLE|1|customer_id|int|4|0
+dbo|customer|USER_TABLE|2|full_name|nvarchar|200|0
+dbo|customer|USER_TABLE|3|email|nvarchar|400|0
+dbo|customer|USER_TABLE|4|phone|nvarchar|60|1
+dbo|member|USER_TABLE|1|member_id|int|4|0
+dbo|member|USER_TABLE|2|full_name|nvarchar|200|0
+dbo|member|USER_TABLE|3|email|nvarchar|400|0
+dbo|member|USER_TABLE|4|phone|nvarchar|60|1
+dbo|member_history|USER_TABLE|1|member_id|int|4|0
+dbo|member_history|USER_TABLE|2|full_name|nvarchar|200|0
+dbo|member_history|USER_TABLE|3|email|nvarchar|400|0
+dbo|member_history|USER_TABLE|4|phone|nvarchar|60|1
+child_schema|child_table|parent_schema|parent_table|fk_name
+------------|-----------|-------------|------------|-------
+schema_name|object_name|type_desc
+-----------|-----------|---------
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION
+cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE
+cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE
+schema_name|table_name
+-----------|----------
+schema_name|table_name
+-----------|----------
+schema_name|table_name|trigger_name|is_disabled
+-----------|----------|------------|-----------
+schema_name|schema_id
+-----------|---------
+cdc|5

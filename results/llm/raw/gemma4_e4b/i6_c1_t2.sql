@@ -1,0 +1,12 @@
+SELECT
+    'dbo.customer' AS object_name,
+    (
+        SELECT COUNT(*)
+        FROM dbo.customer c
+        WHERE 
+            -- Check if the phone number is stored within full_name (using LIKE for robustness against formatting)
+            c.full_name LIKE '%' + '+1-555-0000042' + '%' 
+        OR 
+            -- Check if the phone number is stored within email
+            c.email LIKE '%+1-555-0000042%'
+    ) AS rows_found;

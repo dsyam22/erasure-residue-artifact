@@ -1,0 +1,3 @@
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT(CASE WHEN dbo.customer.full_name = N'Subject_0000042' OR dbo.customer.email = N'subject42@example.invalid' OR dbo.customer.phone = N'+1-555-0000042' THEN 1 ELSE NULL END) AS rows_found;

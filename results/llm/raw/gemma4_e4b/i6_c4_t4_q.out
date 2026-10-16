@@ -1,0 +1,2 @@
+Msg 4121, Level 16, State 1, Server 651334c31df8, Line 2
+Cannot find either column "t" or the user-defined function or aggregate "t.type_name", or the name is ambiguous.

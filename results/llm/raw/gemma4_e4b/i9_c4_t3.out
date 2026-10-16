@@ -1,0 +1,2 @@
+Msg 465, Level 16, State 1, Server 651334c31df8, Line 42
+Recursive references are not allowed in subqueries.

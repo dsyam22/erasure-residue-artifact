@@ -1,0 +1,61 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @full_name  nvarchar(200) = N'Subject_0000042';
+DECLARE @email      nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone      nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* ---------- dbo.customer ---------- */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+/* ---------- dbo.member ---------- */
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE member_id = 42
+  AND (full_name = @full_name OR email = @email OR phone = @phone);
+
+/* ---------- dynamic scan of all other user tables/columns ---------- */
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c
+JOIN INFORMATION_SCHEMA.TABLES t
+  ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME
+WHERE t.TABLE_TYPE = 'BASE TABLE'
+  AND NOT (c.TABLE_SCHEMA = 'dbo' AND c.TABLE_NAME IN ('customer','member'))
+  AND c.DATA_TYPE IN ('char','varchar','nchar','nvarchar','text','ntext');
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO @results (object_name, rows_found)
+        SELECT ' + QUOTENAME(@schema + '.' + @table, '''') + N', COUNT(*)
+        FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+        WHERE CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) IN (@fn, @em, @ph);';
+
+    EXEC sp_executesql @sql,
+        N'@fn nvarchar(200), @em nvarchar(320), @ph nvarchar(50)',
+        @fn = @full_name, @em = @email, @ph = @phone;
+
+    FETCH NEXT FROM cur INTO @schema, @table, @column;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+/* ---------- collapse multiple column hits per table ---------- */
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM @results
+GROUP BY object_name
+ORDER BY object_name;

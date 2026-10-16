@@ -1,0 +1,17 @@
+TableName|SchemaName|SourceType|ColumnName|DataType|MaxLength|IsNullable
+---------|----------|----------|----------|--------|---------|----------
+customer|dbo|User|customer_id|int|4|0
+customer|dbo|User|email|nvarchar|400|0
+customer|dbo|User|full_name|nvarchar|200|0
+customer|dbo|User|phone|nvarchar|60|1
+customer|dbo|User|valid_from|datetime2|8|0
+customer|dbo|User|valid_to|datetime2|8|0
+customer_history|dbo|User|customer_id|int|4|0
+customer_history|dbo|User|email|nvarchar|400|0
+customer_history|dbo|User|full_name|nvarchar|200|0
+customer_history|dbo|User|phone|nvarchar|60|1
+customer_history|dbo|User|valid_from|datetime2|8|0
+customer_history|dbo|User|valid_to|datetime2|8|0
+(12 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 22
+Invalid object name 'sys_foreign_key_columns'.

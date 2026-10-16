@@ -1,0 +1,59 @@
+database_name|state_desc|recovery_model_desc|is_cdc_enabled|is_broker_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on|source_database_id|is_encrypted|can_view_definition|can_view_database_state|can_view_database_performance_state|has_database_select|is_sysadmin
+-------------|----------|-------------------|--------------|-----------------|-----------------------------|-----------------------------|------------------|------------|-------------------|-----------------------|-----------------------------------|-------------------|-----------
+llm_i8|ONLINE|FULL|0|1|OFF|0|NULL|0|1|0|0|1|0
+(1 rows affected)
+schema_name|object_name|type_desc|column_id|column_name|type_schema|declared_type|base_type|max_length|precision|scale|collation_name|is_nullable|is_computed|is_hidden|generated_always_type_desc|encryption_type_desc|computed_definition|can_select
+-----------|-----------|---------|---------|-----------|-----------|-------------|---------|----------|---------|-----|--------------|-----------|-----------|---------|--------------------------|--------------------|-------------------|----------
+dbo|customer|USER_TABLE|1|customer_id|sys|int|int|4|10|0|NULL|0|0|0|NOT_APPLICABLE|NULL|NULL|1
+dbo|customer|USER_TABLE|2|full_name|sys|nvarchar|nvarchar|200|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|NOT_APPLICABLE|NULL|NULL|1
+dbo|customer|USER_TABLE|3|email|sys|nvarchar|nvarchar|400|0|0|SQL_Latin1_General_CP1_CI_AS|0|0|0|NOT_APPLICABLE|NULL|NULL|1
+dbo|customer|USER_TABLE|4|phone|sys|nvarchar|nvarchar|60|0|0|SQL_Latin1_General_CP1_CI_AS|1|0|0|NOT_APPLICABLE|NULL|NULL|1
+(4 rows affected)
+schema_name|table_name|temporal_type_desc|history_schema|history_table|is_tracked_by_cdc|is_memory_optimized|durability_desc|is_filetable|is_external|is_remote_data_archive_enabled|ledger_type_desc|is_dropped_ledger_table|is_track_columns_updated_on|change_tracking_begin_version|change_tracking_cleanup_version
+-----------|----------|------------------|--------------|-------------|-----------------|-------------------|---------------|------------|-----------|------------------------------|----------------|-----------------------|---------------------------|-----------------------------|-------------------------------
+dbo|customer|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|0|NON_LEDGER_TABLE|0|NULL|NULL|NULL
+(1 rows affected)
+schema_name|table_name|index_id|index_name|type_desc|is_disabled|partition_number|approximate_rows
+-----------|----------|--------|----------|---------|-----------|----------------|----------------
+dbo|customer|1|PK__customer__CD65CB85E787FACC|CLUSTERED|0|1|99
+(1 rows affected)
+schema_name|object_name|type_desc|definition|execute_as_principal_id
+-----------|-----------|---------|----------|-----------------------
+(0 rows affected)
+trigger_name|parent_class_desc|parent_schema|parent_object|is_disabled|is_instead_of_trigger|definition
+------------|-----------------|-------------|-------------|-----------|---------------------|----------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+schema_name|table_name|internal_table_name|internal_type_desc
+-----------|----------|-------------------|------------------
+NULL|NULL|backup_metadata_store|CONTAINED_FEATURES
+NULL|NULL|db_ledger_blocks|CONTAINED_FEATURES
+NULL|NULL|db_ledger_digest_locations|CONTAINED_FEATURES
+NULL|NULL|db_ledger_transactions|CONTAINED_FEATURES
+NULL|NULL|filestream_tombstone_2073058421|FILESTREAM_TOMBSTONE
+NULL|NULL|filetable_updates_2105058535|FILETABLE_UPDATES
+NULL|NULL|ledger_columns_history_internal|CONTAINED_FEATURES
+NULL|NULL|ledger_columns_history_internal_history|CONTAINED_FEATURES
+NULL|NULL|ledger_tables_history_internal|CONTAINED_FEATURES
+NULL|NULL|ledger_tables_history_internal_history|CONTAINED_FEATURES
+NULL|NULL|persistent_version_store|CONTAINED_FEATURES
+NULL|NULL|persistent_version_store_long_term|CONTAINED_FEATURES
+NULL|NULL|plan_persist_context_settings|QUERY_CONTEXT_SETTINGS
+NULL|NULL|plan_persist_plan|QUERY_DISK_STORE_PLAN
+NULL|NULL|plan_persist_plan_feedback|QUERY_DISK_STORE_PLAN_FEEDBACK
+NULL|NULL|plan_persist_plan_forcing_locations|QUERY_DISK_STORE_PLAN_FORCING_LOCATIONS
+NULL|NULL|plan_persist_query|QUERY_DISK_STORE_QUERY
+NULL|NULL|plan_persist_query_hints|QUERY_DISK_STORE_QUERY_HINTS
+NULL|NULL|plan_persist_query_template_parameterization|QUERY_DISK_STORE_QUERY_TEMPLATE_PARAMETERIZATION
+NULL|NULL|plan_persist_query_text|QUERY_DISK_STORE_QUERY_TEXT
+NULL|NULL|plan_persist_query_variant|PLAN_PERSIST_QUERY_VARIANT_TABLE
+NULL|NULL|plan_persist_replicas|QUERY_DISK_STORE_REPLICAS
+NULL|NULL|plan_persist_runtime_stats|QUERY_DISK_STORE_RUNTIME_STATS
+NULL|NULL|plan_persist_runtime_stats_interval|QUERY_DISK_STORE_RUNTIME_STATS_INTERVAL
+NULL|NULL|plan_persist_runtime_stats_v2|QUERY_DISK_STORE_RUNTIME_STATS_V2
+NULL|NULL|plan_persist_wait_stats|QUERY_DISK_STORE_WAIT_STATS
+NULL|NULL|plan_persist_wait_stats_v2|QUERY_DISK_STORE_WAIT_STATS_V2
+NULL|NULL|queue_message
+[output truncated]

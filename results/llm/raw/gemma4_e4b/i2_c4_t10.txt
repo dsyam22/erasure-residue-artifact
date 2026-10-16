@@ -1,0 +1,33 @@
+```sql
+-- Define the subject criteria variables for readability and maintenance
+DECLARE @CustomerID INT = 42;
+DECLARE @FullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @Email NVARCHAR(100) = 'subject42@example.invalid';
+DECLARE @Phone NVARCHAR(50) = '+1-555-0000042';
+
+-- Check dbo.customer for residual PII data
+SELECT 
+    'dbo.customer' AS object_name, 
+    CAST(COUNT(*) AS INT) AS rows_found
+FROM 
+    dbo.customer
+WHERE 
+    customer_id = @CustomerID
+    AND full_name = @FullName
+    AND email = @Email
+    AND phone = @Phone
+
+UNION ALL
+
+-- Check dbo.customer_history for residual PII data
+SELECT 
+    'dbo.customer_history' AS object_name, 
+    CAST(COUNT(*) AS INT) AS rows_found
+FROM 
+    dbo.customer_history
+WHERE 
+    customer_id = @CustomerID
+    AND full_name = @FullName
+    AND email = @Email
+    AND phone = @Phone;
+```

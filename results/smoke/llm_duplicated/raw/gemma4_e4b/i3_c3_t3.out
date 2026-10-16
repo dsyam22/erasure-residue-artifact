@@ -1,0 +1,18 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'customer_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'full_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'email'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'phone'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 7
+Invalid column name 'full_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 7
+Invalid column name 'email'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 11
+Invalid column name 'full_name'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 11
+Invalid column name 'email'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 15
+Invalid column name 'customer_id'.

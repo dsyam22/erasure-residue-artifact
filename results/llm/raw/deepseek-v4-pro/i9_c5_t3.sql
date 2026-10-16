@@ -1,0 +1,21 @@
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (object_name nvarchar(255), rows_found int);
+
+-- Check dbo.customer for any rows containing the subject's original personal data
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE 
+    customer_id = 42
+    OR full_name = 'Subject_0000042'
+    OR email = 'subject42@example.invalid'
+    OR phone = '+1-555-0000042';
+
+-- Return the results
+SELECT object_name, rows_found
+FROM @Results
+ORDER BY object_name;

@@ -1,0 +1,26 @@
+WITH CheckResults AS (
+    -- Initialize a temporary list of objects to check (based on schema inspection)
+    SELECT 
+        'dbo.customer_history' AS object_name,
+        0 AS rows_found
+),
+HistoryCheck AS (
+    -- Count matching records in the customer_history table
+    SELECT 
+        COUNT(1) AS count_rows
+    FROM 
+        dbo.customer_history
+    WHERE 
+        customer_id = 42
+        AND full_name = 'Subject_0000042'
+        AND email = 'subject42@example.invalid'
+        AND phone = '+1-555-0000042'
+)
+-- Combine the object list with the calculated counts to ensure all checked objects are listed exactly once.
+SELECT 
+    cr.object_name,
+    ISNULL(hc.count_rows, 0) AS rows_found
+FROM 
+    CheckResults cr
+LEFT JOIN 
+    HistoryCheck hc ON 1 = 1;

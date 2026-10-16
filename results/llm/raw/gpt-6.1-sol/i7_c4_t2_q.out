@@ -1,0 +1,33 @@
+database_name|is_cdc_enabled|snapshot_isolation_state_desc|is_read_committed_snapshot_on
+-------------|--------------|-----------------------------|-----------------------------
+llm_i7|0|OFF|0
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|is_external|is_filetable|ledger_type_desc|is_dropped_ledger_table
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|---------------|-----------|------------|----------------|-----------------------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0
+reporting|customer_replica|933578364|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|0|0|NON_LEDGER_TABLE|0
+(2 rows affected)
+schema_name|object_name|type_desc|column_id|column_name|type_schema_name|data_type|max_length|is_nullable|is_computed|encryption_type_desc|generated_always_type_desc
+-----------|-----------|---------|---------|-----------|----------------|---------|----------|-----------|-----------|--------------------|--------------------------
+dbo|customer|USER_TABLE|1|customer_id|sys|int|4|0|0|NULL|NOT_APPLICABLE
+dbo|customer|USER_TABLE|2|full_name|sys|nvarchar|200|0|0|NULL|NOT_APPLICABLE
+dbo|customer|USER_TABLE|3|email|sys|nvarchar|400|0|0|NULL|NOT_APPLICABLE
+dbo|customer|USER_TABLE|4|phone|sys|nvarchar|60|1|0|NULL|NOT_APPLICABLE
+reporting|customer_replica|USER_TABLE|1|customer_id|sys|int|4|0|0|NULL|NOT_APPLICABLE
+reporting|customer_replica|USER_TABLE|2|full_name|sys|nvarchar|200|0|0|NULL|NOT_APPLICABLE
+reporting|customer_replica|USER_TABLE|3|email|sys|nvarchar|400|0|0|NULL|NOT_APPLICABLE
+reporting|customer_replica|USER_TABLE|4|phone|sys|nvarchar|60|1|0|NULL|NOT_APPLICABLE
+(8 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|table_name|object_id|is_track_columns_updated_on|min_valid_version|begin_version|cleanup_version
+-----------|----------|---------|---------------------------|-----------------|-------------|---------------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+database_user|is_db_owner|can_view_definition|can_select_database
+-------------|-----------|-------------------|-------------------
+llm_reader|0|1|1
+(1 rows affected)

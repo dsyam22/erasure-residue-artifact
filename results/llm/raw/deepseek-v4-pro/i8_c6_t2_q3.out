@@ -1,0 +1,4 @@
+table_name|total_rows|id_match|name_match|email_match|phone_match
+----------|----------|--------|----------|-----------|-----------
+customer|99|0|0|0|0
+(1 rows affected)

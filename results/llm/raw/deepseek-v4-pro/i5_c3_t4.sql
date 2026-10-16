@@ -1,0 +1,115 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(255) = N'Subject_0000042';
+DECLARE @email nvarchar(255) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(255) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255) NOT NULL,
+    rows_found int NOT NULL
+);
+
+-- Check current table (in case data was not fully deleted)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check temporal history table
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    N'dbo.customer_history',
+    COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check for CDC change tables (if any exist with matching columns)
+-- Since cdc_enabled=0, this will likely return 0, but we check anyway
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE '%cdc%' OR name LIKE '%change%')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 
+        N'dbo.cdc_customer',
+        COUNT(*)
+    FROM dbo.cdc_customer
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.cdc_customer', 0;
+END;
+
+-- Check for any other tables that might contain copies of this data
+-- We look for tables with similar column names and check them
+DECLARE @table_name nvarchar(255);
+DECLARE @schema_name nvarchar(255);
+DECLARE @sql nvarchar(max);
+
+DECLARE table_cursor CURSOR FOR
+SELECT 
+    s.name AS schema_name,
+    t.name AS table_name
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.name NOT IN ('customer', 'customer_history', 'cdc_customer')
+  AND EXISTS (
+      SELECT 1 
+      FROM sys.columns c 
+      WHERE c.object_id = t.object_id 
+        AND c.name IN ('customer_id', 'full_name', 'email', 'phone')
+  );
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT 
+            @obj_name,
+            COUNT(*)
+        FROM ' + QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name) + N'
+        WHERE 1=0';
+    
+    -- Add conditions only for columns that exist in this table
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)) AND name = 'customer_id')
+        SET @sql = REPLACE(@sql, 'WHERE 1=0', 'WHERE customer_id = @customer_id');
+    ELSE IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)) AND name = 'full_name')
+        SET @sql = REPLACE(@sql, 'WHERE 1=0', 'WHERE full_name = @full_name');
+    ELSE IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)) AND name = 'email')
+        SET @sql = REPLACE(@sql, 'WHERE 1=0', 'WHERE email = @email');
+    ELSE IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name)) AND name = 'phone')
+        SET @sql = REPLACE(@sql, 'WHERE 1=0', 'WHERE phone = @phone');
+    
+    SET @sql = REPLACE(@sql, '@obj_name', N'''' + @schema_name + N'.' + @table_name + N'''');
+    
+    EXEC sp_executesql @sql, 
+        N'@customer_id int, @full_name nvarchar(255), @email nvarchar(255), @phone nvarchar(255)',
+        @customer_id, @full_name, @email, @phone;
+    
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name;
+END;
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

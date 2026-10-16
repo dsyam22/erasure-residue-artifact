@@ -1,0 +1,29 @@
+Msg 102, Level 15, State 1, Server 651334c31df8, Line 71
+Incorrect syntax near ''.
+Msg 103, Level 15, State 4, Server 651334c31df8, Line 72
+The identifier that starts with '' + QUOTENAME(@ColumnName) + N' AS NVARCHAR(MAX))) LIKE ''%' + REPLACE(REPLACE(REPLACE(N''subject42@example.invalid'', '''', '''' is too long. Maximum length is 128.
+Msg 105, Level 15, State 1, Server 651334c31df8, Line 94
+Unclosed quotation mark after the character string ');
+    END
+
+    -- Execute the constructed dynamic SQL query and store the result count
+    INSERT INTO @AuditResults (object_name, rows_found)
+    EXEC sp_executesql @SQL;
+
+
+    FETCH NEXT FROM TableCursor INTO @CurrentObject, @ObjectID;
+END
+
+-- Close and deallocate the cursor
+CLOSE TableCursor;
+DEALLOCATE TableCursor;
+
+-- Final required result set output
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    @AuditResults
+ORDER BY 
+    object_name;
+'.

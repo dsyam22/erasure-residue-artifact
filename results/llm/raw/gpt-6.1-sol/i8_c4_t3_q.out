@@ -1,0 +1,41 @@
+database_name|compatibility_level|recovery_model_desc|is_cdc_enabled|is_broker_enabled|snapshot_isolation_state_desc|can_view_database_state|can_view_database_performance_state|can_view_definition|is_db_owner|is_sysadmin
+-------------|-------------------|-------------------|--------------|-----------------|-----------------------------|-----------------------|-----------------------------------|-------------------|-----------|-----------
+llm_i8|160|FULL|0|1|OFF|0|0|1|0|0
+(1 rows affected)
+schema_name|table_name|object_id|temporal_type_desc|history_schema_name|history_table_name|is_tracked_by_cdc|is_memory_optimized|durability_desc|ledger_type_desc|is_dropped_ledger_table|is_filetable|is_external|column_id|column_name|type_schema_name|type_name|max_length|precision|scale|is_nullable|is_computed|is_hidden|generated_always_type_desc|encryption_type_desc|collation_name
+-----------|----------|---------|------------------|-------------------|------------------|-----------------|-------------------|---------------|----------------|-----------------------|------------|-----------|---------|-----------|----------------|---------|----------|---------|-----|-----------|-----------|---------|--------------------------|--------------------|--------------
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|0|1|customer_id|sys|int|4|10|0|0|0|0|NOT_APPLICABLE|NULL|NULL
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|0|2|full_name|sys|nvarchar|200|0|0|0|0|0|NOT_APPLICABLE|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|0|3|email|sys|nvarchar|400|0|0|0|0|0|NOT_APPLICABLE|NULL|SQL_Latin1_General_CP1_CI_AS
+dbo|customer|901578250|NON_TEMPORAL_TABLE|NULL|NULL|0|0|SCHEMA_AND_DATA|NON_LEDGER_TABLE|0|0|0|4|phone|sys|nvarchar|60|0|0|1|0|0|NOT_APPLICABLE|NULL|SQL_Latin1_General_CP1_CI_AS
+(4 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|table_name|index_name|type_desc|is_disabled|has_filter|filter_definition|partition_number|estimated_rows|data_compression_desc
+-----------|----------|----------|---------|-----------|----------|-----------------|----------------|--------------|---------------------
+dbo|customer|PK__customer__CD65CB85E787FACC|CLUSTERED|0|0|NULL|1|99|NONE
+(1 rows affected)
+schema_name|table_name|begin_version|cleanup_version|min_valid_version|is_track_columns_updated_on
+-----------|----------|-------------|---------------|-----------------|---------------------------
+(0 rows affected)
+schema_name|table_name|fulltext_catalog_name|is_enabled|change_tracking_state_desc|has_crawl_completed
+-----------|----------|---------------------|----------|--------------------------|-------------------
+(0 rows affected)
+schema_name|synonym_name|base_object_name
+-----------|------------|----------------
+(0 rows affected)
+file_name|type_desc|physical_name|size_in_8kb_pages|state_desc
+---------|---------|-------------|-----------------|----------
+llm_i8|ROWS|/var/opt/mssql/data/llm_i8.mdf|1024|ONLINE
+llm_i8_log|LOG|/var/opt/mssql/data/llm_i8_log.ldf|1024|ONLINE
+(2 rows affected)
+database_name|source_database_id|state_desc
+-------------|------------------|----------
+(0 rows affected)
+schema_name|table_name|security_policy_name|is_enabled|predicate_type_desc|operation_desc|predicate_definition
+-----------|----------|--------------------|----------|-------------------|--------------|--------------------
+(0 rows affected)
+schema_name|table_name|column_name|masking_function
+-----------|----------|-----------|----------------
+(0 rows affected)

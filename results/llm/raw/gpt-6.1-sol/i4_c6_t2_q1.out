@@ -1,0 +1,19 @@
+schema_name|table_name|temporal_type|history_schema|history_table|column_id|column_name|data_type
+-----------|----------|-------------|--------------|-------------|---------|-----------|---------
+dbo|customer|0|NULL|NULL|1|customer_id|int
+dbo|customer|0|NULL|NULL|2|full_name|nvarchar
+dbo|customer|0|NULL|NULL|3|email|nvarchar
+dbo|customer|0|NULL|NULL|4|phone|nvarchar
+dbo|member|2|dbo|member_history|1|member_id|int
+dbo|member|2|dbo|member_history|2|full_name|nvarchar
+dbo|member|2|dbo|member_history|3|email|nvarchar
+dbo|member|2|dbo|member_history|4|phone|nvarchar
+dbo|member|2|dbo|member_history|5|valid_from|datetime2
+dbo|member|2|dbo|member_history|6|valid_to|datetime2
+dbo|member_history|1|NULL|NULL|1|member_id|int
+dbo|member_history|1|NULL|NULL|2|full_name|nvarchar
+dbo|member_history|1|NULL|NULL|3|email|nvarchar
+dbo|member_history|1|NULL|NULL|4|phone|nvarchar
+dbo|member_history|1|NULL|NULL|5|valid_from|datetime2
+dbo|member_history|1|NULL|NULL|6|valid_to|datetime2
+(16 rows affected)

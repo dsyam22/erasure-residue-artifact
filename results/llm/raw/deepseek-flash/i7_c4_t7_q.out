@@ -1,0 +1,25 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable|is_identity|is_computed|computed_definition|default_definition
+-----------|----------|-----------|---------|----------|-----------|-----------|-----------|-------------------|------------------
+dbo|customer|customer_id|int|4|0|0|0|NULL|NULL
+dbo|customer|full_name|nvarchar|200|0|0|0|NULL|NULL
+dbo|customer|email|nvarchar|400|0|0|0|NULL|NULL
+dbo|customer|phone|nvarchar|60|1|0|0|NULL|NULL
+reporting|customer_replica|customer_id|int|4|0|0|0|NULL|NULL
+reporting|customer_replica|full_name|nvarchar|200|0|0|0|NULL|NULL
+reporting|customer_replica|email|nvarchar|400|0|0|0|NULL|NULL
+reporting|customer_replica|phone|nvarchar|60|1|0|0|NULL|NULL
+(8 rows affected)
+schema_name|object_name|object_type|create_date|modify_date
+-----------|-----------|-----------|-----------|-----------
+dbo|customer|USER_TABLE|2026-10-10 19:08:27.180|2026-10-10 19:08:27.180
+reporting|customer_replica|USER_TABLE|2026-10-10 19:08:27.223|2026-10-10 19:08:27.223
+(2 rows affected)
+schema_name|table_name|index_name|index_type|is_unique|is_primary_key|is_unique_constraint|has_filter|filter_definition
+-----------|----------|----------|----------|---------|--------------|--------------------|----------|-----------------
+dbo|customer|PK__customer__CD65CB85B4A586A4|CLUSTERED|1|1|0|0|NULL
+reporting|customer_replica|PK__customer__CD65CB85FE77D161|CLUSTERED|1|1|0|0|NULL
+(2 rows affected)
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 62
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i7'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 62
+The user does not have permission to perform this action.

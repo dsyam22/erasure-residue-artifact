@@ -1,0 +1,68 @@
+```sql
+USE [llm_i4];
+
+-- Scan stored table rows, including temporal history and CDC change tables,
+-- for the original name, email, or phone, including within textual payloads.
+-- IDs alone do not count: anonymized rows intentionally retain their IDs.
+-- Requires SELECT permission on every table and visibility of all its rows.
+-- This does not inspect transaction logs, backups, or deallocated pages.
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' AS src WHERE ' + COALESCE(p.predicate_sql, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'(' +
+            N'CHARINDEX(@original_name, CONVERT(nvarchar(max), src.' +
+                QUOTENAME(c.name) +
+                N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(@original_email, CONVERT(nvarchar(max), src.' +
+                QUOTENAME(c.name) +
+                N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+            N'CHARINDEX(@original_phone, CONVERT(nvarchar(max), src.' +
+                QUOTENAME(c.name) +
+                N') COLLATE Latin1_General_100_BIN2) > 0)'
+        ),
+        N' OR '
+    ) AS predicate_sql
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      -- text, ntext, varchar, char, nvarchar, nchar, xml, sql_variant
+      AND c.system_type_id IN (35, 99, 167, 175, 231, 239, 241, 98)
+) AS p;
+
+SELECT @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                     CAST(NULL AS bigint) AS rows_found
+              WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS results ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@original_name nvarchar(200),
+      @original_email nvarchar(320),
+      @original_phone nvarchar(100)',
+    @original_name  = N'Subject_0000042',
+    @original_email = N'subject42@example.invalid',
+    @original_phone = N'+1-555-0000042';
+```

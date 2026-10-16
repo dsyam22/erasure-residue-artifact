@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 117
+Invalid column name 'database_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 114
+Invalid column name 'database_id'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 115
+Invalid column name 'is_query_store_on'.

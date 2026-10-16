@@ -1,0 +1,142 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable
+-----------|----------|-----------|---------|----------|-----------
+cdc|captured_columns|object_id|int|4|0
+cdc|captured_columns|column_name|sysname|256|0
+cdc|captured_columns|column_id|int|4|1
+cdc|captured_columns|column_type|sysname|256|0
+cdc|captured_columns|column_ordinal|int|4|0
+cdc|captured_columns|is_computed|bit|1|1
+cdc|captured_columns|masking_function|nvarchar|8000|1
+cdc|change_tables|object_id|int|4|0
+cdc|change_tables|version|int|4|1
+cdc|change_tables|source_object_id|int|4|1
+cdc|change_tables|capture_instance|sysname|256|0
+cdc|change_tables|start_lsn|binary|10|1
+cdc|change_tables|end_lsn|binary|10|1
+cdc|change_tables|supports_net_changes|bit|1|1
+cdc|change_tables|has_drop_pending|bit|1|1
+cdc|change_tables|role_name|sysname|256|1
+cdc|change_tables|index_name|sysname|256|1
+cdc|change_tables|filegroup_name|sysname|256|1
+cdc|change_tables|create_date|datetime|8|1
+cdc|change_tables|partition_switch|bit|1|0
+cdc|dbo_customer_CT|__$start_lsn|binary|10|0
+cdc|dbo_customer_CT|__$end_lsn|binary|10|1
+cdc|dbo_customer_CT|__$seqval|binary|10|0
+cdc|dbo_customer_CT|__$operation|int|4|0
+cdc|dbo_customer_CT|__$update_mask|varbinary|128|1
+cdc|dbo_customer_CT|customer_id|int|4|1
+cdc|dbo_customer_CT|full_name|nvarchar|200|1
+cdc|dbo_customer_CT|email|nvarchar|400|1
+cdc|dbo_customer_CT|phone|nvarchar|60|1
+cdc|dbo_customer_CT|__$command_id|int|4|1
+cdc|ddl_history|source_object_id|int|4|1
+cdc|ddl_history|object_id|int|4|0
+cdc|ddl_history|required_column_update|bit|1|1
+cdc|ddl_history|ddl_command|nvarchar|-1|1
+cdc|ddl_history|ddl_lsn|binary|10|0
+cdc|ddl_history|ddl_time|datetime|8|1
+cdc|index_columns|object_id|int|4|0
+cdc|index_columns|column_name|sysname|256|0
+cdc|index_columns|index_ordinal|tinyint|1|0
+cdc|index_columns|column_id|int|4|0
+cdc|lsn_time_mapping|start_lsn|binary|10|0
+cdc|lsn_time_mapping|tran_begin_time|datetime|8|1
+cdc|lsn_time_mapping|tran_end_time|datetime|8|1
+cdc|lsn_time_mapping|tran_id|varbinary|10|1
+cdc|lsn_time_mapping|tran_begin_lsn|binary|10|1
+dbo|customer|customer_id|int|4|0
+dbo|customer|full_name|nvarchar|200|0
+dbo|customer|email|nvarchar|400|0
+dbo|systranschemas|tabid|int|4|0
+dbo|systranschemas|startlsn|binary|10|0
+dbo|systranschemas|endlsn|binary|10|0
+dbo|systranschemas|typeid|int|4|0
+(52 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+cdc|fn_cdc_get_all_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_all_changes_ ... ](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+cdc|fn_cdc_get_all_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_all_changes_...](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_all_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$seqval,
+		NULL as __$operation,
+cdc|fn_cdc_get_net_changes_ ... |SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_net_changes_ ... ](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+cdc|fn_cdc_get_net_changes_...|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function cdc.[fn_cdc_get_net_changes_...](
+		@from_lns binary(10),
+		@to_lsn binary(10),
+		@row_filter_options nvarchar(30)
+	)
+	returns table
+	return
+		select 0 as 'col'
+cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|
+	create function [cdc].[fn_cdc_get_net_changes_dbo_customer]
+	(	@from_lsn binary(10),
+		@to_lsn binary(10),
+		@row_filter_option nvarchar(30)
+	)
+	returns table
+	return
+	select NULL as __$start_lsn,
+		NULL as __$operation,
+		NULL as __$update_m
+cdc|sp_batchinsert_1285579618|SQL_STORED_PROCEDURE|create
+	procedure [cdc].[sp_batchinsert_1285579618]
+	(
+	 @rowcount int,
+	  @__$start_lsn_1 binary(10), @__$seqval_1 binary(10), @__$operation_1 int, @__$update_mask_1 varbinary(128), @c6_1 int, @c7_1 nvarchar(100), @c8_1 nvarchar(200), @c9_1 nvarchar(3
+cdc|sp_batchinsert_lsn_time_mapping|SQL_STORED_PROCEDURE|
+	--
+	-- Name: [cdc].[sp_batchinsert_lsn_time_mapping]
+	--
+	-- Description:
+	--	Stored procedure used internally to batch populate cdc.lsn_time_mapping table
+	--
+	-- Parameters:
+	--   @rowcount                     int -- the number of rows to be i
+cdc|sp_ins_dummy_lsn_time_mapping |SQL_STORED_PROCEDURE|
+	--
+	-- Name: [cdc].[sp_ins_dummy_lsn_time_mapping]
+	--
+	-- Description: append a dummy entry. A dummy entry has 0x0 for the column tran_id
+	--
+	-- Parameters:
+	--	@lastflushed_lsn		binary(10)
+	--
+	-- Returns:	0	success
+	--			1   failure
+cdc|sp_ins_instance_enabling_lsn_time_mapping |SQL_STORED_PROCEDUR
+[output truncated]

@@ -1,0 +1,52 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (
+    object_name nvarchar(256),
+    rows_found int
+);
+
+-- Check the current temporal table
+INSERT INTO @results (object_name, rows_found)
+SELECT 
+    'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check the associated history table dynamically (since DELETEs on temporal tables move rows to history)
+DECLARE @history_table_schema nvarchar(128);
+DECLARE @history_table_name nvarchar(128);
+DECLARE @history_full_name nvarchar(256);
+DECLARE @sql nvarchar(max);
+DECLARE @cnt int;
+
+SELECT 
+    @history_table_schema = SCHEMA_NAME(h.schema_id),
+    @history_table_name = h.name
+FROM sys.tables t
+JOIN sys.tables h ON t.history_table_id = h.object_id
+WHERE t.object_id = OBJECT_ID('dbo.customer');
+
+IF @history_table_name IS NOT NULL
+BEGIN
+    SET @history_full_name = @history_table_schema + '.' + @history_table_name;
+    
+    SET @sql = N'
+        SELECT @cnt = COUNT(*) 
+        FROM ' + QUOTENAME(@history_table_schema) + '.' + QUOTENAME(@history_table_name) + N'
+        WHERE customer_id = 42 
+           OR full_name = ''Subject_0000042'' 
+           OR email = ''subject42@example.invalid'' 
+           OR phone = ''+1-555-0000042'';';
+           
+    EXEC sp_executesql @sql, N'@cnt int OUTPUT', @cnt OUTPUT;
+    
+    INSERT INTO @results (object_name, rows_found)
+    VALUES (@history_full_name, @cnt);
+END
+
+SELECT object_name, rows_found
+FROM @results;

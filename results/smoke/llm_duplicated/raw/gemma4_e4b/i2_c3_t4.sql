@@ -1,0 +1,5 @@
+SELECT 'dbo.customer' AS object_name, 
+       CAST(COUNT(CASE WHEN c.customer_id = 42 AND c.full_name = N'Subject_0000042' AND c.email = N'subject42@example.invalid' AND c.phone = N'+1-555-0000042' THEN 1 END) AS INT) AS rows_found
+UNION ALL
+SELECT 'dbo.customer_history', 
+       CAST(COUNT(CASE WHEN h.customer_id = 42 AND h.full_name = N'Subject_0000042' AND h.email = N'subject42@example.invalid' AND h.phone = N'+1-555-0000042' THEN 1 END) AS INT);

@@ -1,0 +1,69 @@
+SET NOCOUNT ON;
+
+DECLARE @n nvarchar(200) = N'Subject_0000042';
+DECLARE @e nvarchar(200) = N'subject42@example.invalid';
+DECLARE @p nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #res (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj_id int;
+DECLARE @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @schema, @table, @obj_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @cnt = 0;
+
+    -- Build a predicate: any character column contains any of the three personal-data values
+    SELECT @pred = STRING_AGG(
+               CAST(N'CHARINDEX(' + v.p + N', ' + QUOTENAME(c.name) + N') > 0' AS nvarchar(max)),
+               N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    CROSS JOIN (VALUES (N'@n'), (N'@e'), (N'@p')) AS v(p)
+    WHERE c.object_id = @obj_id
+      AND ty.name IN (N'varchar', N'nvarchar', N'char', N'nchar', N'sysname');
+
+    IF @pred IS NULL
+    BEGIN
+        INSERT INTO #res (object_name, rows_found)
+        VALUES (@schema + N'.' + @table, 0);
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sp_executesql
+             @sql,
+             N'@n nvarchar(200), @e nvarchar(200), @p nvarchar(200), @cnt bigint OUTPUT',
+             @n = @n, @e = @e, @p = @p, @cnt = @cnt OUTPUT;
+
+        INSERT INTO #res (object_name, rows_found)
+        VALUES (@schema + N'.' + @table, @cnt);
+    END
+
+    FETCH NEXT FROM tcur INTO @schema, @table, @obj_id;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #res
+ORDER BY object_name;
+
+DROP TABLE #res;

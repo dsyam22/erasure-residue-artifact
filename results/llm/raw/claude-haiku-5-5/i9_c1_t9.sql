@@ -1,0 +1,58 @@
+SET NOCOUNT ON;
+
+DECLARE @s sysname, @t sysname, @name nvarchar(300), @obj nvarchar(300);
+DECLARE @where nvarchar(max), @sql nvarchar(max), @cnt int;
+
+CREATE TABLE #scan_results
+(
+    object_name nvarchar(300) NOT NULL,
+    rows_found  int           NOT NULL
+);
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @s, @t;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @name = CAST(@s AS nvarchar(128)) + N'.' + CAST(@t AS nvarchar(128));
+    SET @obj  = QUOTENAME(@s) + N'.' + QUOTENAME(@t);
+    SET @where = NULL;
+    SET @cnt  = 0;
+
+    -- Build a predicate: any character column contains any of the subject's original personal data values
+    SELECT @where = STRING_AGG(CAST(
+        N'(CHARINDEX(N''Subject_0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+      + N' OR CHARINDEX(N''subject42@example.invalid'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+      + N' OR CHARINDEX(N''+1-555-0000042'', CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(@obj)
+      AND c.system_type_id IN (167, 175, 231, 239); -- varchar, char, nvarchar, nchar
+
+    IF @where IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + @obj + N' WHERE ' + @where + N';';
+        EXEC sp_executesql @sql, N'@n int OUTPUT', @n = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan_results (object_name, rows_found)
+    VALUES (@name, @cnt);
+
+    FETCH NEXT FROM tbl_cur INTO @s, @t;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;
+
+DROP TABLE #scan_results;

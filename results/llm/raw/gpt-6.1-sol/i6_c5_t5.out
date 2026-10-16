@@ -1,0 +1,8 @@
+cdc.captured_columns|0
+cdc.change_tables|0
+cdc.dbo_customer_CT|1
+cdc.ddl_history|0
+cdc.index_columns|0
+dbo.customer|0
+
+(6 rows affected)

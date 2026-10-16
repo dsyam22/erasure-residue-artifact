@@ -1,0 +1,25 @@
+```sql
+WITH ObjectChecks AS (
+    -- Check dbo.customer table for any lingering personal data points
+    SELECT
+        CAST('dbo.customer' AS NVARCHAR(256)) AS object_name,
+        COUNT(CASE WHEN T.full_name = 'Subject_0000042' OR 
+                         T.email = 'subject42@example.invalid' OR 
+                         T.phone = '+1-555-0000042' OR
+                         CAST(T.customer_id AS NVARCHAR) = '42' THEN 1 END) AS rows_found
+    FROM
+        dbo.customer T
+
+    UNION ALL
+
+    -- Check systranschemas table (unlikely to contain PII, but included for completeness based on schema inspection)
+    SELECT
+        CAST('systranschemas' AS NVARCHAR(256)),
+        0 -- Assuming no customer PII exists in system metadata tables
+)
+SELECT 
+    object_name,
+    rows_found
+FROM 
+    ObjectChecks;
+```

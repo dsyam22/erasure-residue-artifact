@@ -1,0 +1,58 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name nvarchar(260) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @oid int, @pred nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+    SET @n = 0;
+
+    -- Build "col LIKE pattern OR ..." over all character columns and all personal-data patterns
+    SELECT @pred = STRING_AGG(CONVERT(nvarchar(max),
+                       QUOTENAME(c.name) + N' LIKE ' + p.pat), N' OR ')
+    FROM sys.columns AS c
+    CROSS JOIN (VALUES
+        (N'N''%Subject[_]0000042%'''),
+        (N'N''%subject42@example.invalid%'''),
+        (N'N''%+1-555-0000042%''')
+    ) AS p(pat)
+    WHERE c.object_id = @oid
+      AND c.system_type_id IN (167, 175, 231, 239); -- varchar, char, nvarchar, nchar
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql, N'@cnt bigint OUTPUT', @cnt = @n OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (CONVERT(nvarchar(260), @schema + N'.' + @table), @n);
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table, @oid;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

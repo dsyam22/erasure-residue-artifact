@@ -1,0 +1,29 @@
+WITH CheckResults AS (
+    -- Object 1: dbo.customer - Checking full_name for residual phone number data
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+        COUNT(CASE WHEN EXISTS (
+            SELECT 1 
+            FROM dbo.customer c 
+            WHERE c.customer_id = 42 
+              AND LTRIM(RTRIM(c.full_name)) LIKE '%+1-555-0000042%'
+        ) THEN 1 ELSE NULL END) AS found_in_full_name,
+
+    -- Object 2: dbo.customer - Checking email for residual phone number data (unlikely but comprehensive)
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(128)) AS object_name,
+        COUNT(CASE WHEN EXISTS (
+            SELECT 1 
+            FROM dbo.customer c 
+            WHERE c.customer_id = 42 
+              AND LTRIM(RTRIM(c.email)) LIKE '%+1-555-0000042%'
+        ) THEN 1 ELSE NULL END) AS found_in_email
+)
+-- Aggregate the findings into a single required result set structure
+SELECT 
+    'dbo.customer' AS object_name,
+    ISNULL(T1.found_in_full_name, 0) + ISNULL(T1.found_in_email, 0) AS rows_found
+FROM (
+    -- Cross join to ensure we only process the single check result set once for aggregation
+    SELECT found_in_full_name, found_in_email FROM CheckResults LIMIT 1
+) AS T1;

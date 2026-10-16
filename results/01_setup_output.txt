@@ -1,0 +1,22 @@
+Changed database context to 'erasure_lab'.
+Update mask evaluation will be disabled in net_changes_function because the CLR configuration option is disabled.
+Job 'cdc.erasure_lab_capture' started successfully.
+Job 'cdc.erasure_lab_cleanup' started successfully.
+--- Environment check ---
+servicename status_desc
+----------- -----------
+SQL Server Agent (MSSQLSERVER) Running
+name is_cdc_enabled
+---- --------------
+erasure_lab 1
+capture_instance create_date
+---------------- -----------
+dbo_customer 2026-10-08 01:46:42.050
+customer_rows
+-------------
+1000
+--- CDC job configuration (retention is in minutes) ---
+job_id job_type job_name maxtrans maxscans continuous pollinginterval retention threshold
+------ -------- -------- -------- -------- ---------- --------------- --------- ---------
+B9FABBAE-16F9-43C9-820F-59EED994F76F capture cdc.erasure_lab_capture 500 10 1 5 0 0
+5E9EB7EA-F412-4B86-A6DC-9DC657298EEE cleanup cdc.erasure_lab_cleanup 0 0 0 0 4320 5000

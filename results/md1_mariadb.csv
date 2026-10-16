@@ -1,0 +1,13 @@
+scale,method,trial,binlog_format,binlog_row_image,binlog_expire_logs_seconds,src_rows_readable,history_rows,history_subjects,binlog_copies,binlog_subjects,delete_one_history_row_for_system_time,delete_history_where_id,subject10_history_left,other_erased_history_left,others_history_before,erased_history_left_after_delete_history,others_history_left_after_delete_history,purge_tries,binlog_subjects_after_purge
+1000,DELETE,1,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+1000,DELETE,2,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,1,0
+1000,DELETE,3,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+1000,UPDATE,1,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,1,0
+1000,UPDATE,2,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,1,0
+1000,UPDATE,3,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+100000,DELETE,1,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,1,0
+100000,DELETE,2,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+100000,DELETE,3,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+100000,UPDATE,1,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+100000,UPDATE,2,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,2,0
+100000,UPDATE,3,ROW,FULL,864000,0,100,100,300,100,error,error,1,99,9,0,0,1,0

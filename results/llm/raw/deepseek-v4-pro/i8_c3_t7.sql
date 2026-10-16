@@ -1,0 +1,95 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name NVARCHAR(500),
+    rows_found INT
+);
+
+-- Check base table
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = 'Subject_0000042'
+   OR email = 'subject42@example.invalid'
+   OR phone = '+1-555-0000042';
+
+-- Check CDC change tables (if any exist for this table)
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name LIKE '%_CT' AND is_tracked_by_cdc = 1)
+BEGIN
+    DECLARE @cdc_schema NVARCHAR(128);
+    DECLARE @cdc_table NVARCHAR(128);
+    DECLARE cdc_cursor CURSOR FOR
+        SELECT s.name AS schema_name, t.name AS table_name
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE t.name LIKE '%_CT'
+          AND t.is_tracked_by_cdc = 1;
+
+    OPEN cdc_cursor;
+    FETCH NEXT FROM cdc_cursor INTO @cdc_schema, @cdc_table;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @sql NVARCHAR(MAX);
+        SET @sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ''' + QUOTENAME(@cdc_schema) + '.' + QUOTENAME(@cdc_table) + ''', COUNT(*)
+            FROM ' + QUOTENAME(@cdc_schema) + '.' + QUOTENAME(@cdc_table) + '
+            WHERE customer_id = 42
+               OR full_name = ''Subject_0000042''
+               OR email = ''subject42@example.invalid''
+               OR phone = ''+1-555-0000042''';
+        EXEC sp_executesql @sql;
+
+        FETCH NEXT FROM cdc_cursor INTO @cdc_schema, @cdc_table;
+    END;
+
+    CLOSE cdc_cursor;
+    DEALLOCATE cdc_cursor;
+END
+
+-- Check temporal history tables (if table is temporal)
+IF EXISTS (
+    SELECT 1
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = 'customer'
+      AND t.temporal_type = 2
+)
+BEGIN
+    DECLARE @history_schema NVARCHAR(128);
+    DECLARE @history_table NVARCHAR(128);
+
+    SELECT @history_schema = s.name, @history_table = t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.object_id = OBJECT_ID('dbo.customer');
+
+    SET @history_table = @history_table + '_History';
+
+    IF EXISTS (
+        SELECT 1
+        FROM sys.tables t
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE s.name = @history_schema AND t.name = @history_table
+    )
+    BEGIN
+        SET @sql = N'
+            INSERT INTO #results (object_name, rows_found)
+            SELECT ''' + QUOTENAME(@history_schema) + '.' + QUOTENAME(@history_table) + ''', COUNT(*)
+            FROM ' + QUOTENAME(@history_schema) + '.' + QUOTENAME(@history_table) + '
+            WHERE customer_id = 42
+               OR full_name = ''Subject_0000042''
+               OR email = ''subject42@example.invalid''
+               OR phone = ''+1-555-0000042''';
+        EXEC sp_executesql @sql;
+    END
+END
+
+-- Return results
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

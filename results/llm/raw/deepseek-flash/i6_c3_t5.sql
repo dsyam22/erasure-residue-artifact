@@ -1,0 +1,79 @@
+/* Read-only verification: is subject's phone number still stored anywhere? */
+
+DECLARE @phone nvarchar(100) = N'+1-555-0000042';
+DECLARE @subject_id int = 42;
+
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* 1. Base table dbo.customer (phone column dropped) */
+IF COL_LENGTH('dbo.customer', 'phone') IS NOT NULL
+    INSERT INTO @results
+    SELECT 'dbo.customer', COUNT(*) FROM dbo.customer WHERE phone = @phone;
+ELSE
+    INSERT INTO @results SELECT 'dbo.customer', 0;
+
+/* 2. CDC change table for dbo.customer */
+IF OBJECT_ID('cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    DECLARE @has_phone bit = 0;
+    IF COL_LENGTH('cdc.dbo_customer_CT', 'phone') IS NOT NULL SET @has_phone = 1;
+
+    IF @has_phone = 1
+        INSERT INTO @results
+        SELECT 'cdc.dbo_customer_CT', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE phone = @phone;
+    ELSE
+        INSERT INTO @results SELECT 'cdc.dbo_customer_CT', 0;
+END
+ELSE
+    INSERT INTO @results SELECT 'cdc.dbo_customer_CT', 0;
+
+/* 3. CDC captured column metadata (capture instance definition) */
+IF OBJECT_ID('cdc.captured_columns') IS NOT NULL
+    INSERT INTO @results
+    SELECT 'cdc.captured_columns', COUNT(*)
+    FROM cdc.captured_columns
+    WHERE column_name = 'phone';
+ELSE
+    INSERT INTO @results SELECT 'cdc.captured_columns', 0;
+
+/* 4. CDC index / change-table metadata referencing phone */
+IF OBJECT_ID('cdc.change_tables') IS NOT NULL
+    INSERT INTO @results
+    SELECT 'cdc.change_tables', COUNT(*)
+    FROM cdc.change_tables
+    WHERE capture_instance = 'dbo_customer'
+      AND EXISTS (SELECT 1 FROM cdc.captured_columns cc
+                  WHERE cc.object_id = cdc.change_tables.object_id
+                    AND cc.column_name = 'phone');
+ELSE
+    INSERT INTO @results SELECT 'cdc.change_tables', 0;
+
+/* 5. Temporal history tables for dbo.customer (none expected) */
+IF OBJECT_ID('dbo.customer_history') IS NOT NULL
+BEGIN
+    IF COL_LENGTH('dbo.customer_history', 'phone') IS NOT NULL
+        INSERT INTO @results
+        SELECT 'dbo.customer_history', COUNT(*)
+        FROM dbo.customer_history WHERE phone = @phone;
+    ELSE
+        INSERT INTO @results SELECT 'dbo.customer_history', 0;
+END
+ELSE
+    INSERT INTO @results SELECT 'dbo.customer_history', 0;
+
+/* 6. Any other user table containing a column named 'phone' */
+INSERT INTO @results
+SELECT 'other:' + s.name + '.' + t.name, 0
+FROM sys.columns c
+JOIN sys.tables t ON t.object_id = c.object_id
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE c.name = 'phone'
+  AND NOT (s.name = 'dbo' AND t.name = 'customer')
+  AND NOT (s.name = 'cdc' AND t.name = 'dbo_customer_CT')
+  AND t.name NOT LIKE '%_history'
+  AND t.is_ms_shipped = 0;
+
+/* Report only objects actually checked, one row each */
+SELECT object_name, rows_found FROM @results;

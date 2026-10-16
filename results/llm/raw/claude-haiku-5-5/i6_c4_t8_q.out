@@ -1,0 +1,35 @@
+schema_name|table_name|column_name|data_type|max_length|is_computed
+-----------|----------|-----------|---------|----------|-----------
+cdc|dbo_customer_CT|phone|nvarchar|60|0
+(1 rows affected)
+column_id|name|data_type|max_length|is_nullable
+---------|----|---------|----------|-----------
+1|customer_id|int|4|0
+2|full_name|nvarchar|200|0
+3|email|nvarchar|400|0
+(3 rows affected)
+schema_name|table_name|temporal_type_desc|is_tracked_by_cdc|row_count
+-----------|----------|------------------|-----------------|---------
+cdc|captured_columns|NON_TEMPORAL_TABLE|0|4
+cdc|change_tables|NON_TEMPORAL_TABLE|0|1
+cdc|dbo_customer_CT|NON_TEMPORAL_TABLE|0|100
+cdc|ddl_history|NON_TEMPORAL_TABLE|0|1
+cdc|index_columns|NON_TEMPORAL_TABLE|0|1
+cdc|lsn_time_mapping|NON_TEMPORAL_TABLE|0|1227
+dbo|customer|NON_TEMPORAL_TABLE|1|100
+dbo|systranschemas|NON_TEMPORAL_TABLE|0|2
+(8 rows affected)
+type_desc|schema_name|object_name
+---------|-----------|-----------
+SQL_INLINE_TABLE_VALUED_FUNCTION|cdc|fn_cdc_get_all_changes_dbo_customer
+SQL_INLINE_TABLE_VALUED_FUNCTION|cdc|fn_cdc_get_net_changes_dbo_customer
+SQL_STORED_PROCEDURE|cdc|sp_insdel_1285579618
+SQL_STORED_PROCEDURE|cdc|sp_upd_1285579618
+SQL_STORED_PROCEDURE|cdc|sp_batchinsert_1285579618
+(5 rows affected)
+constraint_name|child_table|parent_table
+---------------|-----------|------------
+(0 rows affected)
+schema_name|table_name|column_name
+-----------|----------|-----------
+(0 rows affected)

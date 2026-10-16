@@ -1,0 +1,23 @@
+```sql
+DECLARE @target_phone nvarchar(50) = '+1-555-0000042';
+DECLARE @customer_id int = 42;
+
+-- Check 1: The live table where the column was dropped (Expected count: 0)
+SELECT 'dbo.customer' AS object_name, 0 AS rows_found
+
+UNION ALL
+
+-- Check 2: Change Data Capture history table (This is the most likely place for residual data)
+SELECT
+    'cdc.dbo_customer_CT',
+    ISNULL(
+        (
+            SELECT COUNT(*)
+            FROM cdc.dbo_customer_CT
+            WHERE customer_id = @customer_id
+              AND phone = @target_phone
+        ), 0
+    )
+
+-- Note: The UNION ALL structure ensures both object names are listed, even if the data isn't found in the history table.
+```

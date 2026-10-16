@@ -1,0 +1,9 @@
+schema_name|table_name|temporal_type_desc|history_schema|history_table|column_name|data_type|max_length
+-----------|----------|------------------|--------------|-------------|-----------|---------|----------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|full_name|nvarchar|200
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|email|nvarchar|400
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|phone|nvarchar|60
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|full_name|nvarchar|200
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|email|nvarchar|400
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|phone|nvarchar|60
+(6 rows affected)

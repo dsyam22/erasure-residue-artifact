@@ -1,0 +1,59 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #needles (v nvarchar(100) NOT NULL);
+INSERT INTO #needles (v) VALUES
+    (N'Subject_0000042'),
+    (N'subject42@example.invalid'),
+    (N'+1-555-0000042');
+
+CREATE TABLE #r (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @obj  nvarchar(300),
+        @oid  int,
+        @pred nvarchar(max),
+        @sql  nvarchar(max),
+        @cnt  bigint;
+
+DECLARE tcur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT QUOTENAME(s.name) + N'.' + QUOTENAME(t.name), t.object_id
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    ORDER BY 1;
+
+OPEN tcur;
+FETCH NEXT FROM tcur INTO @obj, @oid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    SELECT @pred = STRING_AGG(CAST(
+               N'EXISTS (SELECT 1 FROM #needles n WHERE CHARINDEX(n.v, CONVERT(nvarchar(max), '
+               + QUOTENAME(c.name) + N')) > 0)' AS nvarchar(max)), N' OR ')
+    FROM sys.columns c
+    JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @oid
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'sysname');
+
+    SET @cnt = 0;
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @c = COUNT_BIG(*) FROM ' + @obj + N' WHERE ' + @pred + N';';
+        EXEC sys.sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+    END
+
+    INSERT INTO #r (object_name, rows_found) VALUES (@obj, @cnt);
+
+    FETCH NEXT FROM tcur INTO @obj, @oid;
+END
+
+CLOSE tcur;
+DEALLOCATE tcur;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;

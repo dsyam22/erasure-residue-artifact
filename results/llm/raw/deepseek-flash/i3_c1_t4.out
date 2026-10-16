@@ -1,0 +1,10 @@
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+Msg 245, Level 16, State 1, Server 651334c31df8, Line 2
+Conversion failed when converting the nvarchar value '+1-555-0000042' to data type int.

@@ -1,0 +1,11 @@
+SELECT 'dbo.customer' AS object_name, 
+       (SELECT COUNT(*) FROM dbo.customer WHERE full_name = N'Subject_0000042' 
+                                               AND email = N'subject42@example.invalid' 
+                                               AND phone = N'+1-555-0000042') AS rows_found
+
+UNION ALL
+
+SELECT 'dbo.member', 
+       (SELECT COUNT(*) FROM dbo.member WHERE full_name = N'Subject_0000042' 
+                                           AND email = N'subject42@example.invalid' 
+                                           AND phone = N'+1-555-0000042') AS rows_found;

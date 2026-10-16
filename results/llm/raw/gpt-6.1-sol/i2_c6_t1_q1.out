@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type_desc|history_schema_name|history_table_name|column_id|column_name|data_type|is_tracked_by_cdc
+-----------|----------|------------------|-------------------|------------------|---------|-----------|---------|-----------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|1|customer_id|int|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|2|full_name|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|3|email|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|4|phone|nvarchar|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|5|valid_from|datetime2|0
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|6|valid_to|datetime2|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|1|customer_id|int|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|2|full_name|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|3|email|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|4|phone|nvarchar|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|5|valid_from|datetime2|0
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|6|valid_to|datetime2|0
+(12 rows affected)

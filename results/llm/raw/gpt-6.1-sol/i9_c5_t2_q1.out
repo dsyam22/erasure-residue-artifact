@@ -1,0 +1,15 @@
+schema_name|table_name|temporal_type_desc|history_schema|history_table|column_name|data_type|generated_always_type_desc
+-----------|----------|------------------|--------------|-------------|-----------|---------|--------------------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|customer_id|int|NOT_APPLICABLE
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|full_name|nvarchar|NOT_APPLICABLE
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|email|nvarchar|NOT_APPLICABLE
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|phone|nvarchar|NOT_APPLICABLE
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|valid_from|datetime2|AS_ROW_START
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|dbo|customer_history|valid_to|datetime2|AS_ROW_END
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|customer_id|int|NOT_APPLICABLE
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|full_name|nvarchar|NOT_APPLICABLE
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|email|nvarchar|NOT_APPLICABLE
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|phone|nvarchar|NOT_APPLICABLE
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|valid_from|datetime2|NOT_APPLICABLE
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|valid_to|datetime2|NOT_APPLICABLE
+(12 rows affected)

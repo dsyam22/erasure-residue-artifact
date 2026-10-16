@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 21
+Invalid column name 'phone'.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 57
+The multi-part identifier "history_table.schema_id" could not be bound.
+Msg 4104, Level 16, State 1, Server 651334c31df8, Line 57
+The multi-part identifier "history_table.name" could not be bound.

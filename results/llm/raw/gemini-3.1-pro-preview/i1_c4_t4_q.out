@@ -1,0 +1,11 @@
+table_name|column_name|temporal_type|history_table_id
+----------|-----------|-------------|----------------
+customer|customer_id|0|NULL
+customer|full_name|0|NULL
+customer|email|0|NULL
+customer|phone|0|NULL
+dbo_customer_CT|customer_id|0|NULL
+dbo_customer_CT|full_name|0|NULL
+dbo_customer_CT|email|0|NULL
+dbo_customer_CT|phone|0|NULL
+(8 rows affected)

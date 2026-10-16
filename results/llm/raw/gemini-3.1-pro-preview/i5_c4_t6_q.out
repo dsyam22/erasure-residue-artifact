@@ -1,0 +1,4 @@
+table_name|temporal_type_desc|history_table_name|history_schema_id|history_schema_name
+----------|------------------|------------------|-----------------|-------------------
+customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|customer_history|1|dbo
+(1 rows affected)

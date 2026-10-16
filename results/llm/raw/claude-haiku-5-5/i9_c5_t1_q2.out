@@ -1,0 +1,15 @@
+table_name|column_id|column_name|data_type|max_length|is_nullable
+----------|---------|-----------|---------|----------|-----------
+customer|1|customer_id|int|4|0
+customer|2|full_name|nvarchar|200|0
+customer|3|email|nvarchar|400|0
+customer|4|phone|nvarchar|60|1
+customer|5|valid_from|datetime2|8|0
+customer|6|valid_to|datetime2|8|0
+customer_history|1|customer_id|int|4|0
+customer_history|2|full_name|nvarchar|200|0
+customer_history|3|email|nvarchar|400|0
+customer_history|4|phone|nvarchar|60|1
+customer_history|5|valid_from|datetime2|8|0
+customer_history|6|valid_to|datetime2|8|0
+(12 rows affected)

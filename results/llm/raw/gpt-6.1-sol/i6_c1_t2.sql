@@ -1,0 +1,14 @@
+USE [llm_i6];
+
+SELECT
+    N'dbo.customer' AS object_name,
+    COUNT_BIG(*) AS rows_found
+FROM dbo.customer
+WHERE CHARINDEX(
+          N'+1-555-0000042',
+          full_name COLLATE Latin1_General_100_BIN2
+      ) > 0
+   OR CHARINDEX(
+          N'+1-555-0000042',
+          email COLLATE Latin1_General_100_BIN2
+      ) > 0;

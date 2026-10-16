@@ -1,0 +1,19 @@
+schema_name|table_name|temporal_type_desc|column_name|type_name
+-----------|----------|------------------|-----------|---------
+dbo|customer|NON_TEMPORAL_TABLE|customer_id|int
+dbo|customer|NON_TEMPORAL_TABLE|full_name|nvarchar
+dbo|customer|NON_TEMPORAL_TABLE|email|nvarchar
+dbo|customer|NON_TEMPORAL_TABLE|phone|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|member_id|int
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|full_name|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|email|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|phone|nvarchar
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|valid_from|datetime2
+dbo|member|SYSTEM_VERSIONED_TEMPORAL_TABLE|valid_to|datetime2
+dbo|member_history|HISTORY_TABLE|member_id|int
+dbo|member_history|HISTORY_TABLE|full_name|nvarchar
+dbo|member_history|HISTORY_TABLE|email|nvarchar
+dbo|member_history|HISTORY_TABLE|phone|nvarchar
+dbo|member_history|HISTORY_TABLE|valid_from|datetime2
+dbo|member_history|HISTORY_TABLE|valid_to|datetime2
+(16 rows affected)

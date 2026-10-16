@@ -1,0 +1,3 @@
+SELECT 'dbo.customer' AS object_name, COUNT(CASE WHEN full_name = N'Subject_0000042' OR email = N'subject42@example.invalid' OR phone = N'+1-555-0000042' THEN 1 END) AS rows_found
+UNION ALL
+SELECT 'dbo.member', COUNT(CASE WHEN full_name = N'Subject_0000042' OR email = N'subject42@example.invalid' OR phone = N'+1-555-0000042' THEN 1 END);

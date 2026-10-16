@@ -1,0 +1,7 @@
+table_name|column_name|data_type|max_length|is_nullable
+----------|-----------|---------|----------|-----------
+customer|customer_id|int|4|0
+customer|full_name|nvarchar|200|0
+customer|email|nvarchar|400|0
+customer|phone|nvarchar|60|1
+(4 rows affected)

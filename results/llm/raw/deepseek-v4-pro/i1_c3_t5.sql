@@ -1,0 +1,125 @@
+DECLARE @customer_id INT = 42;
+DECLARE @full_name NVARCHAR(255) = 'Subject_0000042';
+DECLARE @email NVARCHAR(255) = 'subject42@example.invalid';
+DECLARE @phone NVARCHAR(255) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current table
+INSERT INTO #results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check CDC change table
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'cdc' AND t.name = 'dbo_customer_CT')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END
+
+-- Check temporal history table (if exists)
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo' AND t.name = 'customer_history')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_history', 0;
+END
+
+-- Check any other tables that might contain copies (common patterns: audit, log, backup, staging)
+-- This is a heuristic check; adjust table names as needed based on actual schema
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo' AND t.name = 'customer_audit')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_audit', COUNT(*)
+    FROM dbo.customer_audit
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_audit', 0;
+END
+
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo' AND t.name = 'customer_log')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_log', COUNT(*)
+    FROM dbo.customer_log
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_log', 0;
+END
+
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo' AND t.name = 'customer_backup')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_backup', COUNT(*)
+    FROM dbo.customer_backup
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_backup', 0;
+END
+
+IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo' AND t.name = 'customer_staging')
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_staging', COUNT(*)
+    FROM dbo.customer_staging
+    WHERE customer_id = @customer_id
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer_staging', 0;
+END
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

@@ -1,0 +1,19 @@
+object_name|column_name
+-----------|-----------
+cdc.dbo_customer_CT|customer_id
+cdc.dbo_customer_CT|email
+cdc.dbo_customer_CT|full_name
+cdc.dbo_customer_CT|phone
+cdc.fn_cdc_get_all_changes_dbo_customer|customer_id
+cdc.fn_cdc_get_all_changes_dbo_customer|email
+cdc.fn_cdc_get_all_changes_dbo_customer|full_name
+cdc.fn_cdc_get_all_changes_dbo_customer|phone
+cdc.fn_cdc_get_net_changes_dbo_customer|customer_id
+cdc.fn_cdc_get_net_changes_dbo_customer|email
+cdc.fn_cdc_get_net_changes_dbo_customer|full_name
+cdc.fn_cdc_get_net_changes_dbo_customer|phone
+dbo.member_history|email
+dbo.member_history|full_name
+dbo.member_history|member_id
+dbo.member_history|phone
+(16 rows affected)

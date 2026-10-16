@@ -1,0 +1,15 @@
+table_name|column_name|data_type
+----------|-----------|---------
+customer|email|nvarchar
+customer|full_name|nvarchar
+customer|phone|nvarchar
+dbo_customer_CT|email|nvarchar
+dbo_customer_CT|full_name|nvarchar
+dbo_customer_CT|phone|nvarchar
+member|email|nvarchar
+member|full_name|nvarchar
+member|phone|nvarchar
+member_history|email|nvarchar
+member_history|full_name|nvarchar
+member_history|phone|nvarchar
+(12 rows affected)

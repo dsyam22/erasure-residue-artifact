@@ -1,0 +1,13 @@
+This is the final script. The database has only one user table, `dbo.customer`, so the check covers that table. A row counts as a match if it still carries any of the subject's four original values: customer_id 42, the full name, the email, or the phone.
+
+```sql
+-- SCRIPT
+SELECT
+    CAST(N'dbo.customer' AS nvarchar(256)) AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+```

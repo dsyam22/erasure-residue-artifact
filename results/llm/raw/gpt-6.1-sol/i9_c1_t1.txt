@@ -1,0 +1,94 @@
+```sql
+DECLARE @sql nvarchar(max);
+
+-- Inspect user tables, including temporal history tables.
+-- Match original text wherever it occurs, and customer_id = 42.
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found
+              FROM [llm_i9].' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + COALESCE(p.predicate, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM [llm_i9].sys.tables AS t
+JOIN [llm_i9].sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            CASE
+                WHEN c.system_type_id IN (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN
+                    N'(CHARINDEX(@full_name, TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0
+                    OR CHARINDEX(@email, TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0
+                    OR CHARINDEX(@phone, TRY_CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) + N') COLLATE Latin1_General_100_BIN2) > 0)'
+                WHEN c.system_type_id IN (34, 165, 173)
+                THEN
+                    N'(CHARINDEX(CONVERT(varbinary(max), @full_name),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0
+                    OR CHARINDEX(CONVERT(varbinary(max), @email),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0
+                    OR CHARINDEX(CONVERT(varbinary(max), @phone),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0
+                    OR CHARINDEX(CONVERT(varbinary(max), CONVERT(varchar(max), @full_name)),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0
+                    OR CHARINDEX(CONVERT(varbinary(max), CONVERT(varchar(max), @email)),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0
+                    OR CHARINDEX(CONVERT(varbinary(max), CONVERT(varchar(max), @phone)),
+                                 CONVERT(varbinary(max), ' + QUOTENAME(c.name) + N')) > 0)'
+                ELSE N'(1 = 0)'
+            END +
+            CASE
+                WHEN c.name = N'customer_id'
+                 AND c.system_type_id IN
+                     (48, 52, 56, 127, 106, 108, 59, 62, 60, 122,
+                      35, 99, 167, 175, 231, 239, 98)
+                THEN
+                    N' OR TRY_CONVERT(decimal(38, 10),
+                         TRY_CONVERT(nvarchar(max), ' + QUOTENAME(c.name) +
+                    N')) = 42'
+                ELSE N''
+            END
+        ),
+        N' OR '
+    ) AS predicate
+    FROM [llm_i9].sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND
+      (
+          c.system_type_id IN
+              (35, 99, 167, 175, 231, 239, 241, 98, 34, 165, 173)
+          OR
+          (
+              c.name = N'customer_id'
+              AND c.system_type_id IN
+                  (48, 52, 56, 127, 106, 108, 59, 62, 60, 122)
+          )
+      )
+) AS p
+WHERE t.is_ms_shipped = 0;
+
+SELECT @sql =
+    COALESCE(
+        @sql + N' ORDER BY object_name;',
+        N'SELECT CAST(NULL AS nvarchar(257)) AS object_name,
+                 CAST(NULL AS bigint) AS rows_found
+          WHERE 1 = 0;'
+    );
+
+-- Only SELECT statements are executed; no stored data is modified.
+EXEC sys.sp_executesql
+    @sql,
+    N'@full_name nvarchar(100), @email nvarchar(320), @phone nvarchar(50)',
+    @full_name = N'Subject_0000042',
+    @email = N'subject42@example.invalid',
+    @phone = N'+1-555-0000042';
+```

@@ -1,0 +1,56 @@
+WITH SubjectData AS (
+    SELECT 
+        customer_id,
+        full_name,
+        email,
+        '+1-555-0000042' AS phone
+    FROM dbo.customer
+    WHERE customer_id = 42
+)
+SELECT 
+    'dbo.customer' AS object_name,
+    COUNT(*) AS rows_found
+FROM dbo.customer c
+INNER JOIN SubjectData s
+    ON c.customer_id = s.customer_id
+WHERE c.full_name = s.full_name
+  AND c.email = s.email
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns col
+      WHERE col.object_id = OBJECT_ID('dbo.customer')
+        AND col.name = 'phone'
+  )
+  AND EXISTS (
+      SELECT 1
+      FROM dbo.customer c2
+      WHERE c2.customer_id = s.customer_id
+        AND c2.full_name = s.full_name
+        AND c2.email = s.email
+        AND CAST(c2.phone AS nvarchar(50)) = s.phone
+  )
+
+UNION ALL
+
+SELECT 
+    'cdc.dbo_customer_CT' AS object_name,
+    COUNT(*) AS rows_found
+FROM cdc.dbo_customer_CT ct
+INNER JOIN SubjectData s
+    ON ct.customer_id = s.customer_id
+WHERE ct.full_name = s.full_name
+  AND ct.email = s.email
+  AND EXISTS (
+      SELECT 1
+      FROM sys.columns col
+      WHERE col.object_id = OBJECT_ID('cdc.dbo_customer_CT')
+        AND col.name = 'phone'
+  )
+  AND EXISTS (
+      SELECT 1
+      FROM cdc.dbo_customer_CT ct2
+      WHERE ct2.customer_id = s.customer_id
+        AND ct2.full_name = s.full_name
+        AND ct2.email = s.email
+        AND CAST(ct2.phone AS nvarchar(50)) = s.phone
+  );

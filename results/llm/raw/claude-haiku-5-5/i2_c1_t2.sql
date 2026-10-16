@@ -1,0 +1,33 @@
+SET NOCOUNT ON;
+
+DECLARE @sql nvarchar(max);
+
+;WITH tbl AS (
+    SELECT t.object_id,
+           QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) AS q,
+           s.name + N'.' + t.name AS obj
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+),
+pred AS (
+    SELECT tb.object_id, tb.q, tb.obj,
+           STRING_AGG(CAST(
+               N'CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(c.name) + N') > 0 OR '
+             + N'CHARINDEX(N''+1-555-0000042'', '          + QUOTENAME(c.name) + N') > 0 OR '
+             + N'CHARINDEX(N''Subject_0000042'', '        + QUOTENAME(c.name) + N') > 0'
+             AS nvarchar(max)), N' OR ') AS cond
+    FROM tbl AS tb
+    LEFT JOIN sys.columns AS c
+           ON c.object_id = tb.object_id
+          AND c.system_type_id IN (167, 231, 175, 239)  -- varchar, nvarchar, char, nchar
+    GROUP BY tb.object_id, tb.q, tb.obj
+)
+SELECT @sql = STRING_AGG(CAST(
+           N'SELECT N''' + REPLACE(obj, N'''', N'''''') + N''' AS object_name, '
+         + N'(SELECT COUNT(*) FROM ' + q + N' WHERE ' + ISNULL(cond, N'1 = 0') + N') AS rows_found'
+         AS nvarchar(max)), N' UNION ALL ') WITHIN GROUP (ORDER BY obj)
+FROM pred;
+
+SET @sql = N'SELECT object_name, rows_found FROM (' + @sql + N') AS r ORDER BY object_name;';
+
+EXEC sys.sp_executesql @sql;

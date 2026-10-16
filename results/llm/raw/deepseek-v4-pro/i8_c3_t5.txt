@@ -1,0 +1,117 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id INT = 42;
+DECLARE @full_name NVARCHAR(255) = N'Subject_0000042';
+DECLARE @email NVARCHAR(255) = N'subject42@example.invalid';
+DECLARE @phone NVARCHAR(255) = N'+1-555-0000042';
+
+CREATE TABLE #Results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check dbo.customer table
+INSERT INTO #Results (object_name, rows_found)
+SELECT 
+    N'dbo.customer',
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @customer_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+-- Check for CDC change tables (if any exist for dbo.customer)
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables t
+    INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = N'customer' 
+      AND s.name = N'dbo'
+      AND t.is_tracked_by_cdc = 1
+)
+BEGIN
+    DECLARE @cdc_capture_instance NVARCHAR(255);
+    SELECT @cdc_capture_instance = capture_instance
+    FROM cdc.change_tables
+    WHERE source_object_id = OBJECT_ID(N'dbo.customer');
+    
+    IF @cdc_capture_instance IS NOT NULL
+    BEGIN
+        DECLARE @cdc_table_name NVARCHAR(255) = N'cdc.' + QUOTENAME(@cdc_capture_instance + N'_CT');
+        DECLARE @sql NVARCHAR(MAX) = N'
+            INSERT INTO #Results (object_name, rows_found)
+            SELECT 
+                @cdc_table_name,
+                COUNT(*)
+            FROM ' + @cdc_table_name + N'
+            WHERE __$operation IN (1, 2, 3, 4)
+              AND (customer_id = @customer_id
+                OR full_name = @full_name
+                OR email = @email
+                OR phone = @phone)';
+        
+        EXEC sp_executesql @sql, 
+            N'@cdc_table_name NVARCHAR(255), @customer_id INT, @full_name NVARCHAR(255), @email NVARCHAR(255), @phone NVARCHAR(255)',
+            @cdc_table_name, @customer_id, @full_name, @email, @phone;
+    END
+END
+ELSE
+BEGIN
+    INSERT INTO #Results (object_name, rows_found)
+    SELECT N'cdc (change data capture)', 0;
+END
+
+-- Check temporal history tables (if dbo.customer is temporal)
+IF EXISTS (
+    SELECT 1 
+    FROM sys.tables t
+    INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = N'customer' 
+      AND s.name = N'dbo'
+      AND t.temporal_type = 2
+)
+BEGIN
+    DECLARE @history_table_name NVARCHAR(255);
+    SELECT @history_table_name = OBJECT_NAME(history_table_id)
+    FROM sys.tables
+    WHERE object_id = OBJECT_ID(N'dbo.customer');
+    
+    IF @history_table_name IS NOT NULL
+    BEGIN
+        DECLARE @history_schema_name NVARCHAR(255);
+        SELECT @history_schema_name = OBJECT_SCHEMA_NAME(history_table_id)
+        FROM sys.tables
+        WHERE object_id = OBJECT_ID(N'dbo.customer');
+        
+        DECLARE @history_full_name NVARCHAR(255) = QUOTENAME(@history_schema_name) + N'.' + QUOTENAME(@history_table_name);
+        DECLARE @sql_history NVARCHAR(MAX) = N'
+            INSERT INTO #Results (object_name, rows_found)
+            SELECT 
+                @history_full_name,
+                COUNT(*)
+            FROM ' + @history_full_name + N'
+            WHERE customer_id = @customer_id
+               OR full_name = @full_name
+               OR email = @email
+               OR phone = @phone';
+        
+        EXEC sp_executesql @sql_history,
+            N'@history_full_name NVARCHAR(255), @customer_id INT, @full_name NVARCHAR(255), @email NVARCHAR(255), @phone NVARCHAR(255)',
+            @history_full_name, @customer_id, @full_name, @email, @phone;
+    END
+END
+ELSE
+BEGIN
+    INSERT INTO #Results (object_name, rows_found)
+    SELECT N'temporal history', 0;
+END
+
+-- Return final results
+SELECT object_name, rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;
+```

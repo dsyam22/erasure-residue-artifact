@@ -1,0 +1,47 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (
+    object_name NVARCHAR(256),
+    rows_found INT
+);
+
+-- Check the current table
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = 'Subject_0000042'
+   OR email = 'subject42@example.invalid'
+   OR phone = '+1-555-0000042';
+
+-- Check if the table is system-versioned (temporal) and check its history table if so
+DECLARE @is_temporal INT;
+DECLARE @history_table_id INT;
+DECLARE @history_table_name NVARCHAR(256);
+
+SELECT @is_temporal = temporal_type, @history_table_id = history_table_id
+FROM sys.tables
+WHERE object_id = OBJECT_ID('dbo.customer');
+
+IF @is_temporal = 2
+BEGIN
+    SELECT @history_table_name = QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name)
+    FROM sys.tables
+    WHERE object_id = @history_table_id;
+
+    DECLARE @sql NVARCHAR(MAX) = N'
+    SELECT ''' + REPLACE(@history_table_name, '''', '''''') + ''', COUNT(*)
+    FROM ' + @history_table_name + '
+    WHERE customer_id = 42
+       OR full_name = ''Subject_0000042''
+       OR email = ''subject42@example.invalid''
+       OR phone = ''+1-555-0000042'';';
+
+    INSERT INTO @results (object_name, rows_found)
+    EXEC sp_executesql @sql;
+END
+
+SET NOCOUNT OFF;
+
+SELECT object_name, rows_found
+FROM @results;

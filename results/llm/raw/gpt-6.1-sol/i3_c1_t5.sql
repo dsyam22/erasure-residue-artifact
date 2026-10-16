@@ -1,0 +1,77 @@
+USE [llm_i3];
+
+-- Checks logical rows in every user table, including temporal history tables.
+-- Requires SELECT permission on all tables and complete metadata visibility.
+-- Run without concurrent writes for a consistent verification.
+-- This does not inspect deleted pages, transaction logs, backups, or encrypted
+-- values that cannot be decrypted by the executing principal.
+
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CAST(
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' AS d WHERE ' + COALESCE(p.predicate, N'1 = 0')
+            AS nvarchar(max)
+        ),
+        N' UNION ALL '
+    )
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CAST(
+            CASE
+                WHEN c.system_type_id IN
+                     (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN
+                    N'(' +
+                    N'CHARINDEX(N''Subject_0000042'', ' +
+                        N'CONVERT(nvarchar(max), d.' + QUOTENAME(c.name) +
+                        N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(N''subject42@example.invalid'', ' +
+                        N'CONVERT(nvarchar(max), d.' + QUOTENAME(c.name) +
+                        N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(N''+1-555-0000042'', ' +
+                        N'CONVERT(nvarchar(max), d.' + QUOTENAME(c.name) +
+                        N') COLLATE Latin1_General_100_BIN2) > 0' +
+                    CASE
+                        WHEN c.name IN (N'customer_id', N'member_id')
+                        THEN
+                            N' OR CONVERT(nvarchar(max), d.' +
+                            QUOTENAME(c.name) + N') = N''42'''
+                        ELSE N''
+                    END +
+                    N')'
+                WHEN c.name IN (N'customer_id', N'member_id')
+                     AND c.system_type_id IN
+                         (48, 52, 56, 127, 106, 108, 60, 122, 59, 62)
+                THEN N'(d.' + QUOTENAME(c.name) + N' = 42)'
+            END
+            AS nvarchar(max)
+        ),
+        N' OR '
+    ) AS predicate
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+) AS p
+WHERE t.is_ms_shipped = 0;
+
+SET @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CAST(NULL AS nvarchar(257)) AS object_name,
+                     CAST(NULL AS bigint) AS rows_found
+              WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS findings ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql @sql;

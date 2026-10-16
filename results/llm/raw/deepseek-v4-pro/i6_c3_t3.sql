@@ -1,0 +1,106 @@
+DECLARE @customer_id INT = 42;
+DECLARE @phone NVARCHAR(50) = '+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name NVARCHAR(255),
+    rows_found INT
+);
+
+-- Check current customer table for phone column existence and matching data
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'dbo' AND t.name = 'customer' AND c.name = 'phone'
+)
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', COUNT(*)
+    FROM dbo.customer
+    WHERE customer_id = @customer_id
+      AND phone = @phone;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'dbo.customer', 0;
+END
+
+-- Check CDC change table for captured phone data
+IF EXISTS (
+    SELECT 1
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'cdc' AND t.name = 'dbo_customer_CT'
+)
+BEGIN
+    DECLARE @cdc_has_phone INT;
+    SELECT @cdc_has_phone = COUNT(*)
+    FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE s.name = 'cdc' AND t.name = 'dbo_customer_CT' AND c.name = 'phone';
+
+    IF @cdc_has_phone > 0
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT 'cdc.dbo_customer_CT', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = @customer_id
+          AND phone = @phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT 'cdc.dbo_customer_CT', 0;
+    END
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'cdc.dbo_customer_CT', 0;
+END
+
+-- Check for any temporal history table related to dbo.customer
+IF EXISTS (
+    SELECT 1
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name LIKE 'customer%' AND t.temporal_type = 1
+)
+BEGIN
+    DECLARE @history_table NVARCHAR(255);
+    SELECT TOP 1 @history_table = s.name + '.' + t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name LIKE 'customer%' AND t.temporal_type = 1;
+
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns c
+        JOIN sys.tables t ON c.object_id = t.object_id
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE s.name + '.' + t.name = @history_table AND c.name = 'phone'
+    )
+    BEGIN
+        DECLARE @sql NVARCHAR(MAX);
+        SET @sql = N'INSERT INTO #results (object_name, rows_found) SELECT ''' + @history_table + ''', COUNT(*) FROM ' + @history_table + ' WHERE customer_id = @customer_id AND phone = @phone;';
+        EXEC sp_executesql @sql, N'@customer_id INT, @phone NVARCHAR(50)', @customer_id, @phone;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT @history_table, 0;
+    END
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT 'No temporal history table', 0;
+END
+
+-- Return final results
+SELECT object_name, rows_found FROM #results;
+
+DROP TABLE #results;

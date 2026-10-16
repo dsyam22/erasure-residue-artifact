@@ -1,0 +1,18 @@
+schema_name|table_name|is_memory_optimized|temporal_type_desc|is_tracked_by_cdc|has_identity|column_name|data_type|max_length|is_nullable
+-----------|----------|-------------------|------------------|-----------------|------------|-----------|---------|----------|-----------
+dbo|customer|0|NON_TEMPORAL_TABLE|0|0|customer_id|int|4|0
+dbo|customer|0|NON_TEMPORAL_TABLE|0|0|full_name|nvarchar|200|0
+dbo|customer|0|NON_TEMPORAL_TABLE|0|0|email|nvarchar|400|0
+dbo|customer|0|NON_TEMPORAL_TABLE|0|0|phone|nvarchar|60|1
+(4 rows affected)
+schema_name|table_name|row_count
+-----------|----------|---------
+dbo|customer|99
+(1 rows affected)
+database_name|is_cdc_enabled|is_change_tracking_on|is_temporal_history_retention_enabled|recovery_model_desc
+-------------|--------------|---------------------|-------------------------------------|-------------------
+llm_i8|0|0|1|FULL
+(1 rows affected)
+type_desc|schema_name|object_name
+---------|-----------|-----------
+(0 rows affected)

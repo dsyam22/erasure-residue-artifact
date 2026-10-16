@@ -1,0 +1,36 @@
+SET NOCOUNT ON;
+
+DECLARE @subject_phone nvarchar(4000) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+-- Check dbo.customer (phone column was dropped; verify no phone-like data remains)
+INSERT INTO @results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer
+WHERE full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid';
+
+-- Check CDC change table if it exists and still has a phone column
+IF EXISTS (
+    SELECT 1
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    JOIN sys.columns c ON c.object_id = t.object_id
+    WHERE s.name = 'cdc' AND t.name = 'dbo_customer_CT' AND c.name = 'phone'
+)
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT(*)
+    FROM cdc.dbo_customer_CT
+    WHERE phone = @subject_phone;
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    VALUES (N'cdc.dbo_customer_CT', 0);
+END
+
+SELECT object_name, rows_found
+FROM @results;

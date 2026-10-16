@@ -1,0 +1,61 @@
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(4000) = N'Subject_0000042';
+DECLARE @email nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+
+CREATE TABLE #results (object_name sysname, rows_found bigint);
+
+-- dbo.customer (phone column dropped; phone no longer present)
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT_BIG(*)
+FROM dbo.customer
+WHERE CAST(customer_id AS nvarchar(4000)) = CAST(@customer_id AS nvarchar(4000))
+   OR full_name = @full_name
+   OR email = @email;
+
+-- cdc.dbo_customer_CT (CDC change table; captured_columns includes phone)
+IF OBJECT_ID(N'cdc.dbo_customer_CT') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', COUNT_BIG(*)
+    FROM cdc.dbo_customer_CT
+    WHERE CAST(customer_id AS nvarchar(4000)) = CAST(@customer_id AS nvarchar(4000))
+       OR full_name = @full_name
+       OR email = @email
+       OR phone = @phone;
+END
+
+-- cdc.lsn_time_mapping (CDC metadata table; no personal data columns)
+IF OBJECT_ID(N'cdc.lsn_time_mapping') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.lsn_time_mapping', 0;
+END
+
+-- cdc.change_tables (CDC metadata table; no personal data columns)
+IF OBJECT_ID(N'cdc.change_tables') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.change_tables', 0;
+END
+
+-- cdc.captured_columns (CDC metadata table; no personal data columns)
+IF OBJECT_ID(N'cdc.captured_columns') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.captured_columns', 0;
+END
+
+-- cdc.captured_columns (CDC metadata table; no personal data columns)
+IF OBJECT_ID(N'cdc.captured_columns') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.captured_columns', 0;
+END
+
+SELECT object_name, rows_found
+FROM #results;
+
+DROP TABLE #results;

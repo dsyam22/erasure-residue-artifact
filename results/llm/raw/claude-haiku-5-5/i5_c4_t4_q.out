@@ -1,0 +1,30 @@
+schema_name|table_name|temporal_type_desc|history_table_id|history_schema|history_table|is_tracked_by_cdc|change_tracking_object_id|approx_rows
+-----------|----------|------------------|----------------|--------------|-------------|-----------------|-------------------------|-----------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|933578364|dbo|customer_history|0|NULL|99
+dbo|customer_history|HISTORY_TABLE|NULL|NULL|NULL|0|NULL|1
+(2 rows affected)
+schema_name|table_name|column_name|data_type|max_length
+-----------|----------|-----------|---------|----------
+dbo|customer|customer_id|int|4
+dbo|customer|full_name|nvarchar|200
+dbo|customer|email|nvarchar|400
+dbo|customer|phone|nvarchar|60
+dbo|customer_history|customer_id|int|4
+dbo|customer_history|full_name|nvarchar|200
+dbo|customer_history|email|nvarchar|400
+dbo|customer_history|phone|nvarchar|60
+(8 rows affected)
+type_desc|schema_name|object_name|definition
+---------|-----------|-----------|----------
+(0 rows affected)
+customer_id|full_name|email|phone|valid_from|valid_to
+-----------|---------|-----|-----|----------|--------
+(0 rows affected)
+table_name|history_table_name|history_schema_name|temporal_type_desc
+----------|------------------|-------------------|------------------
+customer|customer_history|dbo|SYSTEM_VERSIONED_TEMPORAL_TABLE
+(1 rows affected)
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 68
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i5'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 68
+The user does not have permission to perform this action.

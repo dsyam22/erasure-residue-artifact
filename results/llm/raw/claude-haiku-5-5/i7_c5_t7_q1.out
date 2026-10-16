@@ -1,0 +1,11 @@
+schema_name|table_name|object_id|is_memory_optimized|temporal_type_desc|column_name|data_type|max_length
+-----------|----------|---------|-------------------|------------------|-----------|---------|----------
+dbo|customer|901578250|0|NON_TEMPORAL_TABLE|customer_id|int|4
+dbo|customer|901578250|0|NON_TEMPORAL_TABLE|full_name|nvarchar|200
+dbo|customer|901578250|0|NON_TEMPORAL_TABLE|email|nvarchar|400
+dbo|customer|901578250|0|NON_TEMPORAL_TABLE|phone|nvarchar|60
+reporting|customer_replica|933578364|0|NON_TEMPORAL_TABLE|customer_id|int|4
+reporting|customer_replica|933578364|0|NON_TEMPORAL_TABLE|full_name|nvarchar|200
+reporting|customer_replica|933578364|0|NON_TEMPORAL_TABLE|email|nvarchar|400
+reporting|customer_replica|933578364|0|NON_TEMPORAL_TABLE|phone|nvarchar|60
+(8 rows affected)

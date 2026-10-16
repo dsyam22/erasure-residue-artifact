@@ -1,0 +1,75 @@
+Pager usage is off.
+CREATE DATABASE
+You are now connected to database "erasure_lab_pg" as user "postgres".
+ pg_drop_replication_slot 
+--------------------------
+(0 rows)
+
+DROP TABLE
+psql:/tmp/p1_pg_slot_residue.sql:21: NOTICE:  table "customer" does not exist, skipping
+psql:/tmp/p1_pg_slot_residue.sql:21: NOTICE:  table "member" does not exist, skipping
+CREATE TABLE
+CREATE TABLE
+ALTER TABLE
+ slot_name  
+------------
+ audit_slot
+(1 row)
+
+INSERT 0 1000
+INSERT 0 1000
+--- Run timestamp (UTC) ---
+      run_started_utc       
+----------------------------
+ 2026-10-10 16:34:29.228267
+(1 row)
+
+=== PART A: erase subject 42 (DELETE) and subject 77 (overwrite) in both tables ===
+DELETE 1
+DELETE 1
+UPDATE 1
+UPDATE 1
+--- Source tables after erasure ---
+   tbl    | id | full_name |          email           | phone 
+----------+----+-----------+--------------------------+-------
+ customer | 77 | REDACTED  | redacted@example.invalid | 
+ member   | 77 | REDACTED  | redacted@example.invalid | 
+(2 rows)
+
+=== PART B: what the slot still returns for subjects 42 and 77 (peek does not consume) ===
+                                                                                                                                        data                                                                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ table public.customer: INSERT: customer_id[integer]:42 full_name[text]:'Subject_000042' email[text]:'subject42@example.invalid' phone[text]:'+1-555-0042'
+ table public.customer: INSERT: customer_id[integer]:77 full_name[text]:'Subject_000077' email[text]:'subject77@example.invalid' phone[text]:'+1-555-0077'
+ table public.member: INSERT: member_id[integer]:42 full_name[text]:'Subject_000042' email[text]:'subject42@example.invalid' phone[text]:'+1-555-0042'
+ table public.member: INSERT: member_id[integer]:77 full_name[text]:'Subject_000077' email[text]:'subject77@example.invalid' phone[text]:'+1-555-0077'
+ table public.customer: DELETE: customer_id[integer]:42
+ table public.member: DELETE: member_id[integer]:42 full_name[text]:'Subject_000042' email[text]:'subject42@example.invalid' phone[text]:'+1-555-0042'
+ table public.customer: UPDATE: customer_id[integer]:77 full_name[text]:'REDACTED' email[text]:'redacted@example.invalid' phone[text]:null
+ table public.member: UPDATE: old-key: member_id[integer]:77 full_name[text]:'Subject_000077' email[text]:'subject77@example.invalid' phone[text]:'+1-555-0077' new-tuple: member_id[integer]:77 full_name[text]:'REDACTED' email[text]:'redacted@example.invalid' phone[text]:null
+(8 rows)
+
+=== PART C: log held back by the unread slot ===
+ slot_name  |    plugin     | active | wal_status | log_held_back 
+------------+---------------+--------+------------+---------------
+ audit_slot | test_decoding | f      | reserved   | 363 kB
+(1 row)
+
+--- Limit on how much log a slot may hold back (-1 = no limit) ---
+ max_slot_wal_keep_size 
+------------------------
+ -1
+(1 row)
+
+=== PART D: a consumer reads the slot ===
+ changes_consumed 
+------------------
+             2016
+(1 row)
+
+--- Rows for subjects 42 and 77 still readable through the slot ---
+ still_readable 
+----------------
+              0
+(1 row)
+

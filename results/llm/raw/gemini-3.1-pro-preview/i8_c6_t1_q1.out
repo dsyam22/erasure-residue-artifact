@@ -1,0 +1,7 @@
+TABLE_SCHEMA|TABLE_NAME|COLUMN_NAME
+------------|----------|-----------
+dbo|customer|customer_id
+dbo|customer|email
+dbo|customer|full_name
+dbo|customer|phone
+(4 rows affected)

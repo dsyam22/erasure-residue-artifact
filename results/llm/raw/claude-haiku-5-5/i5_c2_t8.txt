@@ -1,0 +1,71 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @n nvarchar(200) = N'Subject_0000042',
+        @e nvarchar(200) = N'subject42@example.invalid',
+        @p nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #scan_results
+(
+    object_name nvarchar(400) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema_name sysname, @table_name sysname, @object_id int;
+DECLARE @obj_quoted nvarchar(400), @obj_display nvarchar(400);
+DECLARE @where nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE table_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @object_id;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj_quoted  = QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name);
+    SET @obj_display = @schema_name + N'.' + @table_name;
+
+    SET @where = STUFF((
+        SELECT N' OR ' + QUOTENAME(c.name) + N' IN (@n, @e, @p)'
+        FROM sys.columns AS c
+        JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+        WHERE c.object_id = @object_id
+          AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar')
+        ORDER BY c.column_id
+        FOR XML PATH(N''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, N'');
+
+    IF @where IS NULL
+    BEGIN
+        SET @cnt = 0;
+    END
+    ELSE
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM ' + @obj_quoted
+                 + N' WHERE ' + @where + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@n nvarchar(200), @e nvarchar(200), @p nvarchar(200), @cnt bigint OUTPUT',
+            @n = @n, @e = @e, @p = @p, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #scan_results (object_name, rows_found)
+    VALUES (@obj_display, @cnt);
+
+    FETCH NEXT FROM table_cursor INTO @schema_name, @table_name, @object_id;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;
+
+DROP TABLE #scan_results;
+```

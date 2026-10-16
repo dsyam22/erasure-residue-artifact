@@ -1,0 +1,142 @@
+Pager usage is off.
+CREATE DATABASE
+You are now connected to database "sink_lab_pg" as user "postgres".
+DO
+DROP TABLE
+psql:/tmp/p2_pg_sink.sql:29: NOTICE:  table "subscriber" does not exist, skipping
+ pg_sleep 
+----------
+ 
+(1 row)
+
+You are now connected to database "erasure_lab_pg" as user "postgres".
+ pg_drop_replication_slot 
+--------------------------
+(0 rows)
+
+psql:/tmp/p2_pg_sink.sql:35: NOTICE:  publication "sink_pub" does not exist, skipping
+DROP PUBLICATION
+psql:/tmp/p2_pg_sink.sql:36: NOTICE:  table "subscriber" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+INSERT 0 100
+CREATE PUBLICATION
+ slot_name 
+-----------
+ sink_sub
+(1 row)
+
+You are now connected to database "sink_lab_pg" as user "postgres".
+CREATE TABLE
+CREATE SUBSCRIPTION
+ pg_sleep 
+----------
+ 
+(1 row)
+
+--- Run timestamp (UTC) ---
+      run_started_utc       
+----------------------------
+ 2026-10-10 16:34:50.800565
+(1 row)
+
+--- Initial copy: rows in the sink ---
+ sink_rows 
+-----------
+       100
+(1 row)
+
+=== PART A: subscription keeps up ===
+You are now connected to database "erasure_lab_pg" as user "postgres".
+DELETE 1
+You are now connected to database "sink_lab_pg" as user "postgres".
+ pg_sleep 
+----------
+ 
+(1 row)
+
+--- Subject 42 in the sink (no rows = delete propagated) ---
+ subscriber_id | full_name | email 
+---------------+-----------+-------
+(0 rows)
+
+=== PART B: subscription paused, slot dropped and recreated ===
+ALTER SUBSCRIPTION
+ pg_sleep 
+----------
+ 
+(1 row)
+
+You are now connected to database "erasure_lab_pg" as user "postgres".
+DELETE 1
+--- Slot state before it is dropped ---
+ slot_name | active | wal_status | unread_log 
+-----------+--------+------------+------------
+ sink_sub  | f      | reserved   | 13 kB
+(1 row)
+
+ pg_drop_replication_slot 
+--------------------------
+ 
+(1 row)
+
+ slot_name 
+-----------
+ sink_sub
+(1 row)
+
+You are now connected to database "sink_lab_pg" as user "postgres".
+ALTER SUBSCRIPTION
+ pg_sleep 
+----------
+ 
+(1 row)
+
+=== PART C: is replication still working? Insert subject 501 at the source ===
+You are now connected to database "erasure_lab_pg" as user "postgres".
+INSERT 0 1
+--- Subject 43 in the source ---
+ source_rows_for_subject_43 
+----------------------------
+                          0
+(1 row)
+
+ source_rows 
+-------------
+          99
+(1 row)
+
+You are now connected to database "sink_lab_pg" as user "postgres".
+ pg_sleep 
+----------
+ 
+(1 row)
+
+--- Subject 501 in the sink (a row = replication is running) ---
+ subscriber_id |   full_name    |           email            
+---------------+----------------+----------------------------
+           501 | Subject_000501 | subject501@example.invalid
+(1 row)
+
+--- Subject 43 in the sink (a row here = erased at source, still present downstream) ---
+ subscriber_id |   full_name    |           email           
+---------------+----------------+---------------------------
+            43 | Subject_000043 | subject43@example.invalid
+(1 row)
+
+ sink_rows 
+-----------
+       100
+(1 row)
+
+--- Subscription health as PostgreSQL reports it ---
+ subname  | subenabled 
+----------+------------
+ sink_sub | t
+(1 row)
+
+ subname  | apply_error_count | sync_error_count 
+----------+-------------------+------------------
+ sink_sub |                 0 |                0
+(1 row)
+

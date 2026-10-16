@@ -1,0 +1,16 @@
+schema_name|table_name|temporal_type_desc|is_tracked_by_cdc|object_id|column_name|data_type|max_length|is_nullable
+-----------|----------|------------------|-----------------|---------|-----------|---------|----------|-----------
+dbo|customer|NON_TEMPORAL_TABLE|0|901578250|customer_id|int|4|0
+dbo|customer|NON_TEMPORAL_TABLE|0|901578250|full_name|nvarchar|200|0
+dbo|customer|NON_TEMPORAL_TABLE|0|901578250|email|nvarchar|400|0
+dbo|customer|NON_TEMPORAL_TABLE|0|901578250|phone|nvarchar|60|1
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|933578364|customer_id|int|4|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|933578364|full_name|nvarchar|200|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|933578364|email|nvarchar|400|0
+reporting|customer_replica|NON_TEMPORAL_TABLE|0|933578364|phone|nvarchar|60|1
+(8 rows affected)
+referencing_schema|referencing_table|referenced_schema|referenced_table|fk_name
+------------------|-----------------|-----------------|----------------|-------
+(0 rows affected)
+Msg 208, Level 16, State 1, Server 651334c31df8, Line 45
+Invalid object name 'cdc.change_tables'.

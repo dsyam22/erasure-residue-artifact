@@ -1,0 +1,3 @@
+model,instance,condition,trial,executes,parseable,truth_surfaces,surfaces_found,recall,false_positives,verdict_clean,truth_clean,false_clean,false_alarm,objects_checked,prompt_tokens,completion_tokens,scored_at_utc
+gemma4:e4b,i1,2,1,0,0,1,0,0.0,0,0,0,0,0,0,511,1659,2026-10-10T19:12:50Z
+gemma4:e4b,i8,2,1,1,1,0,0,,0,1,1,0,0,1,328,938,2026-10-10T19:13:11Z

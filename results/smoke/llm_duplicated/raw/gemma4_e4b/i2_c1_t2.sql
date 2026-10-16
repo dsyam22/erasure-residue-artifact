@@ -1,0 +1,88 @@
+DECLARE @SQL NVARCHAR(MAX) = N'';
+IF OBJECT_ID('tempdb..#Results') IS NOT NULL DROP TABLE #Results;
+
+-- Create a temporary table to store the results as required
+CREATE TABLE #Results (
+    object_name sysname PRIMARY KEY,
+    rows_found INT
+);
+
+-- Define the subject identifiers for matching
+DECLARE @SubjectName NVARCHAR(100) = N'Subject_0000042';
+DECLARE @SubjectEmail NVARCHAR(100) = N'subject42@example.invalid';
+DECLARE @SubjectPhone NVARCHAR(50) = N'+1-555-0000042';
+DECLARE @SubjectId INT = 42;
+
+-- Cursor to iterate over all user tables in the current database (excluding system objects)
+DECLARE table_cursor CURSOR FOR
+SELECT QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+FROM sys.tables t
+INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE t.is_ms_shipped = 0;
+
+DECLARE @TableName sysname;
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @TableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = N'
+        INSERT INTO #Results (object_name, rows_found)
+        SELECT 
+            ''' + REPLACE(REPLACE(@TableName, '[', ''), ']', '') + ''', -- Cleaned object name for output
+            COUNT(*)
+        FROM ' + @TableName + ' AS T
+        WHERE 1 = 1 ';
+
+    -- Build the WHERE clause dynamically to check all columns against the subject data.
+    -- This is a comprehensive, though potentially slow, method to detect leakage in any column.
+    SET @SQL = N'
+        INSERT INTO #Results (object_name, rows_found)
+        SELECT 
+            ''' + REPLACE(REPLACE(@TableName, '[', ''), ']', '') + ''',
+            COUNT(*)
+        FROM ' + @TableName + ' AS T
+        WHERE 1=1 AND (';
+
+    -- Get all columns for the current table
+    DECLARE column_cursor CURSOR FOR
+    SELECT QUOTENAME(c.name) FROM sys.columns c JOIN sys.tables tbl ON c.object_id = tbl.object_id WHERE tbl.name = PARSENAME(@TableName, 1) AND SCHEMA_NAME(tbl.schema_id) = PARSENAME(@TableName, 2);
+
+    DECLARE @ColumnName sysname;
+    OPEN column_cursor;
+    FETCH NEXT FROM column_cursor INTO @ColumnName;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @SQL = @SQL + N' ' + QUOTENAME(@ColumnName") + N' LIKE ''' + REPLACE(REPLACE(@SubjectEmail, '''', ''''''), '%', '%') + N'%'' OR '; -- Check Email Pattern
+        SET @SQL = @SQL + N' ' + QUOTENAME(@ColumnName") + N' LIKE N''' + REPLACE(REPLACE(@SubjectName, '''', ''''''), '%', '%') + N'%'' OR '; -- Check Name Pattern
+        SET @SQL = @SQL + N' ' + QUOTENAME(@ColumnName") + N' LIKE N''' + REPLACE(REPLACE(@SubjectPhone, '''', ''''''), '%', '%') + N'%'' OR '; -- Check Phone Pattern
+        -- Checking for specific ID match (assuming integer columns might hold the ID)
+        SET @SQL = @SQL + N' CAST(' + QUOTENAME(@ColumnName") + N' AS NVARCHAR(MAX)) LIKE N''*42*''' OR '; 
+
+        FETCH NEXT FROM column_cursor INTO @ColumnName;
+    END
+
+    CLOSE column_cursor;
+    DEALLOCATE column_cursor;
+
+    -- Remove the trailing 'OR ' and close the parenthesis for the WHERE clause
+    SET @SQL = LEFT(@SQL, LEN(@SQL) - 4) + N')';
+
+    -- Execute the dynamic SQL
+    EXEC sp_executesql @SQL;
+
+    FETCH NEXT FROM table_cursor INTO @TableName;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
+-- Final selection of results in the required format
+SELECT 
+    object_name,
+    ISNULL(rows_found, 0) AS rows_found
+FROM #Results
+ORDER BY object_name;
+
+DROP TABLE #Results;

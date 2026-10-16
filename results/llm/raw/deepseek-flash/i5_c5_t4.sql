@@ -1,0 +1,25 @@
+-- SCRIPT
+DECLARE @subject_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+DECLARE @results TABLE (object_name sysname, rows_found bigint);
+
+INSERT INTO @results
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = @subject_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+INSERT INTO @results
+SELECT 'dbo.customer_history', COUNT(*)
+FROM dbo.customer_history
+WHERE customer_id = @subject_id
+   OR full_name = @full_name
+   OR email = @email
+   OR phone = @phone;
+
+SELECT object_name, rows_found FROM @results;

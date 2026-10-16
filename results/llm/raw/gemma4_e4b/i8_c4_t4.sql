@@ -1,0 +1,22 @@
+DECLARE @TargetCustomerID INT = 42;
+DECLARE @TargetFullName NVARCHAR(100) = 'Subject_0000042';
+DECLARE @TargetEmail NVARCHAR(200) = 'subject42@example.invalid';
+DECLARE @TargetPhone NVARCHAR(30) = '+1-555-0000042';
+
+WITH SearchResults AS (
+    SELECT 
+        CAST('dbo.customer' AS NVARCHAR(255)) AS object_name,
+        COUNT(*) AS rows_found
+    FROM 
+        dbo.customer
+    WHERE 
+        customer_id = @TargetCustomerID
+        AND full_name = @TargetFullName
+        AND email = @TargetEmail
+        AND phone = @TargetPhone
+)
+SELECT 
+    object_name, 
+    rows_found
+FROM 
+    SearchResults;

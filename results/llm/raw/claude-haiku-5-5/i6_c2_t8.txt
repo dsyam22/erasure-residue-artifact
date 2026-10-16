@@ -1,0 +1,33 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #scan_results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+-- dbo.customer: phone column was dropped, so check remaining columns for the subject's phone value
+INSERT INTO #scan_results (object_name, rows_found)
+SELECT N'dbo.customer',
+       COUNT(*)
+FROM dbo.customer AS c
+WHERE c.customer_id = 42
+  AND (
+        CAST(c.full_name AS nvarchar(max)) LIKE N'%+1-555-0000042%'
+     OR CAST(c.email     AS nvarchar(max)) LIKE N'%+1-555-0000042%'
+      );
+
+-- cdc.dbo_customer_CT: capture instance still captured phone, so historical change rows may hold it
+INSERT INTO #scan_results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+       COUNT(*)
+FROM cdc.dbo_customer_CT AS ct
+WHERE ct.customer_id = 42
+  AND ct.phone = N'+1-555-0000042';
+
+SELECT object_name, rows_found
+FROM #scan_results
+ORDER BY object_name;
+
+DROP TABLE #scan_results;
+```

@@ -1,0 +1,7 @@
+table_name|column_name
+----------|-----------
+customer_history|customer_id
+customer_history|full_name
+customer_history|email
+customer_history|phone
+(4 rows affected)

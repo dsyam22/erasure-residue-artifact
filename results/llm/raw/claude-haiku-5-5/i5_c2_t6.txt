@@ -1,0 +1,42 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @full  nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(320) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(50)  = N'+1-555-0000042';
+
+DECLARE @sql nvarchar(max);
+
+-- One SELECT branch per user table (including dbo.customer and dbo.customer_history).
+-- Each branch counts rows where any character column equals one of the subject's original values.
+-- Tables with no character columns are still reported, with 0.
+SELECT @sql = N'SELECT object_name, rows_found FROM (' +
+    STRING_AGG(CAST(
+        N'SELECT ' + QUOTENAME(s.name + N'.' + t.name, N'''') + N' AS object_name, ' +
+        N'CAST(COUNT(*) AS bigint) AS rows_found FROM ' +
+        QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+        N' WHERE ' + ISNULL(p.pred, N'1 = 0')
+        AS nvarchar(max)), N' UNION ALL ') WITHIN GROUP (ORDER BY s.name, t.name) +
+    N') AS x ORDER BY object_name;'
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY (
+    SELECT STRING_AGG(
+               CAST(QUOTENAME(c.name) + N' IN (@full, @email, @phone)' AS nvarchar(max)),
+               N' OR ') AS pred
+    FROM sys.columns AS c
+    JOIN sys.types AS ty
+        ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = t.object_id
+      AND ty.name IN (N'varchar', N'nvarchar', N'char', N'nchar')
+) AS p
+WHERE t.is_ms_shipped = 0;
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@full nvarchar(200), @email nvarchar(320), @phone nvarchar(50)',
+    @full = @full,
+    @email = @email,
+    @phone = @phone;
+```

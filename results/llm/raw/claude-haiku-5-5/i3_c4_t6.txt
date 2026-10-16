@@ -1,0 +1,53 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #r (
+    object_name nvarchar(300) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @obj nvarchar(300),
+        @cond nvarchar(max), @sql nvarchar(max), @n bigint;
+
+DECLARE c CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0;
+
+OPEN c;
+FETCH NEXT FROM c INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @obj = QUOTENAME(@schema) + N'.' + QUOTENAME(@table);
+    SET @cond = NULL;
+    SET @n = 0;
+
+    SELECT @cond = STRING_AGG(
+        CAST(N'(CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(col.name) + N') > 0'
+           + N' OR CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(col.name) + N') > 0'
+           + N' OR CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(col.name) + N') > 0)' AS nvarchar(max)),
+        N' OR ')
+    FROM sys.columns col
+    WHERE col.object_id = OBJECT_ID(@obj)
+      AND TYPE_NAME(col.user_type_id) IN ('nvarchar', 'varchar', 'nchar', 'char');
+
+    IF @cond IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM ' + @obj + N' WHERE ' + @cond + N';';
+        EXEC sp_executesql @sql, N'@n bigint OUTPUT', @n = @n OUTPUT;
+    END
+
+    INSERT INTO #r (object_name, rows_found) VALUES (@obj, @n);
+
+    FETCH NEXT FROM c INTO @schema, @table;
+END
+
+CLOSE c;
+DEALLOCATE c;
+
+SELECT object_name, rows_found
+FROM #r
+ORDER BY object_name;
+```

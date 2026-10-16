@@ -1,0 +1,6 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'OBJECT_SCHEMA'.
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 3
+Ambiguous column name 'name'.
+Msg 209, Level 16, State 1, Server 651334c31df8, Line 3
+Ambiguous column name 'name'.

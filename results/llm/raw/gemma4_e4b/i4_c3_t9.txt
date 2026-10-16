@@ -1,0 +1,62 @@
+```sql
+DECLARE @SubjectFullName NVARCHAR(256) = 'Subject_0000042';
+DECLARE @SubjectEmail NVARCHAR(256) = 'subject42@example.invalid';
+DECLARE @SubjectPhone NVARCHAR(50) = '+1-555-0000042';
+
+-- Temporary table to hold the results structure (Object Name, Row Count)
+CREATE TABLE #VerificationResults (
+    object_name SYSNAME NOT NULL,
+    rows_found INT NOT NULL
+);
+
+-- 1. Check dbo.customer (Current State)
+INSERT INTO #VerificationResults (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE full_name = @SubjectFullName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- 2. Check cdc.dbo_customer_CT (CDC Change Tracking Table)
+-- Note: This table primarily stores metadata/keys, but we check if the original PII values are stored in any of its columns.
+INSERT INTO #VerificationResults (object_name, rows_found)
+SELECT 'cdc.dbo_customer_CT', COUNT(DISTINCT customer_id) -- Counting unique IDs associated with potential changes
+FROM cdc.dbo_customer_CT
+WHERE EXISTS (
+    SELECT 1 FROM dbo.customer WHERE customer_id = cdc.dbo_customer_CT.customer_id
+      AND full_name = @SubjectFullName
+);
+
+-- 3. Check dbo.member (Current State)
+INSERT INTO #VerificationResults (object_name, rows_found)
+SELECT 'dbo.member', COUNT(*)
+FROM dbo.member
+WHERE full_name = @SubjectFullName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- 4. Check dbo.member_history (System Versioned Temporal History)
+INSERT INTO #VerificationResults (object_name, rows_found)
+SELECT 'dbo.member_history', COUNT(*)
+FROM dbo.member_history
+WHERE full_name = @SubjectFullName
+  AND email = @SubjectEmail
+  AND phone = @SubjectPhone;
+
+-- Final Selection: Ensure all required objects are present in the result set, even if no data was found (0 rows).
+SELECT 
+    object_name,
+    ISNULL(T.rows_found, 0) AS rows_found
+FROM (
+    VALUES
+        ('dbo.customer', 1),
+        ('cdc.dbo_customer_CT', 2),
+        ('dbo.member', 3),
+        ('dbo.member_history', 4)
+) AS ObjectList(object_name, object_order)
+LEFT JOIN #VerificationResults T ON T.object_name = ObjectList.object_name
+ORDER BY ObjectList.object_order;
+
+-- Clean up
+DROP TABLE #VerificationResults;
+```

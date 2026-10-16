@@ -1,0 +1,12 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 3
+Invalid column name 'COLUMN_NAME'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 4
+Invalid column name 'DATA_TYPE'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 4
+Invalid column name 'CHARACTER_MAXIMUM_LENGTH'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 14
+Invalid column name 'COLUMN_NAME'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 15
+Invalid column name 'DATA_TYPE'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 15
+Invalid column name 'CHARACTER_MAXIMUM_LENGTH'.

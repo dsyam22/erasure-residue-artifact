@@ -1,0 +1,92 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @customer_id int = 42;
+DECLARE @full_name nvarchar(200) = N'Subject_0000042';
+DECLARE @email nvarchar(200) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(200) = N'+1-555-0000042';
+
+IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results;
+
+CREATE TABLE #results (object_name nvarchar(776) NOT NULL, rows_found bigint NOT NULL);
+
+DECLARE @sql nvarchar(max);
+DECLARE @schema sysname, @table sysname, @history_schema sysname, @history_table sysname;
+
+DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+SELECT s.name, t.name
+FROM sys.tables AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
+  AND t.name NOT LIKE '%_history';
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @history_schema = NULL;
+    SET @history_table = NULL;
+
+    SELECT @history_schema = hs.name, @history_table = ht.name
+    FROM sys.tables AS ht
+    JOIN sys.schemas AS hs ON hs.schema_id = ht.schema_id
+    JOIN sys.tables AS t ON t.history_table_id = ht.object_id
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE s.name = @schema AND t.name = @table;
+
+    SET @sql = N'
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N''' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N''', COUNT_BIG(*)
+    FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N' AS src
+    WHERE EXISTS (
+        SELECT 1 FROM sys.columns AS c
+        WHERE c.object_id = OBJECT_ID(N''' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N''')
+          AND c.system_type_id IN (167, 231, 239, 175, 35)
+          AND (
+                (c.name = ''customer_id'' AND src.[customer_id] = @customer_id)
+             OR (c.name = ''full_name'' AND src.[full_name] = @full_name)
+             OR (c.name = ''email'' AND src.[email] = @email)
+             OR (c.name = ''phone'' AND src.[phone] = @phone)
+          )
+    );';
+
+    EXEC sp_executesql @sql,
+        N'@customer_id int, @full_name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+        @customer_id, @full_name, @email, @phone;
+
+    IF @history_table IS NOT NULL
+    BEGIN
+        SET @sql = N'
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N''' + QUOTENAME(@history_schema) + N'.' + QUOTENAME(@history_table) + N''', COUNT_BIG(*)
+        FROM ' + QUOTENAME(@history_schema) + N'.' + QUOTENAME(@history_table) + N' AS src
+        WHERE EXISTS (
+            SELECT 1 FROM sys.columns AS c
+            WHERE c.object_id = OBJECT_ID(N''' + QUOTENAME(@history_schema) + N'.' + QUOTENAME(@history_table) + N''')
+              AND c.system_type_id IN (167, 231, 239, 175, 35)
+              AND (
+                    (c.name = ''customer_id'' AND src.[customer_id] = @customer_id)
+                 OR (c.name = ''full_name'' AND src.[full_name] = @full_name)
+                 OR (c.name = ''email'' AND src.[email] = @email)
+                 OR (c.name = ''phone'' AND src.[phone] = @phone)
+              )
+        );';
+
+        EXEC sp_executesql @sql,
+            N'@customer_id int, @full_name nvarchar(200), @email nvarchar(200), @phone nvarchar(200)',
+            @customer_id, @full_name, @email, @phone;
+    END
+
+    FETCH NEXT FROM cur INTO @schema, @table;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

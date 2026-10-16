@@ -1,0 +1,56 @@
+DECLARE @needle nvarchar(4000) = N'+1-555-0000042';
+DECLARE @results TABLE (object_name sysname, rows_found int);
+
+/* dbo.customer: phone column was dropped, so check whether any remaining column still holds the phone number */
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.customer') AND name = N'phone')
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer', COUNT(*)
+    FROM dbo.customer
+    WHERE CAST(phone AS nvarchar(4000)) LIKE N'%' + @needle + N'%';
+END
+ELSE
+BEGIN
+    INSERT INTO @results (object_name, rows_found)
+    SELECT N'dbo.customer', COUNT(*)
+    FROM dbo.customer
+    WHERE CAST(full_name AS nvarchar(4000)) LIKE N'%' + @needle + N'%'
+       OR CAST(email AS nvarchar(4000)) LIKE N'%' + @needle + N'%';
+END
+
+/* Scan every string column in every user table for the phone number */
+DECLARE @schema sysname, @table sysname, @column sysname, @sql nvarchar(max);
+
+DECLARE col_cursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, c.name
+    FROM sys.columns c
+    JOIN sys.tables t ON t.object_id = c.object_id
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+    WHERE t.is_ms_shipped = 0
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext')
+    ORDER BY s.name, t.name, c.name;
+
+OPEN col_cursor;
+FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @sql = N'INSERT INTO @results (object_name, rows_found)
+                 SELECT N''' + REPLACE(@schema + N'.' + @table, N'''', N'''''') + N''', COUNT(*)
+                 FROM ' + QUOTENAME(@schema) + N'.' + QUOTENAME(@table) + N'
+                 WHERE CAST(' + QUOTENAME(@column) + N' AS nvarchar(max)) LIKE N''%'' + @needle + N''%'';';
+
+    EXEC sp_executesql @sql, N'@needle nvarchar(4000)', @needle = @needle;
+
+    FETCH NEXT FROM col_cursor INTO @schema, @table, @column;
+END
+
+CLOSE col_cursor;
+DEALLOCATE col_cursor;
+
+/* Return one row per object checked, summing duplicates from the per-column scan */
+SELECT object_name, SUM(rows_found) AS rows_found
+FROM @results
+GROUP BY object_name
+ORDER BY object_name;

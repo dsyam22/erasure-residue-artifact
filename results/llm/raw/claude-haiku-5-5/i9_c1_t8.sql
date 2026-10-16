@@ -1,0 +1,64 @@
+SET NOCOUNT ON;
+
+DECLARE @n nvarchar(200) = N'Subject_0000042';
+DECLARE @e nvarchar(200) = N'subject42@example.invalid';
+DECLARE @p nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(517) NOT NULL,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @objid int;
+DECLARE @where nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name, t.object_id
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl;
+FETCH NEXT FROM tbl INTO @schema, @table, @objid;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @where = NULL;
+    SET @cnt = 0;
+
+    SELECT @where = STRING_AGG(CAST(
+        N'(CHARINDEX(@n, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@e, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0 OR '
+      + N'CHARINDEX(@p, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+        AS nvarchar(max)), N' OR ')
+    FROM sys.columns AS c
+    JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+    WHERE c.object_id = @objid
+      AND ty.name IN (N'char', N'varchar', N'nchar', N'nvarchar', N'text', N'ntext', N'sysname');
+
+    IF @where IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @where + N';';
+
+        EXEC sp_executesql
+            @sql,
+            N'@n nvarchar(200), @e nvarchar(200), @p nvarchar(200), @cnt bigint OUTPUT',
+            @n = @n, @e = @e, @p = @p, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (CAST(QUOTENAME(@schema) + N'.' + QUOTENAME(@table) AS nvarchar(517)), @cnt);
+
+    FETCH NEXT FROM tbl INTO @schema, @table, @objid;
+END
+
+CLOSE tbl;
+DEALLOCATE tbl;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

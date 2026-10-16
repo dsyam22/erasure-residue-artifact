@@ -1,0 +1,15 @@
+Changed database context to 'master'.
+Changed database context to 'temporal_run'.
+--- F5 run started ---
+erased_at_utc eligible_for_cleanup_utc
+------------- ------------------------
+2026-10-10 16:47:18.9065017 2026-10-11 16:47:18.9065017
+name history_retention_period history_retention_period_unit_desc
+---- ------------------------ ----------------------------------
+member 1 DAY
+is_temporal_history_retention_enabled
+-------------------------------------
+1
+history_rows_direct rows_via_time_travel
+------------------- --------------------
+100 100

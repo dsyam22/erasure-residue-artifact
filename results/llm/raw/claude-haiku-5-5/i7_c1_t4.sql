@@ -1,0 +1,56 @@
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name sysname NOT NULL,
+    rows_found  bigint  NOT NULL
+);
+
+DECLARE @schema sysname, @table sysname, @pred nvarchar(max), @sql nvarchar(max), @cnt bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @pred = NULL;
+
+    -- Build a predicate over every character column of this table:
+    -- a row matches if any column contains the subject's full_name, email or phone.
+    SELECT @pred = STRING_AGG(CAST(
+        'CHARINDEX(N''Subject_0000042'', ' + QUOTENAME(c.name) + ') > 0 OR ' +
+        'CHARINDEX(N''subject42@example.invalid'', ' + QUOTENAME(c.name) + ') > 0 OR ' +
+        'CHARINDEX(N''+1-555-0000042'', ' + QUOTENAME(c.name) + ') > 0'
+        AS nvarchar(max)), ' OR ')
+    FROM sys.columns AS c
+    WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@table))
+      AND c.system_type_id IN (167, 175, 231, 239);  -- varchar, char, nvarchar, nchar
+
+    IF @pred IS NULL SET @pred = N'1 = 0';
+
+    SET @sql = N'SELECT @c = COUNT_BIG(*) FROM '
+             + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+             + N' WHERE (' + @pred + N');';
+
+    SET @cnt = 0;
+    EXEC sp_executesql @sql, N'@c bigint OUTPUT', @c = @cnt OUTPUT;
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, @cnt);
+
+    FETCH NEXT FROM tbl_cur INTO @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

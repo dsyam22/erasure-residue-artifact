@@ -1,0 +1,59 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @Results TABLE (
+    object_name NVARCHAR(500),
+    rows_found INT
+);
+
+-- Check the main table
+INSERT INTO @Results (object_name, rows_found)
+SELECT 
+    'dbo.customer', 
+    COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42 
+   OR full_name = 'Subject_0000042' 
+   OR email = 'subject42@example.invalid' 
+   OR phone = '+1-555-0000042';
+
+-- Check temporal history table if it exists
+DECLARE @HistoryTableId INT;
+DECLARE @HistorySchema NVARCHAR(128);
+DECLARE @HistoryName NVARCHAR(128);
+DECLARE @DynamicSQL NVARCHAR(MAX);
+DECLARE @HistoryRows INT;
+
+SELECT @HistoryTableId = history_table_id
+FROM sys.tables
+WHERE object_id = OBJECT_ID('dbo.customer') 
+  AND temporal_type = 2; -- SYSTEM_VERSIONED_TEMPORAL_TABLE
+
+IF @HistoryTableId IS NOT NULL
+BEGIN
+    SELECT 
+        @HistorySchema = SCHEMA_NAME(schema_id), 
+        @HistoryName = name
+    FROM sys.tables
+    WHERE object_id = @HistoryTableId;
+
+    SET @DynamicSQL = N'
+        SELECT @cnt = COUNT(*) 
+        FROM ' + QUOTENAME(@HistorySchema) + N'.' + QUOTENAME(@HistoryName) + N'
+        WHERE customer_id = 42 
+           OR full_name = ''Subject_0000042'' 
+           OR email = ''subject42@example.invalid'' 
+           OR phone = ''+1-555-0000042'';';
+
+    EXEC sp_executesql 
+        @DynamicSQL, 
+        N'@cnt INT OUTPUT', 
+        @cnt = @HistoryRows OUTPUT;
+
+    INSERT INTO @Results (object_name, rows_found)
+    VALUES (@HistorySchema + '.' + @HistoryName, ISNULL(@HistoryRows, 0));
+END
+
+SELECT object_name, rows_found
+FROM @Results;
+```

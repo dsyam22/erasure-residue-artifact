@@ -1,0 +1,78 @@
+DECLARE @customer_id int = 42;
+DECLARE @phone nvarchar(50) = N'+1-555-0000042';
+
+CREATE TABLE #results (
+    object_name nvarchar(255),
+    rows_found int
+);
+
+-- Check current dbo.customer table (phone column has been dropped, so no phone data possible)
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', 0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('dbo.customer')
+      AND c.name = 'phone'
+);
+
+-- Check CDC capture instance metadata for captured columns
+INSERT INTO #results (object_name, rows_found)
+SELECT N'cdc.dbo_customer_CT',
+    COUNT(*)
+FROM cdc.dbo_customer_CT
+WHERE customer_id = @customer_id
+  AND phone = @phone;
+
+-- Check if phone column still exists in CDC metadata (captured_columns)
+-- If phone column is not in captured columns, CDC cannot contain phone data
+IF NOT EXISTS (
+    SELECT 1
+    FROM cdc.captured_columns cc
+    JOIN cdc.change_tables ct ON cc.object_id = ct.object_id
+    WHERE ct.capture_instance = 'dbo_customer'
+      AND cc.column_name = 'phone'
+)
+BEGIN
+    UPDATE #results
+    SET rows_found = 0
+    WHERE object_name = N'cdc.dbo_customer_CT';
+END
+
+-- Check sys.columns for any table that still has phone column (none should)
+INSERT INTO #results (object_name, rows_found)
+SELECT 
+    s.name + N'.' + t.name,
+    0
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON c.object_id = t.object_id
+WHERE c.name = 'phone'
+  AND s.name + N'.' + t.name NOT IN (SELECT object_name FROM #results);
+
+-- Check database-level search for the phone number in any text column
+-- This catches any residual storage (e.g., in other tables, views, indexed views)
+DECLARE @sql nvarchar(max) = N'';
+SELECT @sql = @sql + 
+    N'INSERT INTO #results (object_name, rows_found) SELECT ''' + 
+    REPLACE(s.name, '''', '''''') + N'.' + REPLACE(t.name, '''', '''''') + 
+    N'.' + REPLACE(c.name, '''', '''''') + N''', COUNT(*) FROM [' + 
+    s.name + N'].[' + t.name + N'] WHERE [' + c.name + N'] = @phone; '
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+JOIN sys.columns c ON c.object_id = t.object_id
+WHERE c.system_type_id IN (
+    SELECT system_type_id FROM sys.types 
+    WHERE name IN ('varchar','nvarchar','char','nchar','text','ntext')
+)
+AND s.name + N'.' + t.name NOT IN (SELECT object_name FROM #results)
+AND c.name <> 'phone'; -- skip phone column since already handled
+
+EXEC sp_executesql @sql, N'@phone nvarchar(50)', @phone = @phone;
+
+-- Return final results
+SELECT object_name, ISNULL(rows_found, 0) AS rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;

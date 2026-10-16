@@ -1,0 +1,48 @@
+Msg 262, Level 14, State 1, Server 651334c31df8, Line 4
+VIEW DATABASE PERFORMANCE STATE permission denied in database 'llm_i3'.
+Msg 297, Level 16, State 1, Server 651334c31df8, Line 4
+The user does not have permission to perform this action.
+info_type|schema_name|object_name|column_name|data_type|max_length|is_nullable
+---------|-----------|-----------|-----------|---------|----------|-----------
+column|cdc|captured_columns|column_name|sysname|256|0
+column|cdc|change_tables|role_name|sysname|256|1
+column|cdc|change_tables|index_name|sysname|256|1
+column|cdc|change_tables|filegroup_name|sysname|256|1
+column|cdc|dbo_customer_CT|__$update_mask|varbinary|128|1
+column|cdc|dbo_customer_CT|customer_id|int|4|1
+column|cdc|dbo_customer_CT|full_name|nvarchar|200|1
+column|cdc|dbo_customer_CT|email|nvarchar|400|1
+column|cdc|dbo_customer_CT|phone|nvarchar|60|1
+column|cdc|index_columns|column_name|sysname|256|0
+column|cdc|lsn_time_mapping|tran_id|varbinary|10|1
+column|dbo|customer|customer_id|int|4|0
+column|dbo|customer|full_name|nvarchar|200|0
+column|dbo|customer|email|nvarchar|400|0
+column|dbo|customer|phone|nvarchar|60|1
+column|dbo|member|member_id|int|4|0
+column|dbo|member|full_name|nvarchar|200|0
+column|dbo|member|email|nvarchar|400|0
+column|dbo|member|phone|nvarchar|60|1
+column|dbo|member_history|member_id|int|4|0
+column|dbo|member_history|full_name|nvarchar|200|0
+column|dbo|member_history|email|nvarchar|400|0
+column|dbo|member_history|phone|nvarchar|60|1
+(23 rows affected)
+info_type|child_schema|child_table|parent_schema|parent_table|fk_name|delete_referential_action_desc
+---------|------------|-----------|-------------|------------|-------|------------------------------
+(0 rows affected)
+info_type|schema_name|object_name|type_desc|mentions_contact_fields
+---------|-----------|-----------|---------|-----------------------
+module|cdc|fn_cdc_get_all_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|1
+module|cdc|fn_cdc_get_net_changes_dbo_customer|SQL_INLINE_TABLE_VALUED_FUNCTION|1
+module|cdc|sp_insdel_1333579789|SQL_STORED_PROCEDURE|1
+module|cdc|sp_upd_1333579789|SQL_STORED_PROCEDURE|1
+module|cdc|sp_batchinsert_1333579789|SQL_STORED_PROCEDURE|1
+(5 rows affected)
+info_type|schema_name|table_name|trigger_name|is_disabled
+---------|-----------|----------|------------|-----------
+(0 rows affected)
+info_type|schema_name|table_name|detail
+---------|-----------|----------|------
+cdc_capture_instance|dbo|customer|dbo_customer
+(1 rows affected)

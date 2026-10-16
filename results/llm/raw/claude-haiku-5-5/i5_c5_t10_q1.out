@@ -1,0 +1,5 @@
+schema_name|table_name|temporal_type_desc|history_table_name|is_tracked_by_cdc
+-----------|----------|------------------|------------------|-----------------
+dbo|customer|SYSTEM_VERSIONED_TEMPORAL_TABLE|customer_history|0
+dbo|customer_history|HISTORY_TABLE|NULL|0
+(2 rows affected)

@@ -1,0 +1,24 @@
+```sql
+WITH CheckResults AS (
+    -- Checking dbo.customer
+    SELECT
+        'dbo.customer' AS object_name,
+        CAST(COUNT(*) AS INT) AS rows_found
+    FROM dbo.customer
+    WHERE full_name = 'Subject_0000042'
+      AND email = 'subject42@example.invalid'
+      AND phone = '+1-555-0000042'
+
+    UNION ALL
+
+    -- Checking dbo.member
+    SELECT
+        'dbo.member' AS object_name,
+        CAST(COUNT(*) AS INT) AS rows_found
+    FROM dbo.member
+    WHERE full_name = 'Subject_0000042'
+      AND email = 'subject42@example.invalid'
+      AND phone = '+1-555-0000042'
+)
+SELECT object_name, rows_found FROM CheckResults;
+```

@@ -1,0 +1,23 @@
+```sql
+-- SCRIPT
+SET NOCOUNT ON;
+
+DECLARE @cid int = 42;
+DECLARE @full nvarchar(4000) = N'Subject_0000042';
+DECLARE @email nvarchar(4000) = N'subject42@example.invalid';
+DECLARE @phone nvarchar(4000) = N'+1-555-0000042';
+
+SELECT
+    object_name,
+    rows_found
+FROM (
+    SELECT
+        'dbo.customer' AS object_name,
+        COUNT_BIG(*) AS rows_found
+    FROM dbo.customer
+    WHERE customer_id = @cid
+       OR full_name = @full
+       OR email = @email
+       OR phone = @phone
+) AS x;
+```

@@ -1,0 +1,66 @@
+```sql
+SET NOCOUNT ON;
+
+CREATE TABLE #results (
+    object_name NVARCHAR(257),
+    rows_found BIGINT
+);
+
+-- Check main table
+INSERT INTO #results (object_name, rows_found)
+SELECT N'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = N'Subject_0000042'
+   OR email = N'subject42@example.invalid'
+   OR phone = N'+1-555-0000042';
+
+-- Check temporal history table (if it exists)
+IF OBJECT_ID('dbo.customer_history', 'U') IS NOT NULL
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.customer_history', COUNT(*)
+    FROM dbo.customer_history
+    WHERE customer_id = 42
+       OR full_name = N'Subject_0000042'
+       OR email = N'subject42@example.invalid'
+       OR phone = N'+1-555-0000042';
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'dbo.customer_history', 0;
+END;
+
+-- Check CDC change tables (if CDC is enabled on database)
+IF EXISTS (SELECT 1 FROM sys.change_tracking_databases WHERE database_id = DB_ID())
+BEGIN
+    IF OBJECT_ID('cdc.dbo_customer_CT', 'U') IS NOT NULL
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N'cdc.dbo_customer_CT', COUNT(*)
+        FROM cdc.dbo_customer_CT
+        WHERE customer_id = 42
+           OR full_name = N'Subject_0000042'
+           OR email = N'subject42@example.invalid'
+           OR phone = N'+1-555-0000042';
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #results (object_name, rows_found)
+        SELECT N'cdc.dbo_customer_CT', 0;
+    END;
+END
+ELSE
+BEGIN
+    INSERT INTO #results (object_name, rows_found)
+    SELECT N'cdc.dbo_customer_CT', 0;
+END;
+
+-- Return final result set
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+
+DROP TABLE #results;
+```

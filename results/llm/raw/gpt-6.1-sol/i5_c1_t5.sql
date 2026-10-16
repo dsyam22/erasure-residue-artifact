@@ -1,0 +1,121 @@
+/*
+  Checks logical rows in all user tables (including temporal history tables)
+  and indexed views in llm_i5.
+
+  Searches character, XML, and sql_variant columns for the original name,
+  email, or phone, and columns named customer_id for the original identifier.
+
+  Requires SELECT permission on every checked object and complete metadata
+  visibility. Row-level security must not hide rows from this session.
+
+  This does not verify transaction logs, backups, deallocated pages, or
+  other physical remnants that are not exposed as queryable rows.
+*/
+DECLARE @sql nvarchar(max);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(o.object_name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            N'[llm_i5].' + QUOTENAME(o.schema_name) + N'.' +
+            QUOTENAME(o.table_name) + N' AS d WHERE ' +
+            COALESCE(p.predicate, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM
+(
+    SELECT
+        t.object_id,
+        s.name AS schema_name,
+        t.name AS table_name,
+        s.name + N'.' + t.name AS object_name
+    FROM [llm_i5].sys.tables AS t
+    JOIN [llm_i5].sys.schemas AS s
+        ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+
+    UNION ALL
+
+    SELECT
+        v.object_id,
+        s.name,
+        v.name,
+        s.name + N'.' + v.name
+    FROM [llm_i5].sys.views AS v
+    JOIN [llm_i5].sys.schemas AS s
+        ON s.schema_id = v.schema_id
+    WHERE v.is_ms_shipped = 0
+      AND EXISTS
+      (
+          SELECT 1
+          FROM [llm_i5].sys.indexes AS i
+          WHERE i.object_id = v.object_id
+            AND i.index_id = 1
+            AND i.is_hypothetical = 0
+      )
+) AS o
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'(' +
+            CASE
+                WHEN c.system_type_id IN
+                     (35, 99, 167, 175, 231, 239, 241, 98)
+                THEN
+                    N'CHARINDEX(@full_name, TRY_CONVERT(nvarchar(max), d.' +
+                    QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(@email, TRY_CONVERT(nvarchar(max), d.' +
+                    QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0 OR ' +
+                    N'CHARINDEX(@phone, TRY_CONVERT(nvarchar(max), d.' +
+                    QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0'
+                ELSE N'1 = 0'
+            END +
+            CASE
+                WHEN c.name COLLATE Latin1_General_100_CI_AS = N'customer_id'
+                THEN
+                    N' OR TRY_CONVERT(nvarchar(max), d.' +
+                    QUOTENAME(c.name) + N') = @customer_id'
+                ELSE N''
+            END +
+            N')'
+        ),
+        N' OR '
+    ) AS predicate
+    FROM [llm_i5].sys.columns AS c
+    WHERE c.object_id = o.object_id
+      AND
+      (
+          c.system_type_id IN (35, 99, 167, 175, 231, 239, 241, 98)
+          OR c.name COLLATE Latin1_General_100_CI_AS = N'customer_id'
+      )
+) AS p;
+
+SELECT @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CONVERT(nvarchar(517), NULL) AS object_name,
+                     CONVERT(bigint, NULL) AS rows_found
+              WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS findings ORDER BY object_name;'
+    END;
+
+-- Executes only the SELECT assembled above; performs no data modifications.
+EXEC [llm_i5].sys.sp_executesql
+    @sql,
+    N'@customer_id nvarchar(20),
+      @full_name nvarchar(100),
+      @email nvarchar(320),
+      @phone nvarchar(100)',
+    @customer_id = N'42',
+    @full_name = N'Subject_0000042',
+    @email = N'subject42@example.invalid',
+    @phone = N'+1-555-0000042';

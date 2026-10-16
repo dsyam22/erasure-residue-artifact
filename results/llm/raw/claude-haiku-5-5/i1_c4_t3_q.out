@@ -1,0 +1,4 @@
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 80
+Invalid column name 'begin_lsn'.
+Msg 207, Level 16, State 1, Server 651334c31df8, Line 80
+Invalid column name 'is_track_columns_updated_on'.

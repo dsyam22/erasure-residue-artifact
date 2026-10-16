@@ -1,0 +1,9 @@
+table_name|column_name
+----------|-----------
+customer|customer_id
+customer|full_name
+customer|email
+customer|phone
+customer|valid_from
+customer|valid_to
+(6 rows affected)

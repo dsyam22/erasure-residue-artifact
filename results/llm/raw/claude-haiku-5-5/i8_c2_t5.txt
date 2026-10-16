@@ -1,0 +1,74 @@
+```sql
+SET NOCOUNT ON;
+
+DECLARE @p1 nvarchar(200) = N'Subject_0000042';
+DECLARE @p2 nvarchar(200) = N'subject42@example.invalid';
+DECLARE @p3 nvarchar(200) = N'+1-555-0000042';
+
+CREATE TABLE #results
+(
+    object_name nvarchar(300) NOT NULL PRIMARY KEY,
+    rows_found  bigint        NOT NULL
+);
+
+DECLARE @oid    int,
+        @schema sysname,
+        @table  sysname,
+        @pred   nvarchar(max),
+        @sql    nvarchar(max),
+        @cnt    bigint;
+
+DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
+    SELECT t.object_id, s.name, t.name
+    FROM sys.tables AS t
+    JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+    WHERE t.is_ms_shipped = 0
+    ORDER BY s.name, t.name;
+
+OPEN tbl_cur;
+FETCH NEXT FROM tbl_cur INTO @oid, @schema, @table;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @cnt = 0;
+    SET @pred = NULL;
+
+    -- Build predicate over all character/xml columns of this table
+    SET @pred = (
+        SELECT STUFF((
+            SELECT N' OR (CHARINDEX(@p1, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+                 + N' OR CHARINDEX(@p2, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0'
+                 + N' OR CHARINDEX(@p3, CAST(' + QUOTENAME(c.name) + N' AS nvarchar(max))) > 0)'
+            FROM sys.columns AS c
+            WHERE c.object_id = @oid
+              AND c.system_type_id IN (167, 175, 231, 239, 241) -- varchar, char, nvarchar, nchar, xml
+            ORDER BY c.column_id
+            FOR XML PATH(N''), TYPE
+        ).value('.', 'nvarchar(max)'), 1, 4, N'')
+    );
+
+    IF @pred IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @cnt = COUNT_BIG(*) FROM '
+                 + QUOTENAME(@schema) + N'.' + QUOTENAME(@table)
+                 + N' WHERE ' + @pred + N';';
+
+        EXEC sys.sp_executesql
+            @sql,
+            N'@p1 nvarchar(200), @p2 nvarchar(200), @p3 nvarchar(200), @cnt bigint OUTPUT',
+            @p1 = @p1, @p2 = @p2, @p3 = @p3, @cnt = @cnt OUTPUT;
+    END
+
+    INSERT INTO #results (object_name, rows_found)
+    VALUES (@schema + N'.' + @table, ISNULL(@cnt, 0));
+
+    FETCH NEXT FROM tbl_cur INTO @oid, @schema, @table;
+END
+
+CLOSE tbl_cur;
+DEALLOCATE tbl_cur;
+
+SELECT object_name, rows_found
+FROM #results
+ORDER BY object_name;
+```

@@ -1,0 +1,80 @@
+SET NOCOUNT ON;
+
+DECLARE @results TABLE (object_name nvarchar(500), rows_found int);
+
+-- Check dbo.customer for any remaining rows with original data
+INSERT INTO @results (object_name, rows_found)
+SELECT 'dbo.customer', COUNT(*)
+FROM dbo.customer
+WHERE customer_id = 42
+   OR full_name = 'Subject_0000042'
+   OR email = 'subject42@example.invalid'
+   OR phone = '+1-555-0000042';
+
+-- Check all tables for columns that might contain the original data
+DECLARE @sql nvarchar(max) = '';
+
+SELECT @sql = @sql + 
+    'INSERT INTO @results (object_name, rows_found) ' +
+    'SELECT ''' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ''', ' +
+    'COUNT(*) FROM ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) +
+    ' WHERE ' +
+    STUFF((
+        SELECT ' OR ' + QUOTENAME(c.name) + ' = N''Subject_0000042'' OR ' + 
+               QUOTENAME(c.name) + ' = N''subject42@example.invalid'' OR ' +
+               QUOTENAME(c.name) + ' = N''+1-555-0000042'''
+        FROM sys.columns c
+        WHERE c.object_id = t.object_id
+          AND c.user_type_id IN (SELECT user_type_id FROM sys.types WHERE name IN ('nvarchar','varchar','char','nchar','text','ntext'))
+        FOR XML PATH(''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 4, '') + ';'
+FROM sys.tables t
+WHERE SCHEMA_NAME(t.schema_id) = 'dbo'
+  AND t.name <> 'customer';
+
+-- Execute dynamic SQL if any exists
+IF @sql IS NOT NULL AND LEN(@sql) > 0
+BEGIN
+    DECLARE @cursor CURSOR;
+    SET @cursor = CURSOR FOR
+    SELECT @sql;
+    
+    -- Actually execute each statement
+    DECLARE @stmt nvarchar(max);
+    DECLARE @table_cursor CURSOR;
+    SET @table_cursor = CURSOR FOR
+    SELECT 
+        'INSERT INTO @results (object_name, rows_found) ' +
+        'SELECT ''' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ''', ' +
+        'COUNT(*) FROM ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) +
+        ' WHERE ' +
+        STUFF((
+            SELECT ' OR ' + QUOTENAME(c.name) + ' = N''Subject_0000042'' OR ' + 
+                   QUOTENAME(c.name) + ' = N''subject42@example.invalid'' OR ' +
+                   QUOTENAME(c.name) + ' = N''+1-555-0000042'''
+            FROM sys.columns c
+            WHERE c.object_id = t.object_id
+              AND c.user_type_id IN (SELECT user_type_id FROM sys.types WHERE name IN ('nvarchar','varchar','char','nchar','text','ntext'))
+            FOR XML PATH(''), TYPE
+        ).value('.', 'nvarchar(max)'), 1, 4, '') + ';'
+    FROM sys.tables t
+    WHERE SCHEMA_NAME(t.schema_id) = 'dbo'
+      AND t.name <> 'customer';
+
+    OPEN @table_cursor;
+    FETCH NEXT FROM @table_cursor INTO @stmt;
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        EXEC sp_executesql @stmt, N'@results TABLE (object_name nvarchar(500), rows_found int)', @results = @results;
+        FETCH NEXT FROM @table_cursor INTO @stmt;
+    END;
+    
+    CLOSE @table_cursor;
+    DEALLOCATE @table_cursor;
+END
+
+-- Return final results
+SELECT object_name, rows_found
+FROM @results
+ORDER BY object_name;

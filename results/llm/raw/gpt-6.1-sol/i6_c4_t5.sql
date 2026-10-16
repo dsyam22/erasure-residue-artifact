@@ -1,0 +1,62 @@
+DECLARE @phone nvarchar(30) = N'+1-555-0000042';
+DECLARE @sql nvarchar(max);
+DECLARE @phone_hex_varchar varchar(120) =
+    CONVERT(varchar(120), CONVERT(varbinary(60), CONVERT(varchar(30), N'+1-555-0000042')), 2);
+DECLARE @phone_hex_nvarchar varchar(120) =
+    CONVERT(varchar(120), CONVERT(varbinary(60), N'+1-555-0000042'), 2);
+
+SELECT @sql =
+    STRING_AGG(
+        CONVERT(nvarchar(max),
+            N'SELECT N''' +
+            REPLACE(s.name + N'.' + t.name, N'''', N'''''') +
+            N''' AS object_name, COUNT_BIG(*) AS rows_found FROM ' +
+            QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) +
+            N' WHERE ' + COALESCE(p.predicate, N'1 = 0')
+        ),
+        N' UNION ALL '
+    )
+FROM sys.tables AS t
+JOIN sys.schemas AS s
+    ON s.schema_id = t.schema_id
+OUTER APPLY
+(
+    SELECT STRING_AGG(
+        CONVERT(nvarchar(max),
+            CASE
+                WHEN c.system_type_id IN (34, 165, 173)
+                THEN
+                    N'(CHARINDEX(@hex_varchar, CONVERT(varchar(max), ' +
+                    QUOTENAME(c.name) + N', 2)) > 0 OR ' +
+                    N'CHARINDEX(@hex_nvarchar, CONVERT(varchar(max), ' +
+                    QUOTENAME(c.name) + N', 2)) > 0)'
+                ELSE
+                    N'CHARINDEX(@phone, CONVERT(nvarchar(max), ' +
+                    QUOTENAME(c.name) +
+                    N') COLLATE Latin1_General_100_BIN2) > 0'
+            END
+        ),
+        N' OR '
+    ) AS predicate
+    FROM sys.columns AS c
+    WHERE c.object_id = t.object_id
+      AND c.system_type_id IN
+          (35, 99, 167, 175, 231, 239, 241, 98, 34, 165, 173)
+) AS p;
+
+SELECT @sql =
+    CASE
+        WHEN @sql IS NULL THEN
+            N'SELECT CAST(NULL AS nvarchar(517)) AS object_name,
+                     CAST(NULL AS bigint) AS rows_found WHERE 1 = 0;'
+        ELSE
+            N'SELECT object_name, rows_found FROM (' + @sql +
+            N') AS findings ORDER BY object_name;'
+    END;
+
+EXEC sys.sp_executesql
+    @sql,
+    N'@phone nvarchar(30), @hex_varchar varchar(120), @hex_nvarchar varchar(120)',
+    @phone = @phone,
+    @hex_varchar = @phone_hex_varchar,
+    @hex_nvarchar = @phone_hex_nvarchar;

@@ -1,0 +1,41 @@
+schema_name|table_name|column_name|data_type|max_length|is_nullable|is_identity
+-----------|----------|-----------|---------|----------|-----------|-----------
+dbo|customer|customer_id|int|4|0|0
+dbo|customer|full_name|nvarchar|200|0|0
+dbo|customer|email|nvarchar|400|0|0
+dbo|customer|phone|nvarchar|60|1|0
+dbo|customer|valid_from|datetime2|8|0|0
+dbo|customer|valid_to|datetime2|8|0|0
+dbo|customer_history|customer_id|int|4|0|0
+dbo|customer_history|full_name|nvarchar|200|0|0
+dbo|customer_history|email|nvarchar|400|0|0
+dbo|customer_history|phone|nvarchar|60|1|0
+dbo|customer_history|valid_from|datetime2|8|0|0
+dbo|customer_history|valid_to|datetime2|8|0|0
+(12 rows affected)
+schema_name|object_name|type_desc
+-----------|-----------|---------
+dbo|customer|USER_TABLE
+dbo|customer_history|USER_TABLE
+dbo|PK__customer__CD65CB85CC564D83|PRIMARY_KEY_CONSTRAINT
+(3 rows affected)
+schema_name|view_name|definition
+-----------|---------|----------
+(0 rows affected)
+schema_name|object_name|type_desc|definition
+-----------|-----------|---------|----------
+(0 rows affected)
+schema_name|table_name|index_name|type_desc|is_unique|has_filter|filter_definition
+-----------|----------|----------|---------|---------|----------|-----------------
+dbo|customer|PK__customer__CD65CB85CC564D83|CLUSTERED|1|0|NULL
+dbo|customer_history|ix_customer_history|CLUSTERED|0|0|NULL
+(2 rows affected)
+schema_name|table_name|column_name|data_type
+-----------|----------|-----------|---------
+dbo|customer|full_name|nvarchar
+dbo|customer|email|nvarchar
+dbo|customer|phone|nvarchar
+dbo|customer_history|full_name|nvarchar
+dbo|customer_history|email|nvarchar
+dbo|customer_history|phone|nvarchar
+(6 rows affected)
